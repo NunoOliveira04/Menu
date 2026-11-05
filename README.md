@@ -9,15 +9,20 @@ Plataforma SaaS leve de menus digitais para restaurantes (Grupo 1 do MVP), const
 ## Funcionalidades incluídas
 
 - **Autenticação de Proprietários (`email` + `password`)** via Supabase Auth (`/login`, `/registar`) e fluxo de criação do 1.º restaurante (`/onboarding`).
+  - **Limite de criação inicial:** a RPC `create_owner_restaurant` recusa automaticamente chamadas quando o utilizador autenticado já possui qualquer registo em `restaurant_members` (no Grupo 1 cada conta cria apenas o seu 1.º restaurante no onboarding; a tabela `restaurant_members` permanece N:N para suportar equipas/convites).
 - **Base de Dados Multi-Restaurante com Row Level Security (RLS)** em todas as tabelas:
   - `restaurants`: `slug` único, `name`, `description`, `location`, `style` (`classico` | `moderno` | `escuro`), `published` e `settings` (`jsonb` com módulos opcionais `languages`, `allergens`, `highlights`, `hours` **desligados por defeito**).
+    - **Permissões granulares de edição:** membros (`manager`, `editor`) podem atualizar dados gerais/tema/módulos, mas **alterar o `slug` ou publicar/despublicar (`published`) é exclusivo do papel `owner`** (imposto tanto na Server Action como na política RLS `restaurants_update_member`).
   - `restaurant_members`: controlo de acesso por restaurante (`owner`, `manager`, `editor`).
-  - `categories`: ordenação explícita por `position`.
-  - `dishes`: `name`, `description`, `price_cents`, `photo_url`, `available`, `position`, `translations` (`jsonb`).
-  - Bucket `dish-photos` no Supabase Storage com políticas isoladas por pasta `<restaurant_id>/...` e validação de tipo MIME (`jpeg`, `png`, `webp`, `avif`) e tamanho máximo (5 MB).
+  - `categories`: ordenação explícita por `position` com reordenação atómica via RPC transacional (`reorder_categories`).
+  - `dishes`: `name`, `description`, `price_cents`, `photo_url` (caminho do objeto no Storage ou URL externo na seed), `available`, `position`, `translations` (`jsonb`) com reordenação atómica via RPC transacional (`reorder_dishes`).
+- **Armazenamento Privado de Fotografias (`dish-photos`)**:
+  - Bucket configurado como **privado (`public = false`)** com políticas RLS `SELECT` / `INSERT` / `UPDATE` / `DELETE` isoladas por pasta `<restaurant_id>/...` (leitura permitida apenas se o restaurante estiver `published = true` ou o utilizador for membro).
+  - Fotografias servidas através de **signed URLs gerados no servidor** (`createSignedUrls` com TTL de 1 hora / 3600 s) tanto no menu público como no painel.
+  - Validação no servidor antes do upload: tamanho máximo (5 MB), tipo MIME declarado **e inspeção binária de magic bytes** para JPEG, PNG, WebP e AVIF.
 - **Painel de Gestão em PT-PT (`/dashboard`)**:
   - CRUD completo de categorias e pratos com Server Actions validadas por **Zod**.
-  - Reordenação de categorias e pratos (`position`), ativação/indisponibilidade rápida e upload/remoção de fotografias.
+  - Reordenação transacional de categorias e pratos, ativação/indisponibilidade rápida e upload/remoção de fotografias.
   - Edição das definições do restaurante, publicação, escolha de tema e interruptores dos módulos opcionais (`/dashboard/restaurante`).
   - Cartão com **Código QR** gerado no servidor (download em **PNG** e **SVG vetorial**) + cópia rápida do link público.
 - **Menu Público Mobile-First (`/r/[slug]`)**:
@@ -105,6 +110,13 @@ npm test
 # Build de produção
 npm run build
 ```
+
+---
+
+## Limitações Atuais (Grupo 1)
+
+- **1 restaurante criado por conta via onboarding:** `create_owner_restaurant` bloqueia a criação caso o utilizador já tenha qualquer membership ativa em `restaurant_members`.
+- **Módulos opcionais:** os interruptores (`languages`, `allergens`, `highlights`, `hours`) já são guardados em `restaurants.settings.modules` (desligados por defeito), ficando a edição dedicada de cada módulo para os próximos grupos do roadmap.
 
 ---
 

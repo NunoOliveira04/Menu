@@ -4,9 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { buildDishPhotoStoragePath } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
+import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
 import { createClient } from '@/lib/supabase/server';
 import { moveItemInList } from '@/lib/utils/reorder';
 import {
+  MAX_DISH_PHOTO_BYTES,
   createDishSchema,
   deleteDishSchema,
   reorderDishSchema,
@@ -35,30 +37,28 @@ async function revalidateRestaurantMenu(restaurantId: string) {
   }
 }
 
-function extractStoragePathFromPublicUrl(photoUrl: string | null): string | null {
-  if (!photoUrl) {
-    return null;
-  }
-  const marker = '/storage/v1/object/public/dish-photos/';
-  const index = photoUrl.indexOf(marker);
-  if (index === -1) {
-    return null;
-  }
-  return decodeURIComponent(photoUrl.slice(index + marker.length));
-}
-
 async function uploadValidatedPhoto(
   restaurantId: string,
   fileEntry: FormDataEntryValue | null,
-): Promise<{ ok: true; publicUrl: string | null } | { ok: false; error: string }> {
+): Promise<{ ok: true; objectPath: string | null } | { ok: false; error: string }> {
   if (!(fileEntry instanceof File) || fileEntry.size === 0) {
-    return { ok: true, publicUrl: null };
+    return { ok: true, objectPath: null };
   }
 
+  // Verificar tamanho antes de ler o buffer inteiro para memória
+  if (fileEntry.size > MAX_DISH_PHOTO_BYTES) {
+    return {
+      ok: false,
+      error: 'A fotografia excede o tamanho máximo permitido de 5 MB.',
+    };
+  }
+
+  const arrayBuffer = await fileEntry.arrayBuffer();
   const validation = validateDishPhotoFile({
     size: fileEntry.size,
     type: fileEntry.type,
     name: fileEntry.name,
+    bytes: arrayBuffer,
   });
 
   if (!validation.valid) {
@@ -69,12 +69,10 @@ async function uploadValidatedPhoto(
   const storagePath = buildDishPhotoStoragePath(restaurantId, uniqueName);
 
   const supabase = await createClient();
-  const arrayBuffer = await fileEntry.arrayBuffer();
-
   const { error: uploadError } = await supabase.storage
-    .from('dish-photos')
+    .from(DISH_PHOTOS_BUCKET)
     .upload(storagePath, arrayBuffer, {
-      contentType: fileEntry.type,
+      contentType: validation.mimeType,
       upsert: false,
     });
 
@@ -85,8 +83,9 @@ async function uploadValidatedPhoto(
     };
   }
 
-  const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(storagePath);
-  return { ok: true, publicUrl: urlData.publicUrl };
+  // Guardamos o caminho interno no bucket privado (`<restaurant_id>/<ficheiro>`);
+  // os signed URLs são gerados no servidor no momento da leitura.
+  return { ok: true, objectPath: storagePath };
 }
 
 export async function createDishAction(
@@ -147,13 +146,16 @@ export async function createDishAction(
     name: parsed.data.name,
     description: parsed.data.description || null,
     price_cents: parsed.data.priceCents,
-    photo_url: photoUpload.publicUrl,
+    photo_url: photoUpload.objectPath,
     available: parsed.data.available,
     position: nextPosition,
     translations: {},
   });
 
   if (error) {
+    if (photoUpload.objectPath) {
+      await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoUpload.objectPath]);
+    }
     return { status: 'error', message: 'Não foi possível criar o prato.' };
   }
 
@@ -216,19 +218,13 @@ export async function updateDishAction(
     };
   }
 
-  let nextPhotoUrl = currentDish.photo_url;
-  const oldStoragePath = extractStoragePathFromPublicUrl(currentDish.photo_url);
+  let nextPhotoRef = currentDish.photo_url;
+  const oldStoragePath = resolveDishPhotoObjectPath(currentDish.photo_url);
 
-  if (photoUpload.publicUrl) {
-    nextPhotoUrl = photoUpload.publicUrl;
-    if (oldStoragePath) {
-      await supabase.storage.from('dish-photos').remove([oldStoragePath]);
-    }
+  if (photoUpload.objectPath) {
+    nextPhotoRef = photoUpload.objectPath;
   } else if (parsed.data.removePhoto) {
-    nextPhotoUrl = null;
-    if (oldStoragePath) {
-      await supabase.storage.from('dish-photos').remove([oldStoragePath]);
-    }
+    nextPhotoRef = null;
   }
 
   const { error } = await supabase
@@ -238,14 +234,21 @@ export async function updateDishAction(
       name: parsed.data.name,
       description: parsed.data.description || null,
       price_cents: parsed.data.priceCents,
-      photo_url: nextPhotoUrl,
+      photo_url: nextPhotoRef,
       available: parsed.data.available,
     })
     .eq('id', parsed.data.dishId)
     .eq('restaurant_id', parsed.data.restaurantId);
 
   if (error) {
+    if (photoUpload.objectPath) {
+      await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoUpload.objectPath]);
+    }
     return { status: 'error', message: 'Não foi possível guardar as alterações ao prato.' };
+  }
+
+  if (oldStoragePath && (photoUpload.objectPath || parsed.data.removePhoto)) {
+    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([oldStoragePath]);
   }
 
   await revalidateRestaurantMenu(parsed.data.restaurantId);
@@ -290,9 +293,9 @@ export async function deleteDishAction(formData: FormData): Promise<ActionState>
     return { status: 'error', message: 'Não foi possível eliminar o prato.' };
   }
 
-  const oldPath = extractStoragePathFromPublicUrl(currentDish?.photo_url ?? null);
+  const oldPath = resolveDishPhotoObjectPath(currentDish?.photo_url);
   if (oldPath) {
-    await supabase.storage.from('dish-photos').remove([oldPath]);
+    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([oldPath]);
   }
 
   await revalidateRestaurantMenu(parsed.data.restaurantId);
@@ -373,15 +376,15 @@ export async function reorderDishAction(formData: FormData): Promise<ActionState
   const normalized = dishes.map((d, idx) => ({ id: d.id, position: idx }));
   const reordered = moveItemInList(normalized, parsed.data.dishId, parsed.data.direction);
 
-  await Promise.all(
-    reordered.map((item) =>
-      supabase
-        .from('dishes')
-        .update({ position: item.position })
-        .eq('id', item.id)
-        .eq('restaurant_id', parsed.data.restaurantId),
-    ),
-  );
+  const { error: rpcError } = await supabase.rpc('reorder_dishes', {
+    p_restaurant_id: parsed.data.restaurantId,
+    p_category_id: parsed.data.categoryId,
+    p_ordered_ids: reordered.map((item) => item.id),
+  });
+
+  if (rpcError) {
+    return { status: 'error', message: 'Não foi possível atualizar a ordem dos pratos.' };
+  }
 
   await revalidateRestaurantMenu(parsed.data.restaurantId);
   return { status: 'success', message: 'Ordem dos pratos atualizada.' };

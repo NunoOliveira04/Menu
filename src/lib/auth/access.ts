@@ -51,6 +51,33 @@ export function isRestaurantOwner(
   );
 }
 
+export function canCreateFirstRestaurant(
+  userId: string | null | undefined,
+  memberships: readonly MembershipRecord[],
+): boolean {
+  if (!userId) {
+    return false;
+  }
+  return !memberships.some((member) => member.user_id === userId);
+}
+
+export function canMemberApplyRestaurantUpdate(params: {
+  role: RestaurantMemberRole | null | undefined;
+  currentSlug: string;
+  nextSlug: string;
+  currentPublished: boolean;
+  nextPublished: boolean;
+}): boolean {
+  const { role, currentSlug, nextSlug, currentPublished, nextPublished } = params;
+  if (!role || !VALID_ROLES.has(role)) {
+    return false;
+  }
+  if (role === 'owner') {
+    return true;
+  }
+  return currentSlug === nextSlug && currentPublished === nextPublished;
+}
+
 export function canViewRestaurantMenu(
   restaurant: RestaurantVisibilityRecord,
   userId?: string | null,

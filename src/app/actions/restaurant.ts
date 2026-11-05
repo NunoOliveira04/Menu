@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { canMemberApplyRestaurantUpdate } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { createRestaurantSchema, updateRestaurantSchema } from '@/lib/validations/schemas';
@@ -62,6 +63,14 @@ export async function createFirstRestaurantAction(
       };
     }
 
+    if (error.code === 'P0001') {
+      return {
+        status: 'error',
+        message:
+          'Esta conta já pertence a um restaurante. No MVP apenas é permitida a criação inicial do primeiro restaurante.',
+      };
+    }
+
     return {
       status: 'error',
       message: 'Não foi possível criar o restaurante. Tenta novamente.',
@@ -84,14 +93,58 @@ export async function updateRestaurantAction(
     };
   }
 
+  const role = await verifyUserRestaurantAccess(
+    user.userId,
+    String(formData.get('restaurantId') ?? ''),
+  );
+  if (!role) {
+    return {
+      status: 'error',
+      message: 'Não tens permissão para editar este restaurante.',
+    };
+  }
+
+  const supabase = await createClient();
+  const restaurantIdInput = String(formData.get('restaurantId') ?? '');
+
+  const { data: currentRestaurant, error: currentError } = await supabase
+    .from('restaurants')
+    .select('id, slug, published')
+    .eq('id', restaurantIdInput)
+    .maybeSingle();
+
+  if (currentError || !currentRestaurant) {
+    return {
+      status: 'error',
+      message: 'Restaurante não encontrado.',
+    };
+  }
+
+  // Se os campos slug/published estiverem disabled na UI de não-owners, faz fallback ao valor atual;
+  // se um não-owner enviar valores diferentes no POST, rejeita explicitamente.
+  const rawSlugEntry = formData.get('slug');
+  const rawPublishedPresent = formData.has('published');
+
+  const submittedSlug =
+    typeof rawSlugEntry === 'string' && rawSlugEntry.trim().length > 0
+      ? rawSlugEntry
+      : currentRestaurant.slug;
+
+  const submittedPublished =
+    role === 'owner'
+      ? formData.get('published') === 'on' || formData.get('published') === 'true'
+      : rawPublishedPresent
+        ? formData.get('published') === 'on' || formData.get('published') === 'true'
+        : currentRestaurant.published;
+
   const parsed = updateRestaurantSchema.safeParse({
-    restaurantId: formData.get('restaurantId'),
+    restaurantId: restaurantIdInput,
     name: formData.get('name'),
-    slug: formData.get('slug'),
+    slug: submittedSlug,
     description: formData.get('description') ?? '',
     location: formData.get('location') ?? '',
     style: formData.get('style') ?? 'classico',
-    published: formData.get('published') === 'on' || formData.get('published') === 'true',
+    published: submittedPublished,
     modules: {
       languages: formData.get('module_languages') === 'on',
       allergens: formData.get('module_allergens') === 'on',
@@ -108,21 +161,21 @@ export async function updateRestaurantAction(
     };
   }
 
-  const role = await verifyUserRestaurantAccess(user.userId, parsed.data.restaurantId);
-  if (!role) {
+  if (
+    !canMemberApplyRestaurantUpdate({
+      role,
+      currentSlug: currentRestaurant.slug,
+      nextSlug: parsed.data.slug,
+      currentPublished: currentRestaurant.published,
+      nextPublished: parsed.data.published,
+    })
+  ) {
     return {
       status: 'error',
-      message: 'Não tens permissão para editar este restaurante.',
+      message:
+        'Apenas o proprietário (owner) pode publicar/despublicar o menu ou alterar o identificador (slug).',
     };
   }
-
-  const supabase = await createClient();
-
-  const { data: previous } = await supabase
-    .from('restaurants')
-    .select('slug')
-    .eq('id', parsed.data.restaurantId)
-    .maybeSingle();
 
   const settingsPayload: Json = {
     modules: {
@@ -157,6 +210,14 @@ export async function updateRestaurantAction(
       };
     }
 
+    if (error.code === '42501') {
+      return {
+        status: 'error',
+        message:
+          'Apenas o proprietário (owner) tem permissão para alterar o slug ou o estado de publicação.',
+      };
+    }
+
     return {
       status: 'error',
       message: 'Ocorreu um erro ao guardar as alterações do restaurante.',
@@ -165,8 +226,8 @@ export async function updateRestaurantAction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/restaurante');
-  if (previous?.slug && previous.slug !== parsed.data.slug) {
-    revalidatePath(`/r/${previous.slug}`);
+  if (currentRestaurant.slug !== parsed.data.slug) {
+    revalidatePath(`/r/${currentRestaurant.slug}`);
   }
   revalidatePath(`/r/${parsed.data.slug}`);
 

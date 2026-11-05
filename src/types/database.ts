@@ -208,6 +208,21 @@ export interface Database {
         };
         Returns: Database['public']['Tables']['restaurants']['Row'];
       };
+      reorder_categories: {
+        Args: {
+          p_restaurant_id: string;
+          p_ordered_ids: string[];
+        };
+        Returns: undefined;
+      };
+      reorder_dishes: {
+        Args: {
+          p_restaurant_id: string;
+          p_category_id: string;
+          p_ordered_ids: string[];
+        };
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

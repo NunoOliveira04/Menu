@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PublicMenuView } from '@/components/menu/public-menu-view';
+import { attachSignedDishPhotoUrls } from '@/lib/storage/dish-photos';
 import { createClient } from '@/lib/supabase/server';
 
 interface PublicMenuPageProps {
@@ -48,7 +49,7 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
     notFound();
   }
 
-  const [{ data: categories }, { data: dishes }] = await Promise.all([
+  const [{ data: categories }, { data: rawDishes }] = await Promise.all([
     supabase
       .from('categories')
       .select('*')
@@ -63,11 +64,13 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
       .order('created_at', { ascending: true }),
   ]);
 
+  const dishes = await attachSignedDishPhotoUrls(supabase, rawDishes ?? []);
+
   return (
     <PublicMenuView
       restaurant={restaurant}
       categories={categories ?? []}
-      dishes={dishes ?? []}
+      dishes={dishes}
       isDraftPreview={!restaurant.published}
     />
   );

@@ -26,7 +26,7 @@ export default async function DashboardRestaurantSettingsPage() {
         </p>
       </div>
 
-      <RestaurantSettingsForm restaurant={context.restaurant} />
+      <RestaurantSettingsForm restaurant={context.restaurant} role={context.role} />
     </div>
   );
 }

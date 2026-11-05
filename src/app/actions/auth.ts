@@ -97,19 +97,37 @@ export async function registerOwnerAction(
       ? baseSlug
       : `restaurante-${Math.random().toString(36).slice(2, 7)}`;
 
-    const { error: rpcError } = await supabase.rpc('create_owner_restaurant', {
+    const { error: firstRpcError } = await supabase.rpc('create_owner_restaurant', {
       p_name: restaurantName,
       p_slug: candidateSlug,
       p_style: 'classico',
     });
 
-    if (rpcError && rpcError.code === '23505') {
-      const fallbackSlug = `${candidateSlug.slice(0, 55)}-${Math.random().toString(36).slice(2, 6)}`;
-      await supabase.rpc('create_owner_restaurant', {
-        p_name: restaurantName,
-        p_slug: fallbackSlug,
-        p_style: 'classico',
-      });
+    if (firstRpcError) {
+      if (firstRpcError.code === '23505') {
+        const fallbackSlug = `${candidateSlug.slice(0, 55)}-${Math.random().toString(36).slice(2, 6)}`;
+        const { error: retryRpcError } = await supabase.rpc('create_owner_restaurant', {
+          p_name: restaurantName,
+          p_slug: fallbackSlug,
+          p_style: 'classico',
+        });
+
+        if (retryRpcError) {
+          return {
+            status: 'error',
+            message:
+              'A tua conta foi criada, mas não foi possível criar automaticamente o restaurante (identificador indisponível). Acede a /onboarding para escolher outro endereço.',
+          };
+        }
+      } else {
+        return {
+          status: 'error',
+          message:
+            firstRpcError.code === 'P0001'
+              ? 'Esta conta já está associada a um restaurante.'
+              : 'A tua conta foi criada, mas ocorreu um erro ao criar o primeiro restaurante. Conclui a configuração em /onboarding.',
+        };
+      }
     }
 
     revalidatePath('/', 'layout');

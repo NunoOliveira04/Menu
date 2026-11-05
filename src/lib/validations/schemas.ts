@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { isReservedSlug, isValidSlug } from '@/lib/utils/slug';
 import { parseEuroToCents } from '@/lib/utils/price';
+import { detectImageSignature, type AllowedImageMimeType } from './image-signature';
 
-export const ALLOWED_IMAGE_MIME_TYPES = [
+export const ALLOWED_IMAGE_MIME_TYPES: readonly AllowedImageMimeType[] = [
   'image/jpeg',
   'image/png',
   'image/webp',
@@ -182,12 +183,14 @@ export interface PhotoValidationInput {
   size: number;
   type: string;
   name?: string;
+  bytes?: ArrayBuffer | Uint8Array;
 }
 
 export type PhotoValidationResult =
-  { valid: true; extension: string } | { valid: false; error: string };
+  | { valid: true; extension: 'jpg' | 'png' | 'webp' | 'avif'; mimeType: AllowedImageMimeType }
+  | { valid: false; error: string };
 
-const MIME_TO_EXTENSION: Record<(typeof ALLOWED_IMAGE_MIME_TYPES)[number], string> = {
+const MIME_TO_EXTENSION: Record<AllowedImageMimeType, 'jpg' | 'png' | 'webp' | 'avif'> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
@@ -201,13 +204,6 @@ export function validateDishPhotoFile(
     return { valid: false, error: 'Nenhum ficheiro de imagem selecionado.' };
   }
 
-  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type as (typeof ALLOWED_IMAGE_MIME_TYPES)[number])) {
-    return {
-      valid: false,
-      error: 'Formato inválido. Usa uma imagem JPEG, PNG, WebP ou AVIF.',
-    };
-  }
-
   if (file.size > MAX_DISH_PHOTO_BYTES) {
     return {
       valid: false,
@@ -215,6 +211,43 @@ export function validateDishPhotoFile(
     };
   }
 
-  const extension = MIME_TO_EXTENSION[file.type as (typeof ALLOWED_IMAGE_MIME_TYPES)[number]];
-  return { valid: true, extension };
+  // Se os bytes foram fornecidos (obrigatório na Server Action antes do upload),
+  // validamos a assinatura real (magic bytes) e exigimos coerência com o tipo declarado.
+  if (file.bytes !== undefined) {
+    const signature = detectImageSignature(file.bytes);
+    if (!signature) {
+      return {
+        valid: false,
+        error:
+          'O conteúdo do ficheiro não corresponde a uma imagem JPEG, PNG, WebP ou AVIF válida.',
+      };
+    }
+
+    if (file.type && file.type !== signature.mimeType) {
+      return {
+        valid: false,
+        error: 'O tipo MIME declarado não coincide com o formato real da imagem.',
+      };
+    }
+
+    return {
+      valid: true,
+      extension: signature.extension,
+      mimeType: signature.mimeType,
+    };
+  }
+
+  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type as AllowedImageMimeType)) {
+    return {
+      valid: false,
+      error: 'Formato inválido. Usa uma imagem JPEG, PNG, WebP ou AVIF.',
+    };
+  }
+
+  const mimeType = file.type as AllowedImageMimeType;
+  return {
+    valid: true,
+    extension: MIME_TO_EXTENSION[mimeType],
+    mimeType,
+  };
 }

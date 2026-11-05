@@ -203,15 +203,14 @@ export async function reorderCategoryAction(formData: FormData): Promise<ActionS
   const normalized = categories.map((cat, idx) => ({ id: cat.id, position: idx }));
   const reordered = moveItemInList(normalized, parsed.data.categoryId, parsed.data.direction);
 
-  await Promise.all(
-    reordered.map((item) =>
-      supabase
-        .from('categories')
-        .update({ position: item.position })
-        .eq('id', item.id)
-        .eq('restaurant_id', parsed.data.restaurantId),
-    ),
-  );
+  const { error: rpcError } = await supabase.rpc('reorder_categories', {
+    p_restaurant_id: parsed.data.restaurantId,
+    p_ordered_ids: reordered.map((item) => item.id),
+  });
+
+  if (rpcError) {
+    return { status: 'error', message: 'Não foi possível atualizar a ordem das categorias.' };
+  }
 
   await revalidateRestaurantMenu(parsed.data.restaurantId);
   return { status: 'success', message: 'Ordem das categorias atualizada.' };

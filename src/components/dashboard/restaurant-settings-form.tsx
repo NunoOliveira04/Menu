@@ -5,20 +5,22 @@ import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { MENU_THEMES } from '@/lib/themes/registry';
-import type { RestaurantRow, RestaurantStyle } from '@/types/database';
+import type { RestaurantMemberRole, RestaurantRow, RestaurantStyle } from '@/types/database';
 
 interface RestaurantSettingsFormProps {
   restaurant: RestaurantRow;
+  role: RestaurantMemberRole;
 }
 
 const STYLE_OPTIONS: RestaurantStyle[] = ['classico', 'moderno', 'escuro'];
 
-export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormProps) {
+export function RestaurantSettingsForm({ restaurant, role }: RestaurantSettingsFormProps) {
   const [state, formAction, isPending] = useActionState(
     updateRestaurantAction,
     INITIAL_ACTION_STATE,
   );
   const settings = parseRestaurantSettings(restaurant.settings);
+  const isOwner = role === 'owner';
 
   return (
     <form action={formAction} className="space-y-8" noValidate>
@@ -70,17 +72,29 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
             <label htmlFor="slug" className="block text-sm font-medium text-stone-800">
               Identificador único (slug)
             </label>
-            <div className="mt-1.5 flex items-center rounded-xl border border-stone-300 bg-white focus-within:border-[#8C3B2B] focus-within:ring-2 focus-within:ring-[#8C3B2B]/20">
+            <div
+              className={`mt-1.5 flex items-center rounded-xl border border-stone-300 ${
+                isOwner
+                  ? 'bg-white focus-within:border-[#8C3B2B] focus-within:ring-2 focus-within:ring-[#8C3B2B]/20'
+                  : 'bg-stone-100 opacity-75'
+              }`}
+            >
               <span className="select-none pl-3.5 pr-1 text-sm text-stone-400">/r/</span>
               <input
                 id="slug"
                 name="slug"
                 type="text"
                 required
+                disabled={!isOwner}
                 defaultValue={restaurant.slug}
-                className="block w-full rounded-r-xl border-0 bg-transparent py-2.5 pr-3.5 text-sm text-stone-900 focus:outline-none"
+                className="block w-full rounded-r-xl border-0 bg-transparent py-2.5 pr-3.5 text-sm text-stone-900 focus:outline-none disabled:cursor-not-allowed"
               />
             </div>
+            {!isOwner && (
+              <p className="mt-1 text-xs text-stone-500">
+                Apenas o proprietário (owner) pode alterar o endereço público.
+              </p>
+            )}
             {state.fieldErrors?.slug?.[0] && (
               <p className="mt-1 text-xs text-red-600">{state.fieldErrors.slug[0]}</p>
             )}
@@ -116,12 +130,17 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
         </div>
 
         <div className="mt-6 rounded-xl border border-stone-200 bg-stone-50 p-4">
-          <label className="flex cursor-pointer items-start gap-3">
+          <label
+            className={`flex items-start gap-3 ${
+              isOwner ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
+            }`}
+          >
             <input
               type="checkbox"
               name="published"
+              disabled={!isOwner}
               defaultChecked={restaurant.published}
-              className="mt-1 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
+              className="mt-1 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B] disabled:cursor-not-allowed"
             />
             <div>
               <span className="block text-sm font-semibold text-stone-900">
@@ -131,6 +150,7 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                 Quando ativo, qualquer pessoa com o link ou código QR pode consultar a ementa.
                 Quando desligado, apenas membros autenticados do restaurante a conseguem
                 pré-visualizar.
+                {!isOwner && ' (Reservado ao proprietário.)'}
               </span>
             </div>
           </label>
