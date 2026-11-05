@@ -4,7 +4,7 @@ import { BookOpen, ExternalLink, LogOut, Settings, UtensilsCrossed } from 'lucid
 import { logoutAction } from '@/app/actions/auth';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
 
-export default async function DashboardLayout({
+export default async function AdminPanelLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/onboarding');
+    redirect('/admin/onboarding');
   }
 
   const { restaurant } = context;
@@ -23,7 +23,7 @@ export default async function DashboardLayout({
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
+            <Link href="/admin" className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#8C3B2B] text-white">
                 <BookOpen className="h-4 w-4" aria-hidden="true" />
               </span>
@@ -39,14 +39,14 @@ export default async function DashboardLayout({
 
             <nav aria-label="Secções do painel" className="flex items-center gap-1">
               <Link
-                href="/dashboard"
+                href="/admin"
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950"
               >
                 <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden="true" />
                 Ementa
               </Link>
               <Link
-                href="/dashboard/restaurante"
+                href="/admin/restaurante"
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950"
               >
                 <Settings className="h-3.5 w-3.5" aria-hidden="true" />

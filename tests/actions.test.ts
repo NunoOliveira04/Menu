@@ -95,7 +95,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
     expect(result.status).toBe('error');
   });
 
-  it('registerOwnerAction faz redirect para /dashboard apenas quando create_owner_restaurant sucede', async () => {
+  it('registerOwnerAction faz redirect para /admin apenas quando create_owner_restaurant sucede', async () => {
     mockSignUp.mockResolvedValue({
       data: { session: { access_token: 'tok' }, user: { id: USER_ID } },
       error: null,
@@ -110,7 +110,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
     fd.set('restaurantName', 'Tasca do Castelo');
 
     await expect(registerOwnerAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow(
-      'NEXT_REDIRECT:/dashboard',
+      'NEXT_REDIRECT:/admin',
     );
     expect(mockRpc).toHaveBeenCalledTimes(2);
   });
@@ -652,5 +652,40 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
       p_category_id: CATEGORY_A,
       p_ordered_ids: [DISH_2, DISH_1],
     });
+  });
+
+  it('redireciona /dashboard/* para /admin/* com 308 e protege /admin excepto login e registo', async () => {
+    mockGetClaims.mockResolvedValue({ data: { claims: null } });
+
+    const legacy = await updateSession(
+      new NextRequest('http://localhost:3000/dashboard/restaurante?tab=tema'),
+    );
+    expect(legacy.status).toBe(308);
+    expect(legacy.headers.get('location')).toBe('http://localhost:3000/admin/restaurante?tab=tema');
+
+    const loginLegacy = await updateSession(new NextRequest('http://localhost:3000/login'));
+    expect(loginLegacy.status).toBe(308);
+    expect(loginLegacy.headers.get('location')).toBe('http://localhost:3000/admin/login');
+
+    const protectedAdmin = await updateSession(
+      new NextRequest('http://localhost:3000/admin/onboarding'),
+    );
+    expect(protectedAdmin.status).toBe(307);
+    const loginLocation = protectedAdmin.headers.get('location') ?? '';
+    expect(loginLocation).toContain('/admin/login');
+    expect(loginLocation).toContain('next=%2Fadmin%2Fonboarding');
+
+    const publicLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));
+    expect(publicLogin.status).toBe(200);
+
+    const publicRegister = await updateSession(
+      new NextRequest('http://localhost:3000/admin/registar'),
+    );
+    expect(publicRegister.status).toBe(200);
+
+    mockGetClaims.mockResolvedValue({ data: { claims: { sub: USER_ID } } });
+    const authedLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));
+    expect(authedLogin.status).toBe(307);
+    expect(authedLogin.headers.get('location')).toBe('http://localhost:3000/admin');
   });
 });

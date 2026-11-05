@@ -14,12 +14,12 @@ export const metadata: Metadata = {
   title: 'Gerir Ementa',
 };
 
-export default async function DashboardMenuPage() {
+export default async function AdminMenuPage() {
   const user = await requireAuthenticatedUser();
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/onboarding');
+    redirect('/admin/onboarding');
   }
 
   const { restaurant } = context;

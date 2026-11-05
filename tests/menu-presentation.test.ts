@@ -1,0 +1,87 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { selectMenuHero, showsHouseBadge } from '@/lib/menu/hero';
+import {
+  isProtectedAdminPath,
+  isPublicAdminAuthPath,
+  resolveLegacyAdminRedirect,
+} from '@/lib/routing/admin-paths';
+import { MENU_THEMES, resolveMenuTheme } from '@/lib/themes/registry';
+
+describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => {
+  it('mapeia rotas legadas para /admin e protege tudo excepto login e registo', () => {
+    expect(resolveLegacyAdminRedirect('/dashboard')).toBe('/admin');
+    expect(resolveLegacyAdminRedirect('/dashboard/restaurante')).toBe('/admin/restaurante');
+    expect(resolveLegacyAdminRedirect('/login')).toBe('/admin/login');
+    expect(resolveLegacyAdminRedirect('/registar')).toBe('/admin/registar');
+    expect(resolveLegacyAdminRedirect('/onboarding')).toBe('/admin/onboarding');
+    expect(resolveLegacyAdminRedirect('/r/tasca-do-castelo')).toBeNull();
+
+    expect(isProtectedAdminPath('/admin')).toBe(true);
+    expect(isProtectedAdminPath('/admin/restaurante')).toBe(true);
+    expect(isProtectedAdminPath('/admin/onboarding')).toBe(true);
+    expect(isProtectedAdminPath('/admin/login')).toBe(false);
+    expect(isProtectedAdminPath('/admin/registar')).toBe(false);
+    expect(isPublicAdminAuthPath('/admin/login')).toBe(true);
+    expect(isPublicAdminAuthPath('/admin')).toBe(false);
+  });
+
+  it('escolhe uma foto de prato para o hero e só mostra «Da casa» no selo featured', () => {
+    const hero = selectMenuHero([
+      {
+        name: 'Pataniscas',
+        photoUrl: 'https://images.unsplash.com/photo-pataniscas',
+        highlight: null,
+        available: true,
+      },
+      {
+        name: 'Bacalhau',
+        photoUrl: 'https://images.unsplash.com/photo-bacalhau',
+        highlight: 'featured',
+        available: true,
+      },
+    ]);
+    expect(hero).toEqual({
+      photoUrl: 'https://images.unsplash.com/photo-bacalhau',
+      name: 'Bacalhau',
+    });
+
+    expect(
+      selectMenuHero([{ name: 'Sem foto', photoUrl: null, highlight: null, available: true }]),
+    ).toBeNull();
+    expect(showsHouseBadge('featured', true)).toBe(true);
+    expect(showsHouseBadge('recommended', true)).toBe(false);
+    expect(showsHouseBadge('featured', false)).toBe(false);
+  });
+
+  it('o tema clássico é a Tasca Contemporânea com tokens de azulejo e tijolo', () => {
+    const classic = resolveMenuTheme('classico');
+    expect(classic.label).toBe('Tasca Contemporânea');
+    expect(classic.ornament).toBe('azulejo');
+    expect(classic.cssVars['--color-bg']).toBe('#F5EFE6');
+    expect(classic.cssVars['--color-text']).toBe('#2B2B2B');
+    expect(classic.cssVars['--color-azulejo']).toBe('#1F3A5F');
+    expect(classic.cssVars['--color-accent']).toBe('#B5452B');
+    expect(classic.cssVars['--color-card']).toBe('#FFFFFF');
+    expect(classic.cssVars['--color-muted']).toBe('#6B6B6B');
+    expect(MENU_THEMES.moderno.ornament).toBe('rule');
+    expect(MENU_THEMES.escuro.ornament).toBe('rule');
+    expect(resolveMenuTheme('desconhecido').id).toBe('classico');
+  });
+
+  it('o menu público não tem secção Em Destaque e a seed só usa fotos de comida', () => {
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    expect(view).not.toContain('sec-destaques');
+    expect(view).not.toContain('highlightsSectionTitle');
+    expect(view).not.toContain('Em Destaque');
+
+    const seed = readFileSync(resolve(process.cwd(), 'supabase/seed.sql'), 'utf8');
+    expect(seed).not.toContain('picsum.photos');
+    expect(seed).toContain('images.unsplash.com');
+    expect(seed).toContain('images.pexels.com');
+  });
+});

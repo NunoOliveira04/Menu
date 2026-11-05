@@ -1,28 +1,33 @@
 # Ementa Digital — Menus Digitais Multi-Restaurante
 
-Plataforma SaaS leve de menus digitais para restaurantes (Grupos 1 e 2 do MVP), construída com **Next.js App Router**, **TypeScript (`strict`)**, **Tailwind CSS** e **Supabase (`@supabase/ssr`)**, preparada para alojamento gratuito em **Vercel** + **Supabase Free Tier**.
+Plataforma SaaS leve de menus digitais para restaurantes (Grupos 1, 2 e 3 do MVP), construída com **Next.js App Router**, **TypeScript (`strict`)**, **Tailwind CSS** e **Supabase (`@supabase/ssr`)**, preparada para alojamento gratuito em **Vercel** + **Supabase Free Tier**.
 
-> **Escopo atual (Grupos 1 + 2):** apenas consulta e gestão de ementas digitais (categorias, pratos, fotografias, temas visuais, código QR e módulos opcionais). Sem encomendas, reservas, pagamentos ou planos comerciais.
+> **Escopo atual (Grupos 1 + 2 + 3):** apenas consulta e gestão de ementas digitais (categorias, pratos, fotografias, temas visuais, código QR e módulos opcionais). Sem encomendas, reservas, pagamentos ou planos comerciais. Sem GitHub Actions.
 
 ---
 
 ## Funcionalidades incluídas
 
-- **Autenticação de Proprietários (`email` + `password`)** via Supabase Auth (`/login`, `/registar`) e fluxo de criação do 1.º restaurante (`/onboarding`).
+- **Autenticação de Proprietários (`email` + `password`)** via Supabase Auth em **`/admin/login`** e **`/admin/registar`**, com criação do 1.º restaurante em **`/admin/onboarding`**. O painel (CRUD de categorias e pratos, fotos, preços, módulos, tema e publicar) vive em **`/admin`** e **`/admin/restaurante`**.
+  - Rotas antigas `/dashboard`, `/dashboard/*`, `/login`, `/registar` e `/onboarding` respondem **308** para o equivalente em `/admin`.
+  - O middleware protege `/admin/*` excepto login e registo.
+  - O redirect de confirmação de email aponta para `/admin`. No Supabase, o allow-list tem de cobrir **`/admin/**`**.
   - **Limite de criação inicial:** a RPC `create_owner_restaurant` recusa chamadas quando o utilizador autenticado já possui qualquer registo em `restaurant_members`.
 - **Módulos Opcionais por Restaurante** (desligados por defeito; quando desligados, não aparecem nem no painel nem no menu público):
   - **`languages` (PT / EN):** edição de traduções em inglês para categorias, pratos e descrição do restaurante (`translations` JSONB), seletor acessível no menu público (`/r/[slug]?lang=en`), `hreflang` alternates (`pt-PT`, `en`, `x-default`), atributo `lang` no `<html>` e fallback automático para português.
   - **`allergens` (14 Alergénios da UE):** seleção dos 14 alergénios oficiais do Regulamento (UE) 1169/2011 por prato, com etiquetas acessíveis numeradas nos pratos e legenda completa no fundo do menu.
-  - **`highlights` (Destaques):** marcação de pratos como _Destaque da Casa_, _Recomendado pelo Chef_ ou _Novo na Carta_, com selos nos pratos e secção dedicada no topo do menu.
+  - **`highlights` (Destaques):** marcação interna de pratos. No menu público **não existe secção «Em Destaque»**. Só o selo pontual **«Da casa»** (tijolo) aparece quando o prato está marcado como destaque da casa.
   - **`hours` (Horário Semanal):** editor dos 7 dias da semana (até 2 turnos por dia ou encerrado) via RPC transacional `upsert_restaurant_hours`, exibido no menu com cálculo automático de **Aberto agora / Encerrado de momento** no fuso `Europe/Lisbon` (incluindo horário de verão e turnos após a meia-noite).
-- **Três Temas Visuais Completos (contraste AA + Mobile-First)**:
-  - **Clássico Editorial** (`classico`), **Moderno Minimal** (`moderno`) e **Noturno Elegante** (`escuro`), com pré-visualização interativa ao vivo em `/dashboard/restaurante`.
+- **Três Temas Visuais (contraste AA + mobile-first)**, com tokens CSS (`--color-*`, `--font-*`, `--radius-*`):
+  - **Tasca Contemporânea** (`classico`, default da demo): Fraunces 600 + Inter 16px, fundo `#F5EFE6`, texto `#2B2B2B`, azulejo `#1F3A5F`, tijolo `#B5452B`. Hero ~35vh com foto de prato, categorias sticky com scroll-spy, lista tipo carta (nome, linha pontilhada, preço `12,50 €`, miniatura 72px) e ornamento de azulejo só no separador de categoria.
+  - **Minimal Café** (`moderno`) e **Noir Gastronómico** (`escuro`).
+  - Pré-visualização em `/admin/restaurante`. Alergénios da UE abrem num bottom sheet. Toggle PT/EN no topo do hero.
 - **Armazenamento Privado de Fotografias (`dish-photos`)**:
   - Bucket privado (`public = false`) com políticas RLS `SELECT` / `INSERT` / `UPDATE` / `DELETE` isoladas por `<restaurant_id>/...`.
   - Signed URLs geradas em lote no servidor com **TTL de 24 horas (86 400 s)** e revalidação periódica automática na página (`SignedUrlRefresher`) para evitar expiração em separadores abertos.
   - Validação no servidor antes do upload: tamanho máximo (5 MB), tipo MIME declarado e inspeção binária de **magic bytes** (JPEG, PNG, WebP e AVIF).
 - **Seed de Demonstração (`supabase/seed.sql`)**:
-  - Restaurante fictício **Tasca do Castelo** (Guimarães) com os 4 módulos de exemplo ligados, traduções completas PT/EN, alergénios da UE, destaques, horário semanal e 15 pratos tradicionais.
+  - Restaurante fictício **Tasca do Castelo** (Guimarães), tema `classico`, com os 4 módulos de exemplo ligados, traduções PT/EN, alergénios da UE, destaques, horário semanal e 15 pratos. As fotos são pratos reais (Unsplash/Pexels), não paisagens.
 
 ---
 
@@ -68,6 +73,7 @@ cp .env.example .env.local
 2. Executa por ordem:
    - [`supabase/migrations/20261105000000_mvp_group_1_init.sql`](./supabase/migrations/20261105000000_mvp_group_1_init.sql)
    - [`supabase/migrations/20261105010000_mvp_group_2_modules.sql`](./supabase/migrations/20261105010000_mvp_group_2_modules.sql)
+   - [`supabase/migrations/20261105020000_mvp_group_3_demo_food_photos.sql`](./supabase/migrations/20261105020000_mvp_group_3_demo_food_photos.sql)
 3. _(Opcional)_ Executa [`supabase/seed.sql`](./supabase/seed.sql) para carregar a **Tasca do Castelo** (`/r/tasca-do-castelo` e `/r/tasca-do-castelo?lang=en`).
 
 ### Opção B — Supabase CLI
@@ -101,7 +107,11 @@ npm run build
 
 ## Deploy na Vercel (Plano Gratuito)
 
+Demo: [https://menu-drab-psi.vercel.app](https://menu-drab-psi.vercel.app) · menu público `/r/tasca-do-castelo`.
+
 1. Importa o repositório GitHub na **Vercel**.
-2. Configura `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `NEXT_PUBLIC_APP_URL`.
-3. No **Supabase Dashboard → Authentication → URL Configuration**, adiciona o domínio da Vercel em **Site URL** e **Redirect URLs**.
-4. Faz deploy.
+2. Configura `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `NEXT_PUBLIC_APP_URL` (`https://menu-drab-psi.vercel.app` na demo).
+3. No **Supabase Dashboard → Authentication → URL Configuration**:
+   - **Site URL:** `https://menu-drab-psi.vercel.app`
+   - **Redirect URLs:** `https://menu-drab-psi.vercel.app/admin/**` e `http://localhost:3000/admin/**`
+4. Faz deploy. Não há workflow de GitHub Actions neste repositório.

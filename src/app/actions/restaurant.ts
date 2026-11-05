@@ -114,8 +114,8 @@ export async function createFirstRestaurantAction(
     };
   }
 
-  revalidatePath('/dashboard');
-  redirect('/dashboard');
+  revalidatePath('/admin');
+  redirect('/admin');
 }
 
 export async function updateRestaurantAction(
@@ -312,8 +312,8 @@ export async function updateRestaurantAction(
     }
   }
 
-  revalidatePath('/dashboard');
-  revalidatePath('/dashboard/restaurante');
+  revalidatePath('/admin');
+  revalidatePath('/admin/restaurante');
   if (currentRestaurant.slug !== parsed.data.slug) {
     revalidatePath(`/r/${currentRestaurant.slug}`);
   }

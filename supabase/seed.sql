@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Seed Demo — Restaurante fictício 'Tasca do Castelo' (Guimarães)
--- Grupo 2: módulos opcionais ligados (languages PT/EN, allergens UE, highlights e hours).
+-- Grupo 2/3: módulos opcionais ligados. Fotografias são pratos reais (sem paisagens).
 -- Idempotente: pode ser executado mais do que uma vez.
 -- =============================================================================
 
@@ -100,7 +100,7 @@ values
     '{"en":{"name":"Conventual Desserts","description":"Historic monastic sweets from Guimarães and house-made desserts."}}'::jsonb
   );
 
--- 15 Pratos com traduções EN, alergénios da UE, destaques e imagens placeholder livres
+-- 15 Pratos com traduções EN, alergénios da UE, destaques e fotografias de comida real (Unsplash/Pexels)
 insert into public.dishes (
   restaurant_id,
   category_id,
@@ -122,7 +122,7 @@ values
     'Pataniscas de Bacalhau',
     'Fritas na hora em azeite virgem, servidas com maionese de alho assado e salsa fresca.',
     650,
-    'https://picsum.photos/seed/pataniscas-vimaranes/800/600',
+    'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=1400&q=75',
     true,
     0,
     '{"en":{"name":"Salt Cod Fritters (Pataniscas)","description":"Crisp cod fritters fried to order in olive oil, served with roasted garlic mayo and fresh parsley."}}'::jsonb,
@@ -135,7 +135,7 @@ values
     'Chouriça Assada na Brasa em Barro',
     'Chouriça de fumeiro minhoto flamejada à mesa com aguardente velha e broa de milho.',
     890,
-    'https://picsum.photos/seed/chourica-barro/800/600',
+    'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
     '{"en":{"name":"Flame-Roasted Smoked Chorizo","description":"Artisanal Minho pork sausage flambéed tableside in clay dish, served with cornbread."}}'::jsonb,
@@ -148,7 +148,7 @@ values
     'Bola de Carne Vimaranense',
     'Fatia generosa de bola caseira recheada com carnes fumadas e toucinho.',
     550,
-    'https://picsum.photos/seed/bola-vimaranense/800/600',
+    'https://images.pexels.com/photos/139746/pexels-photo-139746.jpeg?auto=compress&cs=tinysrgb&w=1400',
     true,
     2,
     '{"en":{"name":"Guimarães Savoury Meat Bread","description":"Generous slice of soft house-baked bread stuffed with smoked meats andcured bacon."}}'::jsonb,
@@ -161,7 +161,7 @@ values
     'Queijo da Serra Curado com Compota de Abóbora',
     'Acompanhado de nozes tostadas e tostinhas de pão centeio.',
     980,
-    'https://picsum.photos/seed/queijo-compota/800/600',
+    'https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=1400&q=75',
     true,
     3,
     '{"en":{"name":"Aged Serra Sheep Cheese & Pumpkin Jam","description":"Served with toasted walnuts and crisp rye bread toasts."}}'::jsonb,
@@ -176,7 +176,7 @@ values
     'Caldo Verde à Moda do Minho',
     'Couve galega cortada finíssima, batata cremosa, fio de azeite novo e rodela de chouriço.',
     420,
-    'https://picsum.photos/seed/caldo-verde-minho/800/600',
+    'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg?auto=compress&cs=tinysrgb&w=1400',
     true,
     0,
     '{"en":{"name":"Minho-Style Caldo Verde","description":"Finely shredded Galician kale, velvety potato broth, extra-virgin olive oil and smoked chorizo."}}'::jsonb,
@@ -189,7 +189,7 @@ values
     'Papas de Sarrabulho Tradicionais',
     'Receita antiga com carnes selecionadas, cominhos e fatias de pão de milho.',
     780,
-    'https://picsum.photos/seed/papas-sarrabulho/800/600',
+    'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
     '{"en":{"name":"Traditional Sarrabulho Porridge","description":"Heritage Minho savoury dish slow-simmered with selected meats, cumin and cornbread."}}'::jsonb,
@@ -204,7 +204,7 @@ values
     'Bacalhau Assado à Tasca do Castelo',
     'Lombo alto de bacalhau assado com crosta de broa de milho, grelos salteados e batata a murro.',
     1850,
-    'https://picsum.photos/seed/bacalhau-castelo/800/600',
+    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1600&h=1000&q=75',
     true,
     0,
     '{"en":{"name":"Tasca do Castelo Roasted Salt Cod","description":"Thick Atlantic cod loin baked with cornbread crust, sautéed turnip greens and punched potatoes."}}'::jsonb,
@@ -217,7 +217,7 @@ values
     'Polvo à Lagareiro no Forno',
     'Tentáculos tenros confitados em azeite, alho laminado, coentros e batatinha assada.',
     2100,
-    'https://picsum.photos/seed/polvo-lagareiro/800/600',
+    'https://images.pexels.com/photos/566345/pexels-photo-566345.jpeg?auto=compress&cs=tinysrgb&w=1400',
     true,
     1,
     '{"en":{"name":"Oven-Roasted Lagareiro Octopus","description":"Tender octopus tentacles confit in olive oil, sliced garlic, fresh coriander and baby roast potatoes."}}'::jsonb,
@@ -230,7 +230,7 @@ values
     'Filetes de Pescada com Arroz de Tomate Malandrinho',
     'Filetes dourados em polme leve acompanhados de arroz de tomate fresco e manjericão.',
     1490,
-    'https://picsum.photos/seed/filetes-pescada/800/600',
+    'https://images.unsplash.com/photo-1599921841143-819065a55cc6?auto=format&fit=crop&w=1400&q=75',
     true,
     2,
     '{"en":{"name":"Golden Hake Fillets with Saucy Tomato Rice","description":"Lightly battered hake fillets served alongside brothy ripe-tomato rice with sweet basil."}}'::jsonb,
@@ -245,7 +245,7 @@ values
     'Rojões à Minhota com Castanhas',
     'Carne de porco marinada em vinho verde branco e alho, servida com tripas enfarinhadas e batata dourada.',
     1590,
-    'https://picsum.photos/seed/rojoes-minhota/800/600',
+    'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=1400&q=75',
     true,
     0,
     '{"en":{"name":"Minho-Style Pork Rojões with Chestnuts","description":"Pork chunks marinated in Vinho Verde and garlic, served with chestnuts and golden potatoes."}}'::jsonb,
@@ -258,7 +258,7 @@ values
     'Vitela Assada em Forno de Lenha',
     'Vitela barrosã lentamente assada no seu molho, servida com arroz de forno e batata assada.',
     1790,
-    'https://picsum.photos/seed/vitela-forno-lenha/800/600',
+    'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
     '{"en":{"name":"Wood-Oven Roasted Barrosã Veal","description":"Slow-roasted local veal in its natural jus, served with oven-baked rice and roast potatoes."}}'::jsonb,
@@ -271,7 +271,7 @@ values
     'Arroz de Pato à Antiga',
     'Pato desfiado cozinhado em caldo aromático, tostado no forno com chouriço de vinhais.',
     1450,
-    'https://picsum.photos/seed/arroz-pato-antiga/800/600',
+    'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1400&q=75',
     false,
     2,
     '{"en":{"name":"Old-Fashioned Baked Duck Rice","description":"Shredded duck cooked in aromatic stock and oven-crisped with Vinhais smoked sausage."}}'::jsonb,
@@ -286,7 +286,7 @@ values
     'Torta de Guimarães',
     'Especialidade conventual estaladiça recheada com doce de chila, amêndoa torrada e canela.',
     480,
-    'https://picsum.photos/seed/torta-guimaraes/800/600',
+    'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1400&q=75',
     true,
     0,
     '{"en":{"name":"Torta de Guimarães Pastry","description":"Crisp conventual pastry filled with squash preserve, toasted almonds and cinnamon."}}'::jsonb,
@@ -299,7 +299,7 @@ values
     'Toucinho do Céu Vimaranense',
     'Fatia húmida de gemas, amêndoa moída e chila, polvilhada com açúcar em pó.',
     520,
-    'https://picsum.photos/seed/toucinho-ceu/800/600',
+    'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
     '{"en":{"name":"Guimarães Toucinho do Céu","description":"Rich conventual almond and egg-yolk cake dusted with icing sugar."}}'::jsonb,
@@ -312,7 +312,7 @@ values
     'Leite-Creme Queimado na Hora',
     'Aromatizado com casca de limão e pau de canela, queimado com ferro em brasa.',
     450,
-    'https://picsum.photos/seed/leite-creme-ferro/800/600',
+    'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1400&q=75',
     true,
     2,
     '{"en":{"name":"Caramelised Portuguese Custard","description":"Infused with lemon peel and cinnamon stick, burnt to order with a hot iron."}}'::jsonb,
