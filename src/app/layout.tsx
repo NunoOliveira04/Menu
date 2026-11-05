@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
+import { headers } from 'next/headers';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -24,13 +25,23 @@ export const metadata: Metadata = {
     'Plataforma de menus digitais para restaurantes. Rápida no telemóvel, simples de atualizar em segundos.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let htmlLang: 'pt-PT' | 'en' = 'pt-PT';
+  try {
+    const reqHeaders = await headers();
+    if (reqHeaders.get('x-menu-html-lang') === 'en') {
+      htmlLang = 'en';
+    }
+  } catch {
+    // Em rotas puramente estáticas durante o build, mantém o padrão pt-PT.
+  }
+
   return (
-    <html lang="pt-PT" className={`${fontSans.variable} ${fontSerif.variable}`}>
+    <html lang={htmlLang} className={`${fontSans.variable} ${fontSerif.variable}`}>
       <body>{children}</body>
     </html>
   );

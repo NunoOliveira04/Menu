@@ -2,7 +2,20 @@
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowDown,
+  ArrowUp,
+  Eye,
+  EyeOff,
+  Globe,
+  ImagePlus,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  X,
+} from 'lucide-react';
 import {
   createCategoryAction,
   deleteCategoryAction,
@@ -17,22 +30,42 @@ import {
   updateDishAction,
 } from '@/app/actions/dishes';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { EU_ALLERGENS, getAllergenDefinition } from '@/lib/modules/allergens';
+import { DISH_HIGHLIGHTS, getHighlightLabel } from '@/lib/modules/highlights';
+import { parseTranslationsJson } from '@/lib/modules/i18n';
+import { DISH_PHOTO_REFRESH_INTERVAL_MS } from '@/lib/storage/dish-photos';
 import { formatCentsToEuroInput, formatPriceCents } from '@/lib/utils/price';
-import type { CategoryRow, DishRow } from '@/types/database';
+import type { CategoryRow, DishRow, RestaurantModules } from '@/types/database';
 
 interface MenuManagerProps {
   restaurantId: string;
   categories: CategoryRow[];
   dishes: DishRow[];
+  modules: RestaurantModules;
 }
 
-export function MenuManager({ restaurantId, categories, dishes }: MenuManagerProps) {
+export function MenuManager({ restaurantId, categories, dishes, modules }: MenuManagerProps) {
+  const router = useRouter();
   const [showNewCategory, setShowNewCategory] = useState(categories.length === 0);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [addingDishCategoryId, setAddingDishCategoryId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isMutating, startTransition] = useTransition();
+
+  const hasSignedPhotos = dishes.some((dish) =>
+    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
+  );
+
+  useEffect(() => {
+    if (!hasSignedPhotos) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      router.refresh();
+    }, DISH_PHOTO_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [hasSignedPhotos, router]);
 
   function runQuickFormAction(
     action: (fd: FormData) => Promise<{ status: string; message?: string }>,
@@ -88,6 +121,7 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
       {showNewCategory && (
         <CreateCategoryPanel
           restaurantId={restaurantId}
+          languagesEnabled={modules.languages}
           onSuccess={() => setShowNewCategory(false)}
         />
       )}
@@ -108,6 +142,7 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
             const categoryDishes = dishes.filter((d) => d.category_id === category.id);
             const isEditingCategory = editingCategoryId === category.id;
             const isAddingDish = addingDishCategoryId === category.id;
+            const catTranslations = parseTranslationsJson(category.translations);
 
             return (
               <section
@@ -120,17 +155,24 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
                     <EditCategoryInlineForm
                       restaurantId={restaurantId}
                       category={category}
+                      languagesEnabled={modules.languages}
                       onClose={() => setEditingCategoryId(null)}
                     />
                   ) : (
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-serif text-xl font-semibold text-stone-900">
                           {category.name}
                         </h3>
                         <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
                           {categoryDishes.length} {categoryDishes.length === 1 ? 'prato' : 'pratos'}
                         </span>
+                        {modules.languages && catTranslations.en?.name && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                            <Globe className="h-3 w-3 text-[#8C3B2B]" aria-hidden="true" />
+                            EN: {catTranslations.en.name}
+                          </span>
+                        )}
                       </div>
                       {category.description && (
                         <p className="mt-1 text-sm text-stone-600">{category.description}</p>
@@ -224,6 +266,7 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
                       restaurantId={restaurantId}
                       categories={categories}
                       defaultCategoryId={category.id}
+                      modules={modules}
                       onClose={() => setAddingDishCategoryId(null)}
                     />
                   </div>
@@ -248,11 +291,17 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
                               categories={categories}
                               defaultCategoryId={dish.category_id}
                               dish={dish}
+                              modules={modules}
                               onClose={() => setEditingDishId(null)}
                             />
                           </div>
                         );
                       }
+
+                      const dishTranslations = parseTranslationsJson(dish.translations);
+                      const highlightText = modules.highlights
+                        ? getHighlightLabel(dish.highlight, 'pt')
+                        : null;
 
                       return (
                         <div
@@ -287,16 +336,54 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
                                 <span className="text-sm font-semibold tabular-nums text-[#8C3B2B]">
                                   {formatPriceCents(dish.price_cents)}
                                 </span>
+                                {highlightText && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                                    <Sparkles className="h-3 w-3" aria-hidden="true" />
+                                    {highlightText}
+                                  </span>
+                                )}
                                 {!dish.available && (
                                   <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-medium text-stone-700">
                                     Indisponível
                                   </span>
                                 )}
                               </div>
+
                               {dish.description && (
                                 <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-relaxed text-stone-600">
                                   {dish.description}
                                 </p>
+                              )}
+
+                              {(modules.languages || modules.allergens) && (
+                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                  {modules.languages && dishTranslations.en?.name && (
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] text-stone-600">
+                                      <Globe
+                                        className="h-3 w-3 text-[#8C3B2B]"
+                                        aria-hidden="true"
+                                      />
+                                      EN: {dishTranslations.en.name}
+                                    </span>
+                                  )}
+
+                                  {modules.allergens &&
+                                    dish.allergens?.map((code) => {
+                                      const def = getAllergenDefinition(code);
+                                      if (!def) return null;
+                                      return (
+                                        <span
+                                          key={def.code}
+                                          className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-[#FAF6F0] px-1.5 py-0.5 text-[10px] font-medium text-stone-700"
+                                        >
+                                          <strong className="font-mono text-[#8C3B2B]">
+                                            {def.number}
+                                          </strong>
+                                          {def.label.pt}
+                                        </span>
+                                      );
+                                    })}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -409,9 +496,11 @@ export function MenuManager({ restaurantId, categories, dishes }: MenuManagerPro
 
 function CreateCategoryPanel({
   restaurantId,
+  languagesEnabled,
   onSuccess,
 }: {
   restaurantId: string;
+  languagesEnabled: boolean;
   onSuccess: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(createCategoryAction, INITIAL_ACTION_STATE);
@@ -439,7 +528,7 @@ function CreateCategoryPanel({
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="new-cat-name" className="block text-xs font-medium text-stone-700">
-            Nome da categoria *
+            Nome da categoria (PT) *
           </label>
           <input
             id="new-cat-name"
@@ -456,7 +545,7 @@ function CreateCategoryPanel({
 
         <div>
           <label htmlFor="new-cat-desc" className="block text-xs font-medium text-stone-700">
-            Nota opcional
+            Nota opcional (PT)
           </label>
           <input
             id="new-cat-desc"
@@ -466,6 +555,36 @@ function CreateCategoryPanel({
             className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
           />
         </div>
+
+        {languagesEnabled && (
+          <>
+            <div>
+              <label htmlFor="new-cat-name-en" className="block text-xs font-medium text-stone-700">
+                Nome em Inglês (EN)
+              </label>
+              <input
+                id="new-cat-name-en"
+                name="nameEn"
+                type="text"
+                placeholder="Ex.: Starters & Tapas"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="new-cat-desc-en" className="block text-xs font-medium text-stone-700">
+                Nota opcional em Inglês (EN)
+              </label>
+              <input
+                id="new-cat-desc-en"
+                name="descriptionEn"
+                type="text"
+                placeholder="Ex.: Served with homemade cornbread"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mt-4 flex justify-end gap-2">
@@ -484,13 +603,16 @@ function CreateCategoryPanel({
 function EditCategoryInlineForm({
   restaurantId,
   category,
+  languagesEnabled,
   onClose,
 }: {
   restaurantId: string;
   category: CategoryRow;
+  languagesEnabled: boolean;
   onClose: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(updateCategoryAction, INITIAL_ACTION_STATE);
+  const existingTranslations = parseTranslationsJson(category.translations);
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -505,7 +627,7 @@ function EditCategoryInlineForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium text-stone-700">Nome da categoria</label>
+          <label className="block text-xs font-medium text-stone-700">Nome da categoria (PT)</label>
           <input
             name="name"
             type="text"
@@ -518,7 +640,9 @@ function EditCategoryInlineForm({
           )}
         </div>
         <div>
-          <label className="block text-xs font-medium text-stone-700">Descrição opcional</label>
+          <label className="block text-xs font-medium text-stone-700">
+            Descrição opcional (PT)
+          </label>
           <input
             name="description"
             type="text"
@@ -526,6 +650,35 @@ function EditCategoryInlineForm({
             className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
           />
         </div>
+
+        {languagesEnabled && (
+          <>
+            <div>
+              <label className="block text-xs font-medium text-stone-700">
+                Nome em Inglês (EN)
+              </label>
+              <input
+                name="nameEn"
+                type="text"
+                defaultValue={existingTranslations.en?.name ?? ''}
+                placeholder="Ex.: Starters"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-stone-700">
+                Descrição opcional em Inglês (EN)
+              </label>
+              <input
+                name="descriptionEn"
+                type="text"
+                defaultValue={existingTranslations.en?.description ?? ''}
+                placeholder="Ex.: To share at the table"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">
@@ -554,6 +707,7 @@ function DishForm({
   categories,
   defaultCategoryId,
   dish,
+  modules,
   onClose,
 }: {
   mode: 'create' | 'edit';
@@ -561,10 +715,13 @@ function DishForm({
   categories: CategoryRow[];
   defaultCategoryId: string;
   dish?: DishRow;
+  modules: RestaurantModules;
   onClose: () => void;
 }) {
   const actionFn = mode === 'create' ? createDishAction : updateDishAction;
   const [state, formAction, isPending] = useActionState(actionFn, INITIAL_ACTION_STATE);
+  const existingTranslations = parseTranslationsJson(dish?.translations);
+  const selectedAllergens = new Set(dish?.allergens ?? []);
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -601,7 +758,7 @@ function DishForm({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-stone-700">Nome do prato *</label>
+          <label className="block text-xs font-medium text-stone-700">Nome do prato (PT) *</label>
           <input
             name="name"
             type="text"
@@ -665,7 +822,9 @@ function DishForm({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-stone-700">Descrição / Ingredientes</label>
+        <label className="block text-xs font-medium text-stone-700">
+          Descrição / Ingredientes (PT)
+        </label>
         <textarea
           name="description"
           rows={2}
@@ -677,6 +836,87 @@ function DishForm({
           <p className="mt-1 text-xs text-red-600">{state.fieldErrors.description[0]}</p>
         )}
       </div>
+
+      {modules.languages && (
+        <div className="rounded-xl border border-[#DFD3C3] bg-[#FAF6F0]/80 p-4 space-y-3">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-[#8C3B2B]">
+            <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+            Tradução em Inglês (EN)
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium text-stone-700">Nome do prato (EN)</label>
+              <input
+                name="nameEn"
+                type="text"
+                defaultValue={existingTranslations.en?.name ?? ''}
+                placeholder="Ex.: Roasted Cod with Cornbread Crust"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-stone-700">
+                Descrição / Ingredientes (EN)
+              </label>
+              <input
+                name="descriptionEn"
+                type="text"
+                defaultValue={existingTranslations.en?.description ?? ''}
+                placeholder="Ex.: Thick cod loin baked with cornbread, turnip greens and punched potatoes."
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modules.highlights && (
+        <div>
+          <label className="block text-xs font-medium text-stone-700">
+            Selo de Destaque (opcional)
+          </label>
+          <select
+            name="highlight"
+            defaultValue={dish?.highlight ?? ''}
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none sm:max-w-xs"
+          >
+            <option value="">Sem selo especial</option>
+            {DISH_HIGHLIGHTS.map((h) => (
+              <option key={h.code} value={h.code}>
+                {h.label.pt}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {modules.allergens && (
+        <fieldset className="rounded-xl border border-stone-200 bg-white p-4">
+          <legend className="px-1 text-xs font-semibold text-stone-800">
+            Alergénios presentes neste prato (14 da UE)
+          </legend>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {EU_ALLERGENS.map((allergen) => (
+              <label
+                key={allergen.code}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs text-stone-700 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]"
+              >
+                <input
+                  type="checkbox"
+                  name="allergens"
+                  value={allergen.code}
+                  defaultChecked={selectedAllergens.has(allergen.code)}
+                  className="h-3.5 w-3.5 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
+                />
+                <span>
+                  <strong className="font-mono text-[#8C3B2B]">{allergen.number}.</strong>{' '}
+                  {allergen.label.pt}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-5">

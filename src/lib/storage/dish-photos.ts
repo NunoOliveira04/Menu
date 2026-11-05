@@ -5,9 +5,16 @@ import type { Database, DishRow } from '@/types/database';
 export const DISH_PHOTOS_BUCKET = 'dish-photos';
 
 /**
- * TTL predefinido para URLs assinados de fotografias servidas em SSR (1 hora).
+ * TTL alargado para URLs assinados de fotografias servidas em SSR (24 horas = 86 400 s),
+ * evitando que imagens expirem quando um separador de menu permanece aberto durante o serviço.
  */
-export const DISH_PHOTO_SIGNED_URL_TTL_SECONDS = 3600;
+export const DISH_PHOTO_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
+
+/**
+ * Intervalo de revalidação automática no cliente (a cada 6 horas) para renovar signed URLs
+ * antes de atingirem o TTL de 24 horas.
+ */
+export const DISH_PHOTO_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 const STORAGE_URL_MARKERS = [
   `/storage/v1/object/public/${DISH_PHOTOS_BUCKET}/`,
@@ -57,7 +64,7 @@ export function resolveDishPhotoObjectPath(
 /**
  * Resolve as referências `photo_url` de uma lista de pratos no servidor:
  * - Objetos no bucket privado `dish-photos` recebem signed URLs gerados em lote (`createSignedUrls`)
- *   respeitando as políticas SELECT (restaurante publicado ou membro autenticado).
+ *   com TTL de 24 horas respeitando as políticas SELECT (restaurante publicado ou membro autenticado).
  * - URLs externos (ex.: seed demo) são preservados tal como estão.
  */
 export async function attachSignedDishPhotoUrls(

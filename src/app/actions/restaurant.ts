@@ -5,14 +5,51 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { canMemberApplyRestaurantUpdate } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
+import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { createClient } from '@/lib/supabase/server';
-import { createRestaurantSchema, updateRestaurantSchema } from '@/lib/validations/schemas';
-import type { Json } from '@/types/database';
+import {
+  createRestaurantSchema,
+  updateRestaurantSchema,
+  weeklyHoursUpdateSchema,
+} from '@/lib/validations/schemas';
+import type { Json, TimeSlot } from '@/types/database';
 import type { ActionState } from './types';
 
 function formatZodErrors(error: z.ZodError): Record<string, string[]> {
   const flattened = z.flattenError(error);
   return flattened.fieldErrors as Record<string, string[]>;
+}
+
+function parseHoursFromFormData(formData: FormData) {
+  return Array.from({ length: 7 }, (_, dayIdx) => {
+    const closed =
+      formData.get(`day_${dayIdx}_closed`) === 'on' ||
+      formData.get(`day_${dayIdx}_closed`) === 'true';
+
+    const slots: TimeSlot[] = [];
+    if (!closed) {
+      const open1 = String(formData.get(`day_${dayIdx}_slot1_open`) ?? '').trim();
+      const close1 = String(formData.get(`day_${dayIdx}_slot1_close`) ?? '').trim();
+      if (open1 || close1) {
+        slots.push({ open: open1, close: close1 });
+      }
+
+      const slot2Enabled =
+        formData.get(`day_${dayIdx}_slot2_enabled`) === 'on' ||
+        formData.get(`day_${dayIdx}_slot2_enabled`) === 'true';
+      const open2 = String(formData.get(`day_${dayIdx}_slot2_open`) ?? '').trim();
+      const close2 = String(formData.get(`day_${dayIdx}_slot2_close`) ?? '').trim();
+      if (slot2Enabled || open2 || close2) {
+        slots.push({ open: open2, close: close2 });
+      }
+    }
+
+    return {
+      dayOfWeek: dayIdx,
+      closed,
+      slots,
+    };
+  });
 }
 
 export async function createFirstRestaurantAction(
@@ -93,10 +130,8 @@ export async function updateRestaurantAction(
     };
   }
 
-  const role = await verifyUserRestaurantAccess(
-    user.userId,
-    String(formData.get('restaurantId') ?? ''),
-  );
+  const restaurantIdInput = String(formData.get('restaurantId') ?? '');
+  const role = await verifyUserRestaurantAccess(user.userId, restaurantIdInput);
   if (!role) {
     return {
       status: 'error',
@@ -105,11 +140,10 @@ export async function updateRestaurantAction(
   }
 
   const supabase = await createClient();
-  const restaurantIdInput = String(formData.get('restaurantId') ?? '');
 
   const { data: currentRestaurant, error: currentError } = await supabase
     .from('restaurants')
-    .select('id, slug, published')
+    .select('id, slug, published, translations')
     .eq('id', restaurantIdInput)
     .maybeSingle();
 
@@ -120,8 +154,6 @@ export async function updateRestaurantAction(
     };
   }
 
-  // Se os campos slug/published estiverem disabled na UI de não-owners, faz fallback ao valor atual;
-  // se um não-owner enviar valores diferentes no POST, rejeita explicitamente.
   const rawSlugEntry = formData.get('slug');
   const rawPublishedPresent = formData.has('published');
 
@@ -137,19 +169,23 @@ export async function updateRestaurantAction(
         ? formData.get('published') === 'on' || formData.get('published') === 'true'
         : currentRestaurant.published;
 
+  const languagesEnabled = formData.get('module_languages') === 'on';
+  const hoursEnabled = formData.get('module_hours') === 'on';
+
   const parsed = updateRestaurantSchema.safeParse({
     restaurantId: restaurantIdInput,
     name: formData.get('name'),
     slug: submittedSlug,
     description: formData.get('description') ?? '',
+    descriptionEn: formData.get('descriptionEn') ?? '',
     location: formData.get('location') ?? '',
     style: formData.get('style') ?? 'classico',
     published: submittedPublished,
     modules: {
-      languages: formData.get('module_languages') === 'on',
+      languages: languagesEnabled,
       allergens: formData.get('module_allergens') === 'on',
       highlights: formData.get('module_highlights') === 'on',
-      hours: formData.get('module_hours') === 'on',
+      hours: hoursEnabled,
     },
   });
 
@@ -177,6 +213,36 @@ export async function updateRestaurantAction(
     };
   }
 
+  // Se o módulo de horários está ativo e o formulário enviou os campos de horário, valida-os já
+  const hasHoursFields = formData.get('hours_submitted') === 'true';
+  let validatedHoursPayload: Json | null = null;
+
+  if (hoursEnabled && hasHoursFields) {
+    const hoursValidation = weeklyHoursUpdateSchema.safeParse({
+      restaurantId: parsed.data.restaurantId,
+      days: parseHoursFromFormData(formData),
+    });
+
+    if (!hoursValidation.success) {
+      const firstIssue = hoursValidation.error.issues[0]?.message;
+      return {
+        status: 'error',
+        message: firstIssue ?? 'Verifica os horários semanais introduzidos.',
+      };
+    }
+
+    validatedHoursPayload = hoursValidation.data.days.map((day) => ({
+      day_of_week: day.dayOfWeek,
+      closed: day.closed,
+      slots: day.closed
+        ? []
+        : day.slots.map((slot) => ({
+            open: slot.open,
+            close: slot.close,
+          })),
+    }));
+  }
+
   const settingsPayload: Json = {
     modules: {
       languages: parsed.data.modules.languages,
@@ -185,6 +251,12 @@ export async function updateRestaurantAction(
       hours: parsed.data.modules.hours,
     },
   };
+
+  const nextTranslations = languagesEnabled
+    ? buildEnglishTranslationsJson(currentRestaurant.translations, {
+        descriptionEn: parsed.data.descriptionEn,
+      })
+    : (currentRestaurant.translations ?? {});
 
   const { error } = await supabase
     .from('restaurants')
@@ -196,6 +268,7 @@ export async function updateRestaurantAction(
       style: parsed.data.style,
       published: parsed.data.published,
       settings: settingsPayload,
+      translations: nextTranslations,
     })
     .eq('id', parsed.data.restaurantId);
 
@@ -222,6 +295,21 @@ export async function updateRestaurantAction(
       status: 'error',
       message: 'Ocorreu um erro ao guardar as alterações do restaurante.',
     };
+  }
+
+  if (validatedHoursPayload) {
+    const { error: hoursRpcError } = await supabase.rpc('upsert_restaurant_hours', {
+      p_restaurant_id: parsed.data.restaurantId,
+      p_days: validatedHoursPayload,
+    });
+
+    if (hoursRpcError) {
+      return {
+        status: 'error',
+        message:
+          'As definições foram guardadas, mas ocorreu um erro ao atualizar o horário semanal.',
+      };
+    }
   }
 
   revalidatePath('/dashboard');

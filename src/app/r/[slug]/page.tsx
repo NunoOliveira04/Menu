@@ -1,21 +1,30 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PublicMenuView } from '@/components/menu/public-menu-view';
+import { parseRestaurantSettings } from '@/lib/auth/access';
+import { normalizeWeeklySchedule } from '@/lib/modules/hours';
+import { resolveLocalizedField, resolveMenuLocale } from '@/lib/modules/i18n';
 import { attachSignedDishPhotoUrls } from '@/lib/storage/dish-photos';
 import { createClient } from '@/lib/supabase/server';
+import { buildPublicMenuUrl } from '@/lib/utils/url';
 
 interface PublicMenuPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ lang?: string | string[] }>;
 }
 
-export async function generateMetadata({ params }: PublicMenuPageProps): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PublicMenuPageProps): Promise<Metadata> {
+  const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
+  const normalizedSlug = slug.trim().toLowerCase();
   const supabase = await createClient();
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('name, description, published')
-    .eq('slug', slug.toLowerCase())
+    .select('name, slug, description, published, settings, translations')
+    .eq('slug', normalizedSlug)
     .maybeSingle();
 
   if (!restaurant) {
@@ -24,16 +33,43 @@ export async function generateMetadata({ params }: PublicMenuPageProps): Promise
     };
   }
 
+  const settings = parseRestaurantSettings(restaurant.settings);
+  const locale = resolveMenuLocale(resolvedSearchParams.lang, settings.modules.languages);
+  const localizedDescription = resolveLocalizedField(
+    restaurant.description,
+    settings.modules.languages ? restaurant.translations : null,
+    'description',
+    locale,
+  );
+
+  const ptUrl = buildPublicMenuUrl(restaurant.slug);
+  const enUrl = `${ptUrl}?lang=en`;
+
   return {
-    title: `${restaurant.name} — Ementa`,
+    title: locale === 'en' ? `${restaurant.name} — Menu` : `${restaurant.name} — Ementa`,
     description:
-      restaurant.description ?? `Consulta a ementa digital atualizada de ${restaurant.name}.`,
+      localizedDescription ??
+      (locale === 'en'
+        ? `Explore the digital menu of ${restaurant.name}.`
+        : `Consulta a ementa digital atualizada de ${restaurant.name}.`),
+    alternates: settings.modules.languages
+      ? {
+          canonical: locale === 'en' ? enUrl : ptUrl,
+          languages: {
+            'pt-PT': ptUrl,
+            en: enUrl,
+            'x-default': ptUrl,
+          },
+        }
+      : {
+          canonical: ptUrl,
+        },
     robots: restaurant.published ? { index: true, follow: true } : { index: false, follow: false },
   };
 }
 
-export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
-  const { slug } = await params;
+export default async function PublicMenuPage({ params, searchParams }: PublicMenuPageProps) {
+  const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const normalizedSlug = slug.trim().toLowerCase();
   const supabase = await createClient();
 
@@ -49,7 +85,10 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
     notFound();
   }
 
-  const [{ data: categories }, { data: rawDishes }] = await Promise.all([
+  const settings = parseRestaurantSettings(restaurant.settings);
+  const locale = resolveMenuLocale(resolvedSearchParams.lang, settings.modules.languages);
+
+  const [{ data: categories }, { data: rawDishes }, { data: hoursRows }] = await Promise.all([
     supabase
       .from('categories')
       .select('*')
@@ -62,15 +101,26 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
       .eq('restaurant_id', restaurant.id)
       .order('position', { ascending: true })
       .order('created_at', { ascending: true }),
+    settings.modules.hours
+      ? supabase
+          .from('restaurant_hours')
+          .select('day_of_week, closed, slots')
+          .eq('restaurant_id', restaurant.id)
+          .order('day_of_week', { ascending: true })
+      : Promise.resolve({ data: [] }),
   ]);
 
   const dishes = await attachSignedDishPhotoUrls(supabase, rawDishes ?? []);
+  const weeklySchedule = settings.modules.hours ? normalizeWeeklySchedule(hoursRows ?? []) : [];
 
   return (
     <PublicMenuView
       restaurant={restaurant}
       categories={categories ?? []}
       dishes={dishes}
+      modules={settings.modules}
+      locale={locale}
+      weeklySchedule={weeklySchedule}
       isDraftPreview={!restaurant.published}
     />
   );

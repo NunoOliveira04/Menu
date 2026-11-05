@@ -1,8 +1,21 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { Database } from '@/types/database';
+import { parseRestaurantSettings } from '@/lib/auth/access';
 import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
+import type { Database } from '@/types/database';
 import { getSupabaseEnv } from './env';
+
+function extractMenuSlugFromPathname(pathname: string): string | null {
+  if (!pathname.startsWith('/r/')) {
+    return null;
+  }
+  const rest = pathname.slice(3);
+  const [slug] = rest.split('/');
+  if (!slug) {
+    return null;
+  }
+  return decodeURIComponent(slug).trim().toLowerCase();
+}
 
 function copyResponseMetadata(source: NextResponse, target: NextResponse): NextResponse {
   source.cookies.getAll().forEach((cookie) => {
@@ -20,7 +33,26 @@ function copyResponseMetadata(source: NextResponse, target: NextResponse): NextR
 }
 
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
-  let supabaseResponse = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+
+  // Subdomínio -> /r/[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
+  const rewritePath = resolveSubdomainRewritePath({
+    hostHeader: request.headers.get('host'),
+    pathname,
+    enableSubdomainRouting: process.env.ENABLE_SUBDOMAIN_ROUTING === 'true',
+    rootDomain: process.env.ROOT_DOMAIN,
+  });
+
+  const effectivePathname = rewritePath ?? pathname;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-menu-html-lang', 'pt-PT');
+
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
   const { url, anonKey } = getSupabaseEnv();
 
   const supabase = createServerClient<Database>(url, anonKey, {
@@ -30,7 +62,11 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       },
       setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options),
         );
@@ -47,20 +83,42 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const { data } = await supabase.auth.getClaims();
   const isAuthenticated = Boolean(data?.claims?.sub);
 
-  const pathname = request.nextUrl.pathname;
+  // Quando ?lang=en é pedido numa rota de menu, só emitimos <html lang="en">
+  // se o módulo `languages` estiver efetivamente ativo nas definições do restaurante.
+  const requestedLang = request.nextUrl.searchParams.get('lang')?.trim().toLowerCase();
+  const menuSlug = extractMenuSlugFromPathname(effectivePathname);
+  if (requestedLang === 'en' && menuSlug) {
+    const { data: restaurantRow } = await supabase
+      .from('restaurants')
+      .select('settings')
+      .eq('slug', menuSlug)
+      .maybeSingle();
 
-  // Subdomínio -> /r/[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
-  const rewritePath = resolveSubdomainRewritePath({
-    hostHeader: request.headers.get('host'),
-    pathname,
-    enableSubdomainRouting: process.env.ENABLE_SUBDOMAIN_ROUTING === 'true',
-    rootDomain: process.env.ROOT_DOMAIN,
-  });
+    const settings = parseRestaurantSettings(restaurantRow?.settings);
+    if (settings.modules.languages) {
+      requestHeaders.set('x-menu-html-lang', 'en');
+      supabaseResponse = copyResponseMetadata(
+        supabaseResponse,
+        NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        }),
+      );
+    }
+  }
 
   if (rewritePath) {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = rewritePath;
-    return copyResponseMetadata(supabaseResponse, NextResponse.rewrite(rewriteUrl, { request }));
+    return copyResponseMetadata(
+      supabaseResponse,
+      NextResponse.rewrite(rewriteUrl, {
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+    );
   }
 
   // Proteger rotas privadas (/dashboard e /onboarding)

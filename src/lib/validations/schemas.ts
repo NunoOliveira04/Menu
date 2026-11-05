@@ -1,6 +1,9 @@
 import { z } from 'zod';
+import { EU_ALLERGEN_CODES } from '@/lib/modules/allergens';
+import { isValidTimeString, timeToMinutes } from '@/lib/modules/hours';
 import { isReservedSlug, isValidSlug } from '@/lib/utils/slug';
 import { parseEuroToCents } from '@/lib/utils/price';
+import type { DishHighlight, EuAllergenCode } from '@/types/database';
 import { detectImageSignature, type AllowedImageMimeType } from './image-signature';
 
 export const ALLOWED_IMAGE_MIME_TYPES: readonly AllowedImageMimeType[] = [
@@ -15,6 +18,26 @@ export const MAX_DISH_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
 export const restaurantStyleSchema = z.enum(['classico', 'moderno', 'escuro'], {
   error: 'Escolhe um tema válido (Clássico, Moderno ou Escuro).',
 });
+
+export const euAllergenSchema = z.enum(
+  EU_ALLERGEN_CODES as unknown as [EuAllergenCode, ...EuAllergenCode[]],
+  {
+    error: 'Alergénio inválido.',
+  },
+);
+
+export const dishHighlightSchema = z.enum(['featured', 'recommended', 'new'] as const, {
+  error: 'Tipo de destaque inválido.',
+});
+
+export const optionalDishHighlightSchema = z
+  .union([dishHighlightSchema, z.literal(''), z.null(), z.undefined()])
+  .transform((val): DishHighlight | null => {
+    if (!val) {
+      return null;
+    }
+    return val;
+  });
 
 export const restaurantModulesSchema = z.object({
   languages: z.boolean().default(false),
@@ -90,6 +113,81 @@ export const updateRestaurantSchema = createRestaurantSchema.extend({
   restaurantId: z.uuid('Identificador de restaurante inválido.'),
   published: z.boolean(),
   modules: restaurantModulesSchema,
+  descriptionEn: z
+    .string()
+    .trim()
+    .max(400, 'A descrição em inglês não pode exceder 400 caracteres.')
+    .optional()
+    .or(z.literal('')),
+});
+
+export const timeSlotSchema = z
+  .object({
+    open: z
+      .string()
+      .trim()
+      .refine((v) => isValidTimeString(v), {
+        message: 'Hora de abertura inválida (usa HH:MM, ex.: 12:00).',
+      }),
+    close: z
+      .string()
+      .trim()
+      .refine((v) => isValidTimeString(v), {
+        message: 'Hora de fecho inválida (usa HH:MM, ex.: 15:00).',
+      }),
+  })
+  .refine((slot) => slot.open !== slot.close, {
+    message: 'A hora de abertura e a hora de fecho não podem ser iguais.',
+  });
+
+export const dayScheduleInputSchema = z
+  .object({
+    dayOfWeek: z.number().int().min(0).max(6),
+    closed: z.boolean(),
+    slots: z
+      .array(timeSlotSchema)
+      .max(2, 'Cada dia suporta até 2 períodos (ex.: almoço e jantar).'),
+  })
+  .superRefine((day, ctx) => {
+    if (!day.closed && day.slots.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Indica pelo menos um período horário ou marca o dia como encerrado.',
+        path: ['slots'],
+      });
+    }
+
+    if (!day.closed && day.slots.length === 2) {
+      const first = day.slots[0];
+      const second = day.slots[1];
+      if (first && second) {
+        const firstOpen = timeToMinutes(first.open);
+        const firstClose = timeToMinutes(first.close);
+        const secondOpen = timeToMinutes(second.open);
+
+        if (firstClose < firstOpen || secondOpen < firstClose) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'O segundo período deve começar depois de o primeiro terminar.',
+            path: ['slots'],
+          });
+        }
+      }
+    }
+  });
+
+export const weeklyHoursUpdateSchema = z.object({
+  restaurantId: z.uuid('Identificador de restaurante inválido.'),
+  days: z
+    .array(dayScheduleInputSchema)
+    .length(7, 'O horário deve incluir exatamente os 7 dias da semana.')
+    .refine(
+      (days) => {
+        const seen = new Set(days.map((d) => d.dayOfWeek));
+        return seen.size === 7;
+      },
+      { message: 'Os 7 dias da semana (0 a 6) devem ser únicos.' },
+    ),
 });
 
 export const createCategorySchema = z.object({
@@ -103,6 +201,18 @@ export const createCategorySchema = z.object({
     .string()
     .trim()
     .max(240, 'A descrição da categoria não pode exceder 240 caracteres.')
+    .optional()
+    .or(z.literal('')),
+  nameEn: z
+    .string()
+    .trim()
+    .max(80, 'O nome em inglês não pode exceder 80 caracteres.')
+    .optional()
+    .or(z.literal('')),
+  descriptionEn: z
+    .string()
+    .trim()
+    .max(240, 'A descrição em inglês não pode exceder 240 caracteres.')
     .optional()
     .or(z.literal('')),
 });
@@ -152,8 +262,26 @@ export const createDishSchema = z.object({
     .max(500, 'A descrição do prato não pode exceder 500 caracteres.')
     .optional()
     .or(z.literal('')),
+  nameEn: z
+    .string()
+    .trim()
+    .max(120, 'O nome em inglês não pode exceder 120 caracteres.')
+    .optional()
+    .or(z.literal('')),
+  descriptionEn: z
+    .string()
+    .trim()
+    .max(500, 'A descrição em inglês não pode exceder 500 caracteres.')
+    .optional()
+    .or(z.literal('')),
   priceCents: euroPriceStringSchema,
   available: z.boolean().default(true),
+  allergens: z
+    .array(euAllergenSchema)
+    .max(14)
+    .default([])
+    .transform((list) => Array.from(new Set(list))),
+  highlight: optionalDishHighlightSchema.default(null),
 });
 
 export const updateDishSchema = createDishSchema.extend({
@@ -211,8 +339,6 @@ export function validateDishPhotoFile(
     };
   }
 
-  // Se os bytes foram fornecidos (obrigatório na Server Action antes do upload),
-  // validamos a assinatura real (magic bytes) e exigimos coerência com o tipo declarado.
   if (file.bytes !== undefined) {
     const signature = detectImageSignature(file.bytes);
     if (!signature) {

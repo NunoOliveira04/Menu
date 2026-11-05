@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import QRCode from 'qrcode';
 import { MenuManager } from '@/components/dashboard/menu-manager';
 import { QrCodeCard } from '@/components/dashboard/qr-code-card';
+import { parseRestaurantSettings } from '@/lib/auth/access';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
 import { attachSignedDishPhotoUrls } from '@/lib/storage/dish-photos';
 import { createClient } from '@/lib/supabase/server';
@@ -22,6 +23,7 @@ export default async function DashboardMenuPage() {
   }
 
   const { restaurant } = context;
+  const settings = parseRestaurantSettings(restaurant.settings);
   const supabase = await createClient();
 
   const [{ data: categories }, { data: rawDishes }, headerList] = await Promise.all([
@@ -70,7 +72,12 @@ export default async function DashboardMenuPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
-      <MenuManager restaurantId={restaurant.id} categories={categories ?? []} dishes={dishes} />
+      <MenuManager
+        restaurantId={restaurant.id}
+        categories={categories ?? []}
+        dishes={dishes}
+        modules={settings.modules}
+      />
 
       <div className="lg:sticky lg:top-8">
         <QrCodeCard

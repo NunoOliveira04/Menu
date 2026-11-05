@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRedirect = vi.fn((url: string): never => {
@@ -11,6 +12,7 @@ const mockRpc = vi.fn();
 const mockStorageUpload = vi.fn();
 const mockStorageRemove = vi.fn();
 const mockGetUser = vi.fn();
+const mockGetClaims = vi.fn();
 const mockFrom = vi.fn();
 
 vi.mock('next/navigation', () => ({
@@ -38,11 +40,25 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: vi.fn(() => ({
+    auth: {
+      getClaims: mockGetClaims,
+    },
+    from: mockFrom,
+  })),
+}));
+
 import { registerOwnerAction } from '@/app/actions/auth';
-import { reorderCategoryAction } from '@/app/actions/categories';
-import { createDishAction, reorderDishAction } from '@/app/actions/dishes';
+import {
+  createCategoryAction,
+  reorderCategoryAction,
+  updateCategoryAction,
+} from '@/app/actions/categories';
+import { createDishAction, reorderDishAction, updateDishAction } from '@/app/actions/dishes';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { updateSession } from '@/lib/supabase/middleware';
 
 const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 const CATEGORY_A = '22222222-2222-4222-8222-222222222201';
@@ -51,9 +67,11 @@ const DISH_1 = '33333333-3333-4333-8333-333333333301';
 const DISH_2 = '33333333-3333-4333-8333-333333333302';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
-describe('Server Actions — Registo, Permissões Owner, Magic Bytes e Reordenação Transacional', () => {
+describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos Off e Reordenação Transacional', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://dummy-project.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'dummy-anon-key';
   });
 
   it('registerOwnerAction devolve erro sem redirect quando create_owner_restaurant falha após retry 23505', async () => {
@@ -114,6 +132,27 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes e Reordena�
           }),
         };
       }
+      if (table === 'restaurants') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  settings: {
+                    modules: {
+                      languages: false,
+                      allergens: false,
+                      highlights: false,
+                      hours: false,
+                    },
+                  },
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
       throw new Error(`Unexpected table: ${table}`);
     });
 
@@ -133,6 +172,337 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes e Reordena�
 
     expect(state.status).toBe('error');
     expect(mockStorageUpload).not.toHaveBeenCalled();
+  });
+
+  it('createDishAction grava {}, [] e null quando languages, allergens e highlights estão off na BD (mesmo com FormData forjado)', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: USER_ID, email: 'dono@tasca.pt' } },
+      error: null,
+    });
+
+    const mockInsertDish = vi.fn(async () => ({ error: null }));
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'restaurant_members') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { role: 'owner' }, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'restaurants') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  slug: 'tasca-do-castelo',
+                  settings: {
+                    modules: {
+                      languages: false,
+                      allergens: false,
+                      highlights: false,
+                      hours: false,
+                    },
+                  },
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'dishes') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: async () => ({ data: [{ position: 2 }], error: null }),
+                }),
+              }),
+            }),
+          }),
+          insert: mockInsertDish,
+        };
+      }
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    const fd = new FormData();
+    fd.set('restaurantId', RESTAURANT_ID);
+    fd.set('categoryId', CATEGORY_A);
+    fd.set('name', 'Bacalhau Assado');
+    fd.set('description', 'Com broa');
+    fd.set('price', '18,50');
+    fd.set('available', 'on');
+    // Campos maliciosos/forjados enviados pelo cliente quando os módulos estão off na BD:
+    fd.set('nameEn', 'Forged English Name');
+    fd.set('descriptionEn', 'Forged English Description');
+    fd.append('allergens', 'gluten');
+    fd.append('allergens', 'fish');
+    fd.set('highlight', 'featured');
+    fd.set('allergens_module_active', 'true');
+    fd.set('highlights_module_active', 'true');
+
+    const result = await createDishAction(INITIAL_ACTION_STATE, fd);
+
+    expect(result.status).toBe('success');
+    expect(mockInsertDish).toHaveBeenCalledTimes(1);
+    expect(mockInsertDish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Bacalhau Assado',
+        translations: {},
+        allergens: [],
+        highlight: null,
+      }),
+    );
+  });
+
+  it('updateDishAction preserva translations, allergens e highlight existentes da linha quando os módulos estão off na BD', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: USER_ID, email: 'dono@tasca.pt' } },
+      error: null,
+    });
+
+    const existingTranslations = { en: { name: 'Saved Cod', description: 'Saved EN desc' } };
+    const existingAllergens = ['fish', 'gluten'];
+    const existingHighlight = 'recommended';
+
+    const mockUpdateEqRestaurant = vi.fn(async () => ({ error: null }));
+    const mockUpdateEqId = vi.fn(() => ({ eq: mockUpdateEqRestaurant }));
+    const mockUpdateDish = vi.fn(() => ({ eq: mockUpdateEqId }));
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'restaurant_members') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { role: 'owner' }, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'restaurants') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  slug: 'tasca-do-castelo',
+                  settings: {
+                    modules: {
+                      languages: false,
+                      allergens: false,
+                      highlights: false,
+                      hours: false,
+                    },
+                  },
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'dishes') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: {
+                    photo_url: null,
+                    translations: existingTranslations,
+                    allergens: existingAllergens,
+                    highlight: existingHighlight,
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+          update: mockUpdateDish,
+        };
+      }
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    const fd = new FormData();
+    fd.set('restaurantId', RESTAURANT_ID);
+    fd.set('dishId', DISH_1);
+    fd.set('categoryId', CATEGORY_A);
+    fd.set('name', 'Bacalhau Assado Atualizado');
+    fd.set('price', '19,00');
+    fd.set('available', 'on');
+    // Tentativa de sobrescrever/limpar com módulos off:
+    fd.set('nameEn', 'Overwritten EN');
+    fd.append('allergens', 'milk');
+    fd.set('highlight', 'new');
+    fd.set('allergens_module_active', 'true');
+    fd.set('highlights_module_active', 'true');
+
+    const result = await updateDishAction(INITIAL_ACTION_STATE, fd);
+
+    expect(result.status).toBe('success');
+    expect(mockUpdateDish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Bacalhau Assado Atualizado',
+        translations: existingTranslations,
+        allergens: existingAllergens,
+        highlight: existingHighlight,
+      }),
+    );
+  });
+
+  it('createCategoryAction grava {} e updateCategoryAction preserva currentCategory.translations quando modules.languages está off na BD', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: USER_ID, email: 'dono@tasca.pt' } },
+      error: null,
+    });
+
+    const savedCatTranslations = { en: { name: 'Saved Starters', description: 'Saved note' } };
+    const mockInsertCategory = vi.fn(async () => ({ error: null }));
+    const mockUpdateCatEqRestaurant = vi.fn(async () => ({ error: null }));
+    const mockUpdateCatEqId = vi.fn(() => ({ eq: mockUpdateCatEqRestaurant }));
+    const mockUpdateCategory = vi.fn(() => ({ eq: mockUpdateCatEqId }));
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'restaurant_members') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { role: 'owner' }, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'restaurants') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  slug: 'tasca-do-castelo',
+                  settings: {
+                    modules: {
+                      languages: false,
+                      allergens: true,
+                      highlights: true,
+                      hours: true,
+                    },
+                  },
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'categories') {
+        return {
+          select: (cols: string) => {
+            if (cols === 'position') {
+              return {
+                eq: () => ({
+                  order: () => ({
+                    limit: async () => ({ data: [{ position: 0 }], error: null }),
+                  }),
+                }),
+              };
+            }
+            return {
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({
+                    data: { translations: savedCatTranslations },
+                    error: null,
+                  }),
+                }),
+              }),
+            };
+          },
+          insert: mockInsertCategory,
+          update: mockUpdateCategory,
+        };
+      }
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    const createFd = new FormData();
+    createFd.set('restaurantId', RESTAURANT_ID);
+    createFd.set('name', 'Entradas');
+    createFd.set('nameEn', 'Forged Starters');
+    createFd.set('descriptionEn', 'Forged Desc');
+
+    const createRes = await createCategoryAction(INITIAL_ACTION_STATE, createFd);
+    expect(createRes.status).toBe('success');
+    expect(mockInsertCategory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Entradas',
+        translations: {},
+      }),
+    );
+
+    const updateFd = new FormData();
+    updateFd.set('restaurantId', RESTAURANT_ID);
+    updateFd.set('categoryId', CATEGORY_A);
+    updateFd.set('name', 'Entradas Quentes');
+    updateFd.set('nameEn', 'Overwritten Starters');
+
+    const updateRes = await updateCategoryAction(INITIAL_ACTION_STATE, updateFd);
+    expect(updateRes.status).toBe('success');
+    expect(mockUpdateCategory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Entradas Quentes',
+        translations: savedCatTranslations,
+      }),
+    );
+  });
+
+  it('middleware define x-menu-html-lang=pt-PT em ?lang=en quando modules.languages está off e en quando está on', async () => {
+    mockGetClaims.mockResolvedValue({ data: { claims: null } });
+
+    // Caso 1: languages = false -> ?lang=en deve manter pt-PT
+    mockFrom.mockImplementationOnce(() => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data: { settings: { modules: { languages: false } } },
+            error: null,
+          }),
+        }),
+      }),
+    }));
+
+    const reqOff = new NextRequest('http://localhost:3000/r/tasca-do-castelo?lang=en');
+    const resOff = await updateSession(reqOff);
+    expect(resOff.headers.get('x-middleware-override-headers')).toContain('x-menu-html-lang');
+    expect(resOff.headers.get('x-middleware-request-x-menu-html-lang')).toBe('pt-PT');
+
+    // Caso 2: languages = true -> ?lang=en define en
+    mockFrom.mockImplementationOnce(() => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data: { settings: { modules: { languages: true } } },
+            error: null,
+          }),
+        }),
+      }),
+    }));
+
+    const reqOn = new NextRequest('http://localhost:3000/r/tasca-do-castelo?lang=en');
+    const resOn = await updateSession(reqOn);
+    expect(resOn.headers.get('x-middleware-request-x-menu-html-lang')).toBe('en');
   });
 
   it('updateRestaurantAction recusa alteração de slug ou published quando o membro não é owner', async () => {
@@ -159,7 +529,12 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes e Reordena�
           select: () => ({
             eq: () => ({
               maybeSingle: async () => ({
-                data: { id: RESTAURANT_ID, slug: 'tasca-do-castelo', published: false },
+                data: {
+                  id: RESTAURANT_ID,
+                  slug: 'tasca-do-castelo',
+                  published: false,
+                  translations: {},
+                },
                 error: null,
               }),
             }),
