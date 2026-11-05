@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
+import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { createClient } from '@/lib/supabase/server';
 import { moveItemInList } from '@/lib/utils/reorder';
 import {
@@ -45,6 +46,8 @@ export async function createCategoryAction(
     restaurantId: formData.get('restaurantId'),
     name: formData.get('name'),
     description: formData.get('description') ?? '',
+    nameEn: formData.get('nameEn') ?? '',
+    descriptionEn: formData.get('descriptionEn') ?? '',
   });
 
   if (!parsed.success) {
@@ -70,11 +73,17 @@ export async function createCategoryAction(
 
   const nextPosition = existing && existing[0] ? existing[0].position + 1 : 0;
 
+  const translationsPayload = buildEnglishTranslationsJson(null, {
+    nameEn: parsed.data.nameEn,
+    descriptionEn: parsed.data.descriptionEn,
+  });
+
   const { error } = await supabase.from('categories').insert({
     restaurant_id: parsed.data.restaurantId,
     name: parsed.data.name,
     description: parsed.data.description || null,
     position: nextPosition,
+    translations: translationsPayload,
   });
 
   if (error) {
@@ -99,6 +108,8 @@ export async function updateCategoryAction(
     categoryId: formData.get('categoryId'),
     name: formData.get('name'),
     description: formData.get('description') ?? '',
+    nameEn: formData.get('nameEn') ?? '',
+    descriptionEn: formData.get('descriptionEn') ?? '',
   });
 
   if (!parsed.success) {
@@ -115,11 +126,28 @@ export async function updateCategoryAction(
   }
 
   const supabase = await createClient();
+
+  const { data: currentCategory } = await supabase
+    .from('categories')
+    .select('translations')
+    .eq('id', parsed.data.categoryId)
+    .eq('restaurant_id', parsed.data.restaurantId)
+    .maybeSingle();
+
+  const hasTranslationsInputs = formData.has('nameEn') || formData.has('descriptionEn');
+  const nextTranslations = hasTranslationsInputs
+    ? buildEnglishTranslationsJson(currentCategory?.translations, {
+        nameEn: parsed.data.nameEn,
+        descriptionEn: parsed.data.descriptionEn,
+      })
+    : (currentCategory?.translations ?? {});
+
   const { error } = await supabase
     .from('categories')
     .update({
       name: parsed.data.name,
       description: parsed.data.description || null,
+      translations: nextTranslations,
     })
     .eq('id', parsed.data.categoryId)
     .eq('restaurant_id', parsed.data.restaurantId);

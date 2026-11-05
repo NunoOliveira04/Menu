@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { RestaurantSettingsForm } from '@/components/dashboard/restaurant-settings-form';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
+import { normalizeWeeklySchedule } from '@/lib/modules/hours';
+import { createClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Definições do Restaurante',
@@ -15,6 +17,15 @@ export default async function DashboardRestaurantSettingsPage() {
     redirect('/onboarding');
   }
 
+  const supabase = await createClient();
+  const { data: hoursRows } = await supabase
+    .from('restaurant_hours')
+    .select('day_of_week, closed, slots')
+    .eq('restaurant_id', context.restaurant.id)
+    .order('day_of_week', { ascending: true });
+
+  const initialSchedule = normalizeWeeklySchedule(hoursRows ?? []);
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
@@ -26,7 +37,11 @@ export default async function DashboardRestaurantSettingsPage() {
         </p>
       </div>
 
-      <RestaurantSettingsForm restaurant={context.restaurant} role={context.role} />
+      <RestaurantSettingsForm
+        restaurant={context.restaurant}
+        role={context.role}
+        initialSchedule={initialSchedule}
+      />
     </div>
   );
 }

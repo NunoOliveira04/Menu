@@ -1,5 +1,6 @@
 -- =============================================================================
 -- Seed Demo — Restaurante fictício 'Tasca do Castelo' (Guimarães)
+-- Grupo 2: módulos opcionais ligados (languages PT/EN, allergens UE, highlights e hours).
 -- Idempotente: pode ser executado mais do que uma vez.
 -- =============================================================================
 
@@ -13,7 +14,8 @@ insert into public.restaurants (
   location,
   style,
   published,
-  settings
+  settings,
+  translations
 )
 values (
   '11111111-1111-4111-8111-111111111111',
@@ -23,7 +25,8 @@ values (
   'Largo da Oliveira, Guimarães',
   'classico',
   true,
-  '{"modules":{"languages":false,"allergens":false,"highlights":false,"hours":false}}'::jsonb
+  '{"modules":{"languages":true,"allergens":true,"highlights":true,"hours":true}}'::jsonb,
+  '{"en":{"description":"Traditional Minho cuisine right by the Historic Centre of Guimarães, slow-cooked over wood fire with local seasonal produce."}}'::jsonb
 )
 on conflict (slug) do update
 set
@@ -32,52 +35,72 @@ set
   location = excluded.location,
   style = excluded.style,
   published = excluded.published,
-  settings = excluded.settings;
+  settings = excluded.settings,
+  translations = excluded.translations;
 
--- Limpar categorias/pratos anteriores do restaurante demo para garantir estado consistente
+-- Limpar categorias/pratos/horários anteriores do restaurante demo para garantir estado consistente
 delete from public.categories
 where restaurant_id = '11111111-1111-4111-8111-111111111111';
 
--- 5 Categorias tradicionais
-insert into public.categories (id, restaurant_id, name, description, position)
+delete from public.restaurant_hours
+where restaurant_id = '11111111-1111-4111-8111-111111111111';
+
+-- Horário semanal realista (Europe/Lisbon): encerrado à segunda; almoço e jantar terça a sábado; almoço prolongado ao domingo
+insert into public.restaurant_hours (restaurant_id, day_of_week, closed, slots)
+values
+  ('11111111-1111-4111-8111-111111111111', 0, true,  '[]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 1, false, '[{"open":"12:00","close":"15:00"},{"open":"19:00","close":"22:30"}]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 2, false, '[{"open":"12:00","close":"15:00"},{"open":"19:00","close":"22:30"}]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 3, false, '[{"open":"12:00","close":"15:00"},{"open":"19:00","close":"22:30"}]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 4, false, '[{"open":"12:00","close":"15:00"},{"open":"19:00","close":"23:30"}]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 5, false, '[{"open":"12:00","close":"15:30"},{"open":"19:00","close":"23:30"}]'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 6, false, '[{"open":"12:00","close":"16:00"}]'::jsonb);
+
+-- 5 Categorias tradicionais com traduções em Inglês (EN)
+insert into public.categories (id, restaurant_id, name, description, position, translations)
 values
   (
     '22222222-2222-4222-8222-222222222201',
     '11111111-1111-4111-8111-111111111111',
     'Petiscos & Entradas',
     'Para partilhar à chegada com broa de milho caseira e azeite transmontano.',
-    0
+    0,
+    '{"en":{"name":"Starters & Portuguese Petiscos","description":"Made to share at the table with homemade cornbread and extra-virgin olive oil."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222202',
     '11111111-1111-4111-8111-111111111111',
     'Sopas & Tachos Quentes',
     'Conforto minhoto servido bem quente em tigela de barro.',
-    1
+    1,
+    '{"en":{"name":"Traditional Soups & Hot Pots","description":"Hearty Minho comfort served piping hot in clay bowls."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222203',
     '11111111-1111-4111-8111-111111111111',
     'Peixe & Bacalhau',
     'Receitas clássicas de bacalhau de cura tradicional e peixe fresco da costa.',
-    2
+    2,
+    '{"en":{"name":"Fish & Salt Cod","description":"Classic cured Atlantic cod recipes and fresh coastal fish."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222204',
     '11111111-1111-4111-8111-111111111111',
     'Carnes do Minho',
     'Assados no forno de lenha e carnes maturadas de produtores locais.',
-    3
+    3,
+    '{"en":{"name":"Minho Meats","description":"Wood-fired roasts and meats sourced from small local farms."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222205',
     '11111111-1111-4111-8111-111111111111',
     'Doçaria Conventual',
     'Doces históricos de Guimarães e sobremesas caseiras.',
-    4
+    4,
+    '{"en":{"name":"Conventual Desserts","description":"Historic monastic sweets from Guimarães and house-made desserts."}}'::jsonb
   );
 
--- 15 Pratos com imagens placeholder livres (picsum.photos com seed determinística)
+-- 15 Pratos com traduções EN, alergénios da UE, destaques e imagens placeholder livres
 insert into public.dishes (
   restaurant_id,
   category_id,
@@ -87,7 +110,9 @@ insert into public.dishes (
   photo_url,
   available,
   position,
-  translations
+  translations,
+  allergens,
+  highlight
 )
 values
   -- Petiscos & Entradas (4)
@@ -100,7 +125,9 @@ values
     'https://picsum.photos/seed/pataniscas-vimaranes/800/600',
     true,
     0,
-    '{}'::jsonb
+    '{"en":{"name":"Salt Cod Fritters (Pataniscas)","description":"Crisp cod fritters fried to order in olive oil, served with roasted garlic mayo and fresh parsley."}}'::jsonb,
+    array['gluten', 'eggs', 'fish']::text[],
+    'recommended'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -111,7 +138,9 @@ values
     'https://picsum.photos/seed/chourica-barro/800/600',
     true,
     1,
-    '{}'::jsonb
+    '{"en":{"name":"Flame-Roasted Smoked Chorizo","description":"Artisanal Minho pork sausage flambéed tableside in clay dish, served with cornbread."}}'::jsonb,
+    array['gluten', 'sulphites']::text[],
+    null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -122,7 +151,9 @@ values
     'https://picsum.photos/seed/bola-vimaranense/800/600',
     true,
     2,
-    '{}'::jsonb
+    '{"en":{"name":"Guimarães Savoury Meat Bread","description":"Generous slice of soft house-baked bread stuffed with smoked meats andcured bacon."}}'::jsonb,
+    array['gluten', 'eggs', 'milk']::text[],
+    null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -133,7 +164,9 @@ values
     'https://picsum.photos/seed/queijo-compota/800/600',
     true,
     3,
-    '{}'::jsonb
+    '{"en":{"name":"Aged Serra Sheep Cheese & Pumpkin Jam","description":"Served with toasted walnuts and crisp rye bread toasts."}}'::jsonb,
+    array['gluten', 'milk', 'nuts']::text[],
+    'new'
   ),
 
   -- Sopas & Tachos Quentes (2)
@@ -146,7 +179,9 @@ values
     'https://picsum.photos/seed/caldo-verde-minho/800/600',
     true,
     0,
-    '{}'::jsonb
+    '{"en":{"name":"Minho-Style Caldo Verde","description":"Finely shredded Galician kale, velvety potato broth, extra-virgin olive oil and smoked chorizo."}}'::jsonb,
+    array['sulphites']::text[],
+    null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -157,7 +192,9 @@ values
     'https://picsum.photos/seed/papas-sarrabulho/800/600',
     true,
     1,
-    '{}'::jsonb
+    '{"en":{"name":"Traditional Sarrabulho Porridge","description":"Heritage Minho savoury dish slow-simmered with selected meats, cumin and cornbread."}}'::jsonb,
+    array['gluten', 'sulphites']::text[],
+    null
   ),
 
   -- Peixe & Bacalhau (3)
@@ -170,7 +207,9 @@ values
     'https://picsum.photos/seed/bacalhau-castelo/800/600',
     true,
     0,
-    '{}'::jsonb
+    '{"en":{"name":"Tasca do Castelo Roasted Salt Cod","description":"Thick Atlantic cod loin baked with cornbread crust, sautéed turnip greens and punched potatoes."}}'::jsonb,
+    array['gluten', 'fish']::text[],
+    'featured'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -181,7 +220,9 @@ values
     'https://picsum.photos/seed/polvo-lagareiro/800/600',
     true,
     1,
-    '{}'::jsonb
+    '{"en":{"name":"Oven-Roasted Lagareiro Octopus","description":"Tender octopus tentacles confit in olive oil, sliced garlic, fresh coriander and baby roast potatoes."}}'::jsonb,
+    array['molluscs']::text[],
+    'recommended'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -192,7 +233,9 @@ values
     'https://picsum.photos/seed/filetes-pescada/800/600',
     true,
     2,
-    '{}'::jsonb
+    '{"en":{"name":"Golden Hake Fillets with Saucy Tomato Rice","description":"Lightly battered hake fillets served alongside brothy ripe-tomato rice with sweet basil."}}'::jsonb,
+    array['gluten', 'eggs', 'fish']::text[],
+    null
   ),
 
   -- Carnes do Minho (3)
@@ -205,7 +248,9 @@ values
     'https://picsum.photos/seed/rojoes-minhota/800/600',
     true,
     0,
-    '{}'::jsonb
+    '{"en":{"name":"Minho-Style Pork Rojões with Chestnuts","description":"Pork chunks marinated in Vinho Verde and garlic, served with chestnuts and golden potatoes."}}'::jsonb,
+    array['gluten', 'nuts', 'sulphites']::text[],
+    'featured'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -216,7 +261,9 @@ values
     'https://picsum.photos/seed/vitela-forno-lenha/800/600',
     true,
     1,
-    '{}'::jsonb
+    '{"en":{"name":"Wood-Oven Roasted Barrosã Veal","description":"Slow-roasted local veal in its natural jus, served with oven-baked rice and roast potatoes."}}'::jsonb,
+    array['celery', 'sulphites']::text[],
+    null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -227,7 +274,9 @@ values
     'https://picsum.photos/seed/arroz-pato-antiga/800/600',
     false,
     2,
-    '{}'::jsonb
+    '{"en":{"name":"Old-Fashioned Baked Duck Rice","description":"Shredded duck cooked in aromatic stock and oven-crisped with Vinhais smoked sausage."}}'::jsonb,
+    array['celery', 'sulphites']::text[],
+    null
   ),
 
   -- Doçaria Conventual (3)
@@ -240,7 +289,9 @@ values
     'https://picsum.photos/seed/torta-guimaraes/800/600',
     true,
     0,
-    '{}'::jsonb
+    '{"en":{"name":"Torta de Guimarães Pastry","description":"Crisp conventual pastry filled with squash preserve, toasted almonds and cinnamon."}}'::jsonb,
+    array['gluten', 'eggs', 'nuts']::text[],
+    'featured'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -251,7 +302,9 @@ values
     'https://picsum.photos/seed/toucinho-ceu/800/600',
     true,
     1,
-    '{}'::jsonb
+    '{"en":{"name":"Guimarães Toucinho do Céu","description":"Rich conventual almond and egg-yolk cake dusted with icing sugar."}}'::jsonb,
+    array['gluten', 'eggs', 'nuts']::text[],
+    null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
@@ -262,7 +315,9 @@ values
     'https://picsum.photos/seed/leite-creme-ferro/800/600',
     true,
     2,
-    '{}'::jsonb
+    '{"en":{"name":"Caramelised Portuguese Custard","description":"Infused with lemon peel and cinnamon stick, burnt to order with a hot iron."}}'::jsonb,
+    array['eggs', 'milk']::text[],
+    'new'
   );
 
 commit;

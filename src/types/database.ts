@@ -2,6 +2,29 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type RestaurantStyle = 'classico' | 'moderno' | 'escuro';
 export type RestaurantMemberRole = 'owner' | 'manager' | 'editor';
+export type MenuLocale = 'pt' | 'en';
+export type DishHighlight = 'featured' | 'recommended' | 'new';
+
+export type EuAllergenCode =
+  | 'gluten'
+  | 'crustaceans'
+  | 'eggs'
+  | 'fish'
+  | 'peanuts'
+  | 'soybeans'
+  | 'milk'
+  | 'nuts'
+  | 'celery'
+  | 'mustard'
+  | 'sesame'
+  | 'sulphites'
+  | 'lupin'
+  | 'molluscs';
+
+export interface TimeSlot {
+  open: string;
+  close: string;
+}
 
 export interface RestaurantModules {
   languages: boolean;
@@ -36,6 +59,7 @@ export interface Database {
           style: RestaurantStyle;
           published: boolean;
           settings: Json;
+          translations: Json;
           created_at: string;
           updated_at: string;
         };
@@ -48,6 +72,7 @@ export interface Database {
           style?: RestaurantStyle;
           published?: boolean;
           settings?: Json;
+          translations?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -60,6 +85,7 @@ export interface Database {
           style?: RestaurantStyle;
           published?: boolean;
           settings?: Json;
+          translations?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -147,6 +173,8 @@ export interface Database {
           available: boolean;
           position: number;
           translations: Json;
+          allergens: EuAllergenCode[];
+          highlight: DishHighlight | null;
           created_at: string;
           updated_at: string;
         };
@@ -161,6 +189,8 @@ export interface Database {
           available?: boolean;
           position?: number;
           translations?: Json;
+          allergens?: EuAllergenCode[];
+          highlight?: DishHighlight | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -175,6 +205,8 @@ export interface Database {
           available?: boolean;
           position?: number;
           translations?: Json;
+          allergens?: EuAllergenCode[];
+          highlight?: DishHighlight | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -191,6 +223,38 @@ export interface Database {
             columns: ['category_id'];
             isOneToOne: false;
             referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      restaurant_hours: {
+        Row: {
+          restaurant_id: string;
+          day_of_week: number;
+          closed: boolean;
+          slots: Json;
+          updated_at: string;
+        };
+        Insert: {
+          restaurant_id: string;
+          day_of_week: number;
+          closed?: boolean;
+          slots?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          restaurant_id?: string;
+          day_of_week?: number;
+          closed?: boolean;
+          slots?: Json;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'restaurant_hours_restaurant_id_fkey';
+            columns: ['restaurant_id'];
+            isOneToOne: false;
+            referencedRelation: 'restaurants';
             referencedColumns: ['id'];
           },
         ];
@@ -223,6 +287,13 @@ export interface Database {
         };
         Returns: undefined;
       };
+      upsert_restaurant_hours: {
+        Args: {
+          p_restaurant_id: string;
+          p_days: Json;
+        };
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -233,3 +304,4 @@ export type RestaurantRow = Database['public']['Tables']['restaurants']['Row'];
 export type RestaurantMemberRow = Database['public']['Tables']['restaurant_members']['Row'];
 export type CategoryRow = Database['public']['Tables']['categories']['Row'];
 export type DishRow = Database['public']['Tables']['dishes']['Row'];
+export type RestaurantHoursRow = Database['public']['Tables']['restaurant_hours']['Row'];

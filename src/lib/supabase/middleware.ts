@@ -4,6 +4,15 @@ import type { Database } from '@/types/database';
 import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
 import { getSupabaseEnv } from './env';
 
+function resolveHtmlLangHeader(request: NextRequest, effectivePathname: string): 'pt-PT' | 'en' {
+  const isMenuRoute = effectivePathname.startsWith('/r/');
+  if (!isMenuRoute) {
+    return 'pt-PT';
+  }
+  const langParam = request.nextUrl.searchParams.get('lang')?.trim().toLowerCase();
+  return langParam === 'en' ? 'en' : 'pt-PT';
+}
+
 function copyResponseMetadata(source: NextResponse, target: NextResponse): NextResponse {
   source.cookies.getAll().forEach((cookie) => {
     target.cookies.set(cookie);
@@ -20,7 +29,26 @@ function copyResponseMetadata(source: NextResponse, target: NextResponse): NextR
 }
 
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
-  let supabaseResponse = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+
+  // Subdomínio -> /r/[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
+  const rewritePath = resolveSubdomainRewritePath({
+    hostHeader: request.headers.get('host'),
+    pathname,
+    enableSubdomainRouting: process.env.ENABLE_SUBDOMAIN_ROUTING === 'true',
+    rootDomain: process.env.ROOT_DOMAIN,
+  });
+
+  const effectivePathname = rewritePath ?? pathname;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-menu-html-lang', resolveHtmlLangHeader(request, effectivePathname));
+
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
   const { url, anonKey } = getSupabaseEnv();
 
   const supabase = createServerClient<Database>(url, anonKey, {
@@ -30,7 +58,11 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       },
       setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options),
         );
@@ -47,20 +79,17 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const { data } = await supabase.auth.getClaims();
   const isAuthenticated = Boolean(data?.claims?.sub);
 
-  const pathname = request.nextUrl.pathname;
-
-  // Subdomínio -> /r/[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
-  const rewritePath = resolveSubdomainRewritePath({
-    hostHeader: request.headers.get('host'),
-    pathname,
-    enableSubdomainRouting: process.env.ENABLE_SUBDOMAIN_ROUTING === 'true',
-    rootDomain: process.env.ROOT_DOMAIN,
-  });
-
   if (rewritePath) {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = rewritePath;
-    return copyResponseMetadata(supabaseResponse, NextResponse.rewrite(rewriteUrl, { request }));
+    return copyResponseMetadata(
+      supabaseResponse,
+      NextResponse.rewrite(rewriteUrl, {
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+    );
   }
 
   // Proteger rotas privadas (/dashboard e /onboarding)
