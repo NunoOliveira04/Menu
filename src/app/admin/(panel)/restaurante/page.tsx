@@ -9,12 +9,12 @@ export const metadata: Metadata = {
   title: 'Definições do Restaurante',
 };
 
-export default async function DashboardRestaurantSettingsPage() {
+export default async function AdminRestaurantSettingsPage() {
   const user = await requireAuthenticatedUser();
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/onboarding');
+    redirect('/admin/onboarding');
   }
 
   const supabase = await createClient();

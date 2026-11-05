@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { authCredentialsSchema, registerOwnerSchema } from '@/lib/validations/schemas';
 import { slugifyRestaurantName, isValidSlug } from '@/lib/utils/slug';
+import { getPublicAppOrigin } from '@/lib/utils/url';
 import type { ActionState } from './types';
 
 function formatZodErrors(error: z.ZodError): Record<string, string[]> {
@@ -44,7 +45,7 @@ export async function loginAction(
   }
 
   revalidatePath('/', 'layout');
-  redirect('/dashboard');
+  redirect('/admin');
 }
 
 export async function registerOwnerAction(
@@ -66,9 +67,13 @@ export async function registerOwnerAction(
   }
 
   const supabase = await createClient();
+  const emailRedirectTo = `${getPublicAppOrigin()}/admin`;
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
+    options: {
+      emailRedirectTo,
+    },
   });
 
   if (signUpError) {
@@ -116,7 +121,7 @@ export async function registerOwnerAction(
           return {
             status: 'error',
             message:
-              'A tua conta foi criada, mas não foi possível criar automaticamente o restaurante (identificador indisponível). Acede a /onboarding para escolher outro endereço.',
+              'A tua conta foi criada, mas não foi possível criar automaticamente o restaurante (identificador indisponível). Acede a /admin/onboarding para escolher outro endereço.',
           };
         }
       } else {
@@ -125,22 +130,22 @@ export async function registerOwnerAction(
           message:
             firstRpcError.code === 'P0001'
               ? 'Esta conta já está associada a um restaurante.'
-              : 'A tua conta foi criada, mas ocorreu um erro ao criar o primeiro restaurante. Conclui a configuração em /onboarding.',
+              : 'A tua conta foi criada, mas ocorreu um erro ao criar o primeiro restaurante. Conclui a configuração em /admin/onboarding.',
         };
       }
     }
 
     revalidatePath('/', 'layout');
-    redirect('/dashboard');
+    redirect('/admin');
   }
 
   revalidatePath('/', 'layout');
-  redirect('/onboarding');
+  redirect('/admin/onboarding');
 }
 
 export async function logoutAction(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath('/', 'layout');
-  redirect('/login');
+  redirect('/admin/login');
 }

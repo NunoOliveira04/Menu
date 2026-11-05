@@ -66,7 +66,7 @@ export function LoginForm() {
 
       <p className="pt-2 text-center text-sm text-stone-600">
         Ainda não tens conta?{' '}
-        <Link href="/registar" className="font-semibold text-[#8C3B2B] hover:underline">
+        <Link href="/admin/registar" className="font-semibold text-[#8C3B2B] hover:underline">
           Registar restaurante
         </Link>
       </p>
@@ -160,7 +160,7 @@ export function RegisterForm() {
 
       <p className="pt-2 text-center text-sm text-stone-600">
         Já tens conta?{' '}
-        <Link href="/login" className="font-semibold text-[#8C3B2B] hover:underline">
+        <Link href="/admin/login" className="font-semibold text-[#8C3B2B] hover:underline">
           Iniciar sessão
         </Link>
       </p>

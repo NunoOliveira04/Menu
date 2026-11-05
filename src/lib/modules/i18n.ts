@@ -121,8 +121,11 @@ export interface MenuUiDictionary {
   unavailableBadge: string;
   photoAltPrefix: string;
   allergensLabel: string;
+  allergensButton: string;
+  allergensClose: string;
   allergensLegendTitle: string;
   allergensLegendNote: string;
+  houseBadge: string;
   hoursTitle: string;
   openNowBadge: string;
   closedNowBadge: string;
@@ -146,6 +149,9 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
     unavailableBadge: 'Temporariamente indisponível',
     photoAltPrefix: 'Fotografia de',
     allergensLabel: 'Alergénios presentes',
+    allergensButton: 'Alergénios',
+    allergensClose: 'Fechar',
+    houseBadge: 'Da casa',
     allergensLegendTitle: 'Informação de Alergénios (Regulamento UE 1169/2011)',
     allergensLegendNote:
       'Em caso de alergia ou intolerância alimentar, confirma sempre com a nossa equipa antes de pedir.',
@@ -170,6 +176,9 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
     unavailableBadge: 'Temporarily unavailable',
     photoAltPrefix: 'Photo of',
     allergensLabel: 'Contains allergens',
+    allergensButton: 'Allergens',
+    allergensClose: 'Close',
+    houseBadge: 'House',
     allergensLegendTitle: 'Allergen Information (EU Regulation 1169/2011)',
     allergensLegendNote:
       'If you have any food allergy or intolerance, please inform our staff before ordering.',

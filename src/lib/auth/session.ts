@@ -24,7 +24,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedContext | nul
 export async function requireAuthenticatedUser(): Promise<AuthenticatedContext> {
   const user = await getAuthenticatedUser();
   if (!user) {
-    redirect('/login');
+    redirect('/admin/login');
   }
   return user;
 }

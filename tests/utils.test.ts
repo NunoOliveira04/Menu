@@ -22,7 +22,8 @@ describe('Utilitários de Slug, Preço, Reordenação, Temas e Subdomínios', ()
     expect(parseEuroToCents('abc')).toBeNull();
 
     expect(formatCentsToEuroInput(1850)).toBe('18,50');
-    expect(formatPriceCents(650)).toContain('6,50');
+    expect(formatPriceCents(650)).toBe('6,50 €');
+    expect(formatPriceCents(1250)).toBe('12,50 €');
   });
 
   it('reordena categorias/pratos para cima e para baixo mantendo posições contíguas', () => {

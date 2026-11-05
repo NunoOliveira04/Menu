@@ -29,7 +29,7 @@ export function isExternalHttpUrl(value: string): boolean {
 /**
  * Extrai o caminho interno do objeto (`<restaurant_id>/<ficheiro>`) no bucket `dish-photos`.
  * Suporta tanto caminhos internos guardados diretamente na BD como URLs antigos do Supabase Storage.
- * Devolve `null` para URLs externos (ex.: imagens placeholder da seed em picsum.photos).
+ * Devolve `null` para URLs externos (ex.: fotografias de pratos na seed, Unsplash/Pexels).
  */
 export function resolveDishPhotoObjectPath(
   storedPhotoRef: string | null | undefined,

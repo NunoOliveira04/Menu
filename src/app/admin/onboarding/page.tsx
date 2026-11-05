@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
   const existing = await getPrimaryUserRestaurant(user.userId);
 
   if (existing) {
-    redirect('/dashboard');
+    redirect('/admin');
   }
 
   return (

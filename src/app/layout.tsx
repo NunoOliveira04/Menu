@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
+import { Fraunces, Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import './globals.css';
 
-const fontSans = Plus_Jakarta_Sans({
+const fontSans = Inter({
   subsets: ['latin'],
+  weight: ['400', '500', '600'],
   variable: '--font-sans',
   display: 'swap',
 });
 
-const fontSerif = Cormorant_Garamond({
+const fontSerif = Fraunces({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  weight: '600',
   variable: '--font-serif',
   display: 'swap',
 });

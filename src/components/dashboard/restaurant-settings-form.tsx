@@ -322,10 +322,10 @@ export function RestaurantSettingsForm({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 selectedStyle === 'escuro'
-                  ? 'bg-amber-400 !text-[#121110]'
-                  : activePreviewTheme.preview.accentBg
+                  ? 'bg-[#C6A57A] text-[#1A120C]'
+                  : `${activePreviewTheme.preview.accentBg} text-white`
               }`}
             >
               Entradas

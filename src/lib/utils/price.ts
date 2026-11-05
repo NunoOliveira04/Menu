@@ -7,7 +7,7 @@ const euroFormatter = new Intl.NumberFormat('pt-PT', {
 
 export function formatPriceCents(priceCents: number): string {
   const safeCents = Number.isFinite(priceCents) ? Math.max(0, Math.round(priceCents)) : 0;
-  return euroFormatter.format(safeCents / 100);
+  return euroFormatter.format(safeCents / 100).replace(/[\u00A0\u202F]/g, ' ');
 }
 
 export function formatCentsToEuroInput(priceCents: number): string {

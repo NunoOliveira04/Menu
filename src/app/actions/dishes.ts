@@ -32,7 +32,7 @@ async function revalidateRestaurantMenu(restaurantId: string) {
     .eq('id', restaurantId)
     .maybeSingle();
 
-  revalidatePath('/dashboard');
+  revalidatePath('/admin');
   if (data?.slug) {
     revalidatePath(`/r/${data.slug}`);
   }

@@ -21,7 +21,7 @@ export default async function HomePage() {
           <nav aria-label="Navegação principal" className="flex items-center gap-3">
             {user ? (
               <Link
-                href="/dashboard"
+                href="/admin"
                 className="rounded-xl bg-[#8C3B2B] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#763123]"
               >
                 Abrir painel
@@ -29,13 +29,13 @@ export default async function HomePage() {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/admin/login"
                   className="rounded-xl px-3.5 py-2 text-sm font-medium text-[#4A3F37] transition hover:bg-[#EFE7DC]"
                 >
                   Iniciar sessão
                 </Link>
                 <Link
-                  href="/registar"
+                  href="/admin/registar"
                   className="rounded-xl bg-[#8C3B2B] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#763123]"
                 >
                   Criar menu
@@ -64,7 +64,7 @@ export default async function HomePage() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href={user ? '/dashboard' : '/registar'}
+              href={user ? '/admin' : '/admin/registar'}
               className="w-full rounded-xl bg-[#8C3B2B] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] sm:w-auto"
             >
               {user ? 'Ir para o meu painel' : 'Criar o meu restaurante'}

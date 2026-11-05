@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { parseRestaurantSettings } from '@/lib/auth/access';
+import {
+  ADMIN_HOME_PATH,
+  ADMIN_LOGIN_PATH,
+  isProtectedAdminPath,
+  isPublicAdminAuthPath,
+  resolveLegacyAdminRedirect,
+} from '@/lib/routing/admin-paths';
 import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
 import type { Database } from '@/types/database';
 import { getSupabaseEnv } from './env';
@@ -108,6 +115,13 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     }
   }
 
+  const legacyTarget = resolveLegacyAdminRedirect(pathname);
+  if (legacyTarget) {
+    const legacyUrl = request.nextUrl.clone();
+    legacyUrl.pathname = legacyTarget;
+    return copyResponseMetadata(supabaseResponse, NextResponse.redirect(legacyUrl, 308));
+  }
+
   if (rewritePath) {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = rewritePath;
@@ -121,23 +135,19 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     );
   }
 
-  // Proteger rotas privadas (/dashboard e /onboarding)
-  if (
-    (pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding')) &&
-    !isAuthenticated
-  ) {
+  // Proteger /admin/*, excepto login e registo.
+  if (isProtectedAdminPath(pathname) && !isAuthenticated) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/login';
+    loginUrl.pathname = ADMIN_LOGIN_PATH;
     loginUrl.searchParams.set('next', pathname);
     return copyResponseMetadata(supabaseResponse, NextResponse.redirect(loginUrl));
   }
 
-  // Redirecionar utilizadores já autenticados das páginas de login/registo
-  if ((pathname === '/login' || pathname === '/registar') && isAuthenticated) {
-    const dashUrl = request.nextUrl.clone();
-    dashUrl.pathname = '/dashboard';
-    dashUrl.search = '';
-    return copyResponseMetadata(supabaseResponse, NextResponse.redirect(dashUrl));
+  if (isPublicAdminAuthPath(pathname) && isAuthenticated) {
+    const adminUrl = request.nextUrl.clone();
+    adminUrl.pathname = ADMIN_HOME_PATH;
+    adminUrl.search = '';
+    return copyResponseMetadata(supabaseResponse, NextResponse.redirect(adminUrl));
   }
 
   return supabaseResponse;
