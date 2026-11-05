@@ -69,8 +69,79 @@ create index if not exists dishes_restaurant_highlight_idx
   where highlight is not null;
 
 -- -----------------------------------------------------------------------------
--- 3. Horário semanal do restaurante (0 = Segunda-feira .. 6 = Domingo)
+-- 3. Validador IMMUTABLE dos turnos horários e tabela restaurant_hours
 -- -----------------------------------------------------------------------------
+create or replace function public.are_valid_restaurant_slots(p_slots jsonb)
+returns boolean
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  v_len integer;
+  v_slot jsonb;
+  v_idx integer;
+  v_open text;
+  v_close text;
+  v_key_count integer;
+  v_open_1 integer;
+  v_close_1 integer;
+  v_open_2 integer;
+begin
+  if p_slots is null or jsonb_typeof(p_slots) <> 'array' then
+    return false;
+  end if;
+
+  v_len := jsonb_array_length(p_slots);
+  if v_len > 2 then
+    return false;
+  end if;
+
+  for v_idx in 0 .. (v_len - 1)
+  loop
+    v_slot := p_slots -> v_idx;
+
+    if v_slot is null or jsonb_typeof(v_slot) <> 'object' then
+      return false;
+    end if;
+
+    select count(*)
+      into v_key_count
+      from jsonb_object_keys(v_slot);
+
+    if v_key_count <> 2
+       or jsonb_typeof(v_slot -> 'open') <> 'string'
+       or jsonb_typeof(v_slot -> 'close') <> 'string'
+    then
+      return false;
+    end if;
+
+    v_open := v_slot ->> 'open';
+    v_close := v_slot ->> 'close';
+
+    if v_open !~ '^(?:[01]\d|2[0-3]):[0-5]\d$'
+       or v_close !~ '^(?:[01]\d|2[0-3]):[0-5]\d$'
+       or v_open = v_close
+    then
+      return false;
+    end if;
+
+    if v_idx = 0 then
+      v_open_1 := split_part(v_open, ':', 1)::integer * 60 + split_part(v_open, ':', 2)::integer;
+      v_close_1 := split_part(v_close, ':', 1)::integer * 60 + split_part(v_close, ':', 2)::integer;
+    else
+      v_open_2 := split_part(v_open, ':', 1)::integer * 60 + split_part(v_open, ':', 2)::integer;
+      -- Se há 2 turnos, o 1.º não pode atravessar a meia-noite e o 2.º tem de começar em/após o fim do 1.º
+      if v_close_1 < v_open_1 or v_open_2 < v_close_1 then
+        return false;
+      end if;
+    end if;
+  end loop;
+
+  return true;
+end;
+$$;
+
 create table if not exists public.restaurant_hours (
   restaurant_id uuid not null references public.restaurants(id) on delete cascade,
   day_of_week smallint not null,
@@ -79,7 +150,7 @@ create table if not exists public.restaurant_hours (
   updated_at timestamptz not null default timezone('utc', now()),
   primary key (restaurant_id, day_of_week),
   constraint restaurant_hours_day_range check (day_of_week between 0 and 6),
-  constraint restaurant_hours_slots_array check (jsonb_typeof(slots) = 'array'),
+  constraint restaurant_hours_slots_valid check (public.are_valid_restaurant_slots(slots)),
   constraint restaurant_hours_closed_slots_consistent check (
     not closed or jsonb_array_length(slots) = 0
   )
@@ -165,6 +236,11 @@ begin
 
     if v_closed then
       v_slots := '[]'::jsonb;
+    else
+      if not public.are_valid_restaurant_slots(v_slots) or jsonb_array_length(v_slots) = 0 then
+        raise exception 'Turnos horários inválidos ou sobrepostos para o dia indicado.'
+          using errcode = '22023';
+      end if;
     end if;
 
     insert into public.restaurant_hours (restaurant_id, day_of_week, closed, slots)

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { parseRestaurantSettings } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { createClient } from '@/lib/supabase/server';
@@ -64,6 +65,18 @@ export async function createCategoryAction(
   }
 
   const supabase = await createClient();
+  const { data: restaurantRow, error: restaurantError } = await supabase
+    .from('restaurants')
+    .select('settings')
+    .eq('id', parsed.data.restaurantId)
+    .maybeSingle();
+
+  if (restaurantError || !restaurantRow) {
+    return { status: 'error', message: 'Restaurante não encontrado.' };
+  }
+
+  const modules = parseRestaurantSettings(restaurantRow.settings).modules;
+
   const { data: existing } = await supabase
     .from('categories')
     .select('position')
@@ -73,10 +86,12 @@ export async function createCategoryAction(
 
   const nextPosition = existing && existing[0] ? existing[0].position + 1 : 0;
 
-  const translationsPayload = buildEnglishTranslationsJson(null, {
-    nameEn: parsed.data.nameEn,
-    descriptionEn: parsed.data.descriptionEn,
-  });
+  const translationsPayload = modules.languages
+    ? buildEnglishTranslationsJson(null, {
+        nameEn: parsed.data.nameEn,
+        descriptionEn: parsed.data.descriptionEn,
+      })
+    : {};
 
   const { error } = await supabase.from('categories').insert({
     restaurant_id: parsed.data.restaurantId,
@@ -127,20 +142,39 @@ export async function updateCategoryAction(
 
   const supabase = await createClient();
 
-  const { data: currentCategory } = await supabase
-    .from('categories')
-    .select('translations')
-    .eq('id', parsed.data.categoryId)
-    .eq('restaurant_id', parsed.data.restaurantId)
-    .maybeSingle();
+  const [
+    { data: restaurantRow, error: restaurantError },
+    { data: currentCategory, error: categoryError },
+  ] = await Promise.all([
+    supabase
+      .from('restaurants')
+      .select('settings')
+      .eq('id', parsed.data.restaurantId)
+      .maybeSingle(),
+    supabase
+      .from('categories')
+      .select('translations')
+      .eq('id', parsed.data.categoryId)
+      .eq('restaurant_id', parsed.data.restaurantId)
+      .maybeSingle(),
+  ]);
 
-  const hasTranslationsInputs = formData.has('nameEn') || formData.has('descriptionEn');
-  const nextTranslations = hasTranslationsInputs
-    ? buildEnglishTranslationsJson(currentCategory?.translations, {
+  if (restaurantError || !restaurantRow) {
+    return { status: 'error', message: 'Restaurante não encontrado.' };
+  }
+
+  if (categoryError || !currentCategory) {
+    return { status: 'error', message: 'Categoria não encontrada.' };
+  }
+
+  const modules = parseRestaurantSettings(restaurantRow.settings).modules;
+
+  const nextTranslations = modules.languages
+    ? buildEnglishTranslationsJson(currentCategory.translations, {
         nameEn: parsed.data.nameEn,
         descriptionEn: parsed.data.descriptionEn,
       })
-    : (currentCategory?.translations ?? {});
+    : currentCategory.translations;
 
   const { error } = await supabase
     .from('categories')

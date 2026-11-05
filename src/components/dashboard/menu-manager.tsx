@@ -53,12 +53,19 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isMutating, startTransition] = useTransition();
 
+  const hasSignedPhotos = dishes.some((dish) =>
+    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
+  );
+
   useEffect(() => {
+    if (!hasSignedPhotos) {
+      return;
+    }
     const timer = window.setInterval(() => {
       router.refresh();
     }, DISH_PHOTO_REFRESH_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, [hasSignedPhotos, router]);
 
   function runQuickFormAction(
     action: (fd: FormData) => Promise<{ status: string; message?: string }>,
@@ -726,8 +733,6 @@ function DishForm({
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="restaurantId" value={restaurantId} />
       {dish && <input type="hidden" name="dishId" value={dish.id} />}
-      {modules.allergens && <input type="hidden" name="allergens_module_active" value="true" />}
-      {modules.highlights && <input type="hidden" name="highlights_module_active" value="true" />}
 
       <div className="flex items-center justify-between">
         <h4 className="font-serif text-lg font-semibold text-stone-900">

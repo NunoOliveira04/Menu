@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { buildDishPhotoStoragePath } from '@/lib/auth/access';
+import { buildDishPhotoStoragePath, parseRestaurantSettings } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
@@ -124,6 +124,19 @@ export async function createDishAction(
     return { status: 'error', message: 'Sem permissão para adicionar pratos a este restaurante.' };
   }
 
+  const supabase = await createClient();
+  const { data: restaurantRow, error: restaurantError } = await supabase
+    .from('restaurants')
+    .select('settings')
+    .eq('id', parsed.data.restaurantId)
+    .maybeSingle();
+
+  if (restaurantError || !restaurantRow) {
+    return { status: 'error', message: 'Restaurante não encontrado.' };
+  }
+
+  const modules = parseRestaurantSettings(restaurantRow.settings).modules;
+
   const photoUpload = await uploadValidatedPhoto(parsed.data.restaurantId, formData.get('photo'));
 
   if (!photoUpload.ok) {
@@ -134,7 +147,6 @@ export async function createDishAction(
     };
   }
 
-  const supabase = await createClient();
   const { data: existingDishes } = await supabase
     .from('dishes')
     .select('position')
@@ -145,10 +157,15 @@ export async function createDishAction(
 
   const nextPosition = existingDishes && existingDishes[0] ? existingDishes[0].position + 1 : 0;
 
-  const translationsPayload = buildEnglishTranslationsJson(null, {
-    nameEn: parsed.data.nameEn,
-    descriptionEn: parsed.data.descriptionEn,
-  });
+  const translationsPayload = modules.languages
+    ? buildEnglishTranslationsJson(null, {
+        nameEn: parsed.data.nameEn,
+        descriptionEn: parsed.data.descriptionEn,
+      })
+    : {};
+
+  const allergensPayload = modules.allergens ? parsed.data.allergens : [];
+  const highlightPayload = modules.highlights ? parsed.data.highlight : null;
 
   const { error } = await supabase.from('dishes').insert({
     restaurant_id: parsed.data.restaurantId,
@@ -160,8 +177,8 @@ export async function createDishAction(
     available: parsed.data.available,
     position: nextPosition,
     translations: translationsPayload,
-    allergens: parsed.data.allergens,
-    highlight: parsed.data.highlight,
+    allergens: allergensPayload,
+    highlight: highlightPayload,
   });
 
   if (error) {
@@ -216,16 +233,32 @@ export async function updateDishAction(
   }
 
   const supabase = await createClient();
-  const { data: currentDish, error: fetchError } = await supabase
-    .from('dishes')
-    .select('photo_url, translations, allergens, highlight')
-    .eq('id', parsed.data.dishId)
-    .eq('restaurant_id', parsed.data.restaurantId)
-    .maybeSingle();
+  const [
+    { data: restaurantRow, error: restaurantError },
+    { data: currentDish, error: fetchError },
+  ] = await Promise.all([
+    supabase
+      .from('restaurants')
+      .select('settings')
+      .eq('id', parsed.data.restaurantId)
+      .maybeSingle(),
+    supabase
+      .from('dishes')
+      .select('photo_url, translations, allergens, highlight')
+      .eq('id', parsed.data.dishId)
+      .eq('restaurant_id', parsed.data.restaurantId)
+      .maybeSingle(),
+  ]);
+
+  if (restaurantError || !restaurantRow) {
+    return { status: 'error', message: 'Restaurante não encontrado.' };
+  }
 
   if (fetchError || !currentDish) {
     return { status: 'error', message: 'Prato não encontrado.' };
   }
+
+  const modules = parseRestaurantSettings(restaurantRow.settings).modules;
 
   const photoUpload = await uploadValidatedPhoto(parsed.data.restaurantId, formData.get('photo'));
 
@@ -246,19 +279,15 @@ export async function updateDishAction(
     nextPhotoRef = null;
   }
 
-  const hasTranslationsInputs = formData.has('nameEn') || formData.has('descriptionEn');
-  const nextTranslations = hasTranslationsInputs
+  const nextTranslations = modules.languages
     ? buildEnglishTranslationsJson(currentDish.translations, {
         nameEn: parsed.data.nameEn,
         descriptionEn: parsed.data.descriptionEn,
       })
     : currentDish.translations;
 
-  const hasAllergensModuleActive = formData.get('allergens_module_active') === 'true';
-  const nextAllergens = hasAllergensModuleActive ? parsed.data.allergens : currentDish.allergens;
-
-  const hasHighlightsModuleActive = formData.get('highlights_module_active') === 'true';
-  const nextHighlight = hasHighlightsModuleActive ? parsed.data.highlight : currentDish.highlight;
+  const nextAllergens = modules.allergens ? parsed.data.allergens : currentDish.allergens;
+  const nextHighlight = modules.highlights ? parsed.data.highlight : currentDish.highlight;
 
   const { error } = await supabase
     .from('dishes')
