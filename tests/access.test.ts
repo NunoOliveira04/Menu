@@ -62,8 +62,8 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'editor',
-        currentSlug: 'tasca-do-castelo',
-        nextSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
+        nextSlug: 'menu-restaurante',
         currentPublished: false,
         nextPublished: false,
       }),
@@ -73,8 +73,8 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'editor',
-        currentSlug: 'tasca-do-castelo',
-        nextSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
+        nextSlug: 'menu-restaurante',
         currentPublished: false,
         nextPublished: true,
       }),
@@ -83,7 +83,7 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'manager',
-        currentSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
         nextSlug: 'novo-slug',
         currentPublished: true,
         nextPublished: true,
@@ -94,7 +94,7 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'owner',
-        currentSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
         nextSlug: 'novo-slug',
         currentPublished: false,
         nextPublished: true,

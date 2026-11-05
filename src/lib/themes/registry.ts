@@ -32,7 +32,7 @@ export interface MenuThemeTokens {
   label: string;
   description: string;
   availableInMvp: boolean;
-  /** Azulejo só no tema clássico (Tasca Contemporânea). Os outros usam um filete. */
+  /** Azulejo só no tema clássico. Os outros usam um filete. */
   ornament: 'azulejo' | 'rule';
   cssVars: MenuThemeCssVars;
   preview: MenuThemePreviewPalette;
@@ -44,7 +44,7 @@ const BODY = 'var(--font-sans), system-ui, sans-serif';
 export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
   classico: {
     id: 'classico',
-    label: 'Tasca Contemporânea',
+    label: 'Clássico',
     description:
       'Marfim, Fraunces e tijolo. Um ornamento de azulejo só nos separadores de categoria.',
     availableInMvp: true,

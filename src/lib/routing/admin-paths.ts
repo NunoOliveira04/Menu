@@ -1,14 +1,16 @@
 export const ADMIN_HOME_PATH = '/admin';
 export const ADMIN_LOGIN_PATH = '/admin/login';
-export const ADMIN_REGISTER_PATH = '/admin/registar';
-export const ADMIN_ONBOARDING_PATH = '/admin/onboarding';
 export const ADMIN_RESTAURANT_PATH = '/admin/restaurante';
 
-const PUBLIC_ADMIN_PATHS = new Set<string>([ADMIN_LOGIN_PATH, ADMIN_REGISTER_PATH]);
+/** Rotas /admin retiradas (registo/onboarding). Devem 404 sem redirect para login. */
+const RETIRED_ADMIN_PATHS = new Set<string>(['/admin/registar', '/admin/onboarding']);
+
+const PUBLIC_ADMIN_PATHS = new Set<string>([ADMIN_LOGIN_PATH]);
 
 /**
  * Rotas antigas do Grupo 1/2 que passam a viver em /admin.
  * Devolve o caminho de destino (sem query) ou null.
+ * /registar e /onboarding deixam de redirecionar (404) para não revelar o admin.
  */
 export function resolveLegacyAdminRedirect(pathname: string): string | null {
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
@@ -20,21 +22,16 @@ export function resolveLegacyAdminRedirect(pathname: string): string | null {
     return ADMIN_LOGIN_PATH;
   }
 
-  if (pathname === '/registar') {
-    return ADMIN_REGISTER_PATH;
-  }
-
-  if (pathname === '/onboarding' || pathname.startsWith('/onboarding/')) {
-    return `/admin${pathname}`;
-  }
-
   return null;
 }
 
-/** Tudo em /admin exige sessão, excepto login e registo. */
+/** Tudo em /admin exige sessão, excepto login. Rotas retiradas não são protegidas (ficam 404). */
 export function isProtectedAdminPath(pathname: string): boolean {
   const inAdmin = pathname === ADMIN_HOME_PATH || pathname.startsWith(`${ADMIN_HOME_PATH}/`);
   if (!inAdmin) {
+    return false;
+  }
+  if (RETIRED_ADMIN_PATHS.has(pathname)) {
     return false;
   }
   return !PUBLIC_ADMIN_PATHS.has(pathname);

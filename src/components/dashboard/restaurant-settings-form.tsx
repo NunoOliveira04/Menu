@@ -162,7 +162,7 @@ export function RestaurantSettingsForm({
               name="location"
               type="text"
               defaultValue={restaurant.location ?? ''}
-              placeholder="Ex.: Largo da Oliveira, Guimarães"
+              placeholder="Ex.: Rua Principal, 12"
               className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
             />
           </div>
@@ -191,7 +191,7 @@ export function RestaurantSettingsForm({
                 name="descriptionEn"
                 rows={3}
                 defaultValue={existingTranslations.en?.description ?? ''}
-                placeholder="Ex.: Traditional Minho cuisine near the Historic Centre of Guimarães..."
+                placeholder="Ex.: Seasonal Portuguese cooking with house recipes..."
                 className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
               />
               <p className="mt-1 text-xs text-stone-500">
@@ -396,8 +396,8 @@ export function RestaurantSettingsForm({
                 Alergénios (14 da UE)
               </span>
               <span className="mt-0.5 block text-xs text-stone-500">
-                Assinala os 14 alergénios oficiais por prato e mostra etiquetas e legenda completa
-                na carta.
+                Assinala os 14 alergénios oficiais por prato; no menu abrem numa ficha (bottom
+                sheet).
               </span>
             </div>
           </label>
@@ -416,7 +416,7 @@ export function RestaurantSettingsForm({
                 Destaques, Recomendados e Novos
               </span>
               <span className="mt-0.5 block text-xs text-stone-500">
-                Marca pratos especiais com selo e secção dedicada no topo do menu.
+                Marca pratos especiais com o selo «Da casa» na carta (sem secção dedicada).
               </span>
             </div>
           </label>

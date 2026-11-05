@@ -1,14 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { canMemberApplyRestaurantUpdate } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { createClient } from '@/lib/supabase/server';
 import {
-  createRestaurantSchema,
   updateRestaurantSchema,
   weeklyHoursUpdateSchema,
 } from '@/lib/validations/schemas';
@@ -50,72 +48,6 @@ function parseHoursFromFormData(formData: FormData) {
       slots,
     };
   });
-}
-
-export async function createFirstRestaurantAction(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const user = await getAuthenticatedUser();
-  if (!user) {
-    return {
-      status: 'error',
-      message: 'A tua sessão expirou. Inicia sessão novamente.',
-    };
-  }
-
-  const parsed = createRestaurantSchema.safeParse({
-    name: formData.get('name'),
-    slug: formData.get('slug'),
-    description: formData.get('description') ?? '',
-    location: formData.get('location') ?? '',
-    style: formData.get('style') ?? 'classico',
-  });
-
-  if (!parsed.success) {
-    return {
-      status: 'error',
-      message: 'Revê os dados do restaurante antes de continuar.',
-      fieldErrors: formatZodErrors(parsed.error),
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc('create_owner_restaurant', {
-    p_name: parsed.data.name,
-    p_slug: parsed.data.slug,
-    p_style: parsed.data.style,
-    p_description: parsed.data.description || null,
-    p_location: parsed.data.location || null,
-  });
-
-  if (error) {
-    if (error.code === '23505') {
-      return {
-        status: 'error',
-        message: 'Esse endereço (slug) já está em uso por outro restaurante.',
-        fieldErrors: {
-          slug: ['Escolhe outro identificador único para o link do teu menu.'],
-        },
-      };
-    }
-
-    if (error.code === 'P0001') {
-      return {
-        status: 'error',
-        message:
-          'Esta conta já pertence a um restaurante. No MVP apenas é permitida a criação inicial do primeiro restaurante.',
-      };
-    }
-
-    return {
-      status: 'error',
-      message: 'Não foi possível criar o restaurante. Tenta novamente.',
-    };
-  }
-
-  revalidatePath('/admin');
-  redirect('/admin');
 }
 
 export async function updateRestaurantAction(

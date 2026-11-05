@@ -66,7 +66,7 @@ export const slugFieldSchema = z
   })
   .refine((val) => isValidSlug(val), {
     message:
-      'Usa apenas letras minúsculas (a-z), números e hífens simples (ex.: tasca-do-castelo).',
+      'Usa apenas letras minúsculas (a-z), números e hífens simples (ex.: menu-restaurante).',
   });
 
 export const authCredentialsSchema = z.object({
@@ -75,16 +75,6 @@ export const authCredentialsSchema = z.object({
     .string()
     .min(8, 'A palavra-passe deve ter pelo menos 8 caracteres.')
     .max(128, 'A palavra-passe é demasiado longa.'),
-});
-
-export const registerOwnerSchema = authCredentialsSchema.extend({
-  restaurantName: z
-    .string()
-    .trim()
-    .min(2, 'O nome do restaurante deve ter pelo menos 2 caracteres.')
-    .max(120, 'O nome do restaurante não pode exceder 120 caracteres.')
-    .optional()
-    .or(z.literal('')),
 });
 
 export const createRestaurantSchema = z.object({

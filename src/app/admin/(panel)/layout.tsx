@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { BookOpen, ExternalLink, LogOut, Settings, UtensilsCrossed } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
@@ -13,7 +12,24 @@ export default async function AdminPanelLayout({
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/admin/onboarding');
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-stone-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
+          <p className="text-sm leading-relaxed text-stone-700">
+            Conta sem restaurante associado. Contacte o suporte.
+          </p>
+          <form action={logoutAction} className="mt-6">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-900"
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+              Terminar sessão
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   const { restaurant } = context;

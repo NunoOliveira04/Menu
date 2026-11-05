@@ -77,25 +77,25 @@ const SAMPLE_AVIF_COMPAT_BYTES = new Uint8Array([
 
 describe('Validações Zod — Restaurante e Slugs', () => {
   it('aceita um slug válido e normaliza maiúsculas/espaços', () => {
-    const parsed = slugFieldSchema.safeParse('  Tasca-Do-Castelo  ');
+    const parsed = slugFieldSchema.safeParse('  Menu-Restaurante  ');
     expect(parsed.success).toBe(true);
     if (parsed.success) {
-      expect(parsed.data).toBe('tasca-do-castelo');
+      expect(parsed.data).toBe('menu-restaurante');
     }
   });
 
   it('rejeita slugs reservados pelo sistema ou caracteres inválidos', () => {
     expect(slugFieldSchema.safeParse('dashboard').success).toBe(false);
     expect(slugFieldSchema.safeParse('login').success).toBe(false);
-    expect(slugFieldSchema.safeParse('tasca--castelo').success).toBe(false);
-    expect(slugFieldSchema.safeParse('tasca_castelo').success).toBe(false);
+    expect(slugFieldSchema.safeParse('menu--restaurante').success).toBe(false);
+    expect(slugFieldSchema.safeParse('menu_restaurante').success).toBe(false);
     expect(slugFieldSchema.safeParse('a').success).toBe(false);
   });
 
   it('valida criação de restaurante com estilo classico por defeito', () => {
     const parsed = createRestaurantSchema.safeParse({
-      name: 'Tasca do Castelo',
-      slug: 'tasca-do-castelo',
+      name: 'Menu Restaurante',
+      slug: 'menu-restaurante',
     });
 
     expect(parsed.success).toBe(true);
@@ -107,10 +107,10 @@ describe('Validações Zod — Restaurante e Slugs', () => {
   it('valida atualização de restaurante incluindo módulos opcionais', () => {
     const parsed = updateRestaurantSchema.safeParse({
       restaurantId: '11111111-1111-4111-8111-111111111111',
-      name: 'Tasca do Castelo',
-      slug: 'tasca-do-castelo',
-      description: 'Cozinha minhota.',
-      location: 'Guimarães',
+      name: 'Menu Restaurante',
+      slug: 'menu-restaurante',
+      description: 'Cozinha portuguesa.',
+      location: 'Lisboa',
       style: 'escuro',
       published: true,
       modules: {

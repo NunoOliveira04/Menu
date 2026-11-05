@@ -10,20 +10,21 @@ import {
 import { MENU_THEMES, resolveMenuTheme } from '@/lib/themes/registry';
 
 describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => {
-  it('mapeia rotas legadas para /admin e protege tudo excepto login e registo', () => {
+  it('mapeia rotas legadas para /admin e protege tudo excepto login', () => {
     expect(resolveLegacyAdminRedirect('/dashboard')).toBe('/admin');
     expect(resolveLegacyAdminRedirect('/dashboard/restaurante')).toBe('/admin/restaurante');
     expect(resolveLegacyAdminRedirect('/login')).toBe('/admin/login');
-    expect(resolveLegacyAdminRedirect('/registar')).toBe('/admin/registar');
-    expect(resolveLegacyAdminRedirect('/onboarding')).toBe('/admin/onboarding');
-    expect(resolveLegacyAdminRedirect('/r/tasca-do-castelo')).toBeNull();
+    expect(resolveLegacyAdminRedirect('/registar')).toBeNull();
+    expect(resolveLegacyAdminRedirect('/onboarding')).toBeNull();
+    expect(resolveLegacyAdminRedirect('/r/menu-restaurante')).toBeNull();
 
     expect(isProtectedAdminPath('/admin')).toBe(true);
     expect(isProtectedAdminPath('/admin/restaurante')).toBe(true);
-    expect(isProtectedAdminPath('/admin/onboarding')).toBe(true);
+    expect(isProtectedAdminPath('/admin/onboarding')).toBe(false);
     expect(isProtectedAdminPath('/admin/login')).toBe(false);
     expect(isProtectedAdminPath('/admin/registar')).toBe(false);
     expect(isPublicAdminAuthPath('/admin/login')).toBe(true);
+    expect(isPublicAdminAuthPath('/admin/registar')).toBe(false);
     expect(isPublicAdminAuthPath('/admin')).toBe(false);
   });
 
@@ -55,9 +56,9 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(showsHouseBadge('featured', false)).toBe(false);
   });
 
-  it('o tema clássico é a Tasca Contemporânea com tokens de azulejo e tijolo', () => {
+  it('o tema clássico é Clássico com tokens de azulejo e tijolo', () => {
     const classic = resolveMenuTheme('classico');
-    expect(classic.label).toBe('Tasca Contemporânea');
+    expect(classic.label).toBe('Clássico');
     expect(classic.ornament).toBe('azulejo');
     expect(classic.cssVars['--color-bg']).toBe('#F5EFE6');
     expect(classic.cssVars['--color-text']).toBe('#2B2B2B');
