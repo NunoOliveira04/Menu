@@ -1,5 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   buildDishPhotoStoragePath,
   canMemberApplyRestaurantUpdate,
@@ -11,13 +10,16 @@ import {
   type MembershipRecord,
 } from '@/lib/auth/access';
 import {
-  DISH_PHOTO_SIGNED_URL_TTL_SECONDS,
-  attachSignedDishPhotoUrls,
+  buildDishPhotoPublicUrl,
   resolveDishPhotoObjectPath,
+  resolvePhotoDisplayUrl,
+  withPublicDishPhotoUrls,
 } from '@/lib/storage/dish-photos';
-import type { Database, DishRow } from '@/types/database';
+import type { DishRow } from '@/types/database';
 
-describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares', () => {
+const SUPABASE_URL = 'https://xyz.supabase.co';
+
+describe('Lógica de Acesso, Membros, Storage de Fotografias e Definições Modulares', () => {
   const restaurantId = '11111111-1111-4111-8111-111111111111';
   const otherRestaurantId = '99999999-9999-4999-8999-999999999999';
   const ownerId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -101,7 +103,7 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     ).toBe(true);
   });
 
-  it('isola os caminhos do bucket privado dish-photos e resolve signed URLs em lote', async () => {
+  it('isola os caminhos do bucket dish-photos por restaurante', () => {
     const path = buildDishPhotoStoragePath(restaurantId, 'Bacalhau à Casa.WEBP');
     expect(path).toBe(`${restaurantId}/bacalhau-a-casa.webp`);
     expect(extractRestaurantIdFromStoragePath(path)).toBe(restaurantId);
@@ -114,27 +116,60 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
         `https://xyz.supabase.co/storage/v1/object/sign/dish-photos/${path}?token=abc`,
       ),
     ).toBe(path);
+    expect(
+      resolveDishPhotoObjectPath(
+        `https://xyz.supabase.co/storage/v1/object/public/dish-photos/${path}`,
+      ),
+    ).toBe(path);
     expect(resolveDishPhotoObjectPath('https://picsum.photos/seed/pataniscas/800/600')).toBeNull();
+    expect(
+      resolveDishPhotoObjectPath('https://xyz.supabase.co/storage/v1/object/sign/dish-photos/%E0'),
+    ).toBeNull();
+  });
 
-    const createSignedUrlsMock = vi.fn().mockResolvedValue({
-      data: [
-        {
-          error: null,
-          path,
-          signedURL: `/object/sign/dish-photos/${path}?token=tok123`,
-          signedUrl: `https://xyz.supabase.co/storage/v1/object/sign/dish-photos/${path}?token=tok123`,
-        },
-      ],
-      error: null,
-    });
+  it('gera URLs públicos estáveis sem chamadas de rede e mantém photo_url antigos', () => {
+    const path = `${restaurantId}/1730000000-bacalhau.webp`;
+    const publicUrl = `https://xyz.supabase.co/storage/v1/object/public/dish-photos/${path}`;
 
-    const fakeSupabase = {
-      storage: {
-        from: vi.fn().mockReturnValue({
-          createSignedUrls: createSignedUrlsMock,
-        }),
-      },
-    } as unknown as SupabaseClient<Database>;
+    expect(buildDishPhotoPublicUrl(path, 'https://xyz.supabase.co/')).toBe(publicUrl);
+    expect(buildDishPhotoPublicUrl(`${restaurantId}/foto com espaço.jpg`, SUPABASE_URL)).toBe(
+      `${SUPABASE_URL}/storage/v1/object/public/dish-photos/${restaurantId}/foto%20com%20espa%C3%A7o.jpg`,
+    );
+
+    // Caminho guardado (formato atual)
+    expect(resolvePhotoDisplayUrl(path, SUPABASE_URL)).toBe(publicUrl);
+    // Signed URL antigo (já expirado) → URL público estável
+    expect(
+      resolvePhotoDisplayUrl(
+        `https://xyz.supabase.co/storage/v1/object/sign/dish-photos/${path}?token=expirado`,
+        SUPABASE_URL,
+      ),
+    ).toBe(publicUrl);
+    // URL autenticado antigo
+    expect(
+      resolvePhotoDisplayUrl(
+        `https://xyz.supabase.co/storage/v1/object/authenticated/dish-photos/${path}`,
+        SUPABASE_URL,
+      ),
+    ).toBe(publicUrl);
+    // URLs externos da seed ficam iguais
+    expect(resolvePhotoDisplayUrl('https://images.unsplash.com/photo-1', SUPABASE_URL)).toBe(
+      'https://images.unsplash.com/photo-1',
+    );
+    // Vazio ou inválido
+    expect(resolvePhotoDisplayUrl(null, SUPABASE_URL)).toBeNull();
+    expect(resolvePhotoDisplayUrl('   ', SUPABASE_URL)).toBeNull();
+    expect(resolvePhotoDisplayUrl('pasta-invalida/foto.jpg', SUPABASE_URL)).toBeNull();
+    expect(
+      resolvePhotoDisplayUrl(
+        'https://xyz.supabase.co/storage/v1/object/sign/dish-photos/sem-uuid.jpg?token=x',
+        SUPABASE_URL,
+      ),
+    ).toBeNull();
+  });
+
+  it('aplica URLs públicos à lista de pratos', () => {
+    const path = `${restaurantId}/prato.webp`;
 
     const sampleDishes: DishRow[] = [
       {
@@ -171,12 +206,13 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
       },
     ];
 
-    const resolved = await attachSignedDishPhotoUrls(fakeSupabase, sampleDishes);
-    expect(createSignedUrlsMock).toHaveBeenCalledWith([path], DISH_PHOTO_SIGNED_URL_TTL_SECONDS);
+    const resolved = withPublicDishPhotoUrls(sampleDishes, SUPABASE_URL);
     expect(resolved[0]?.photo_url).toBe(
-      `https://xyz.supabase.co/storage/v1/object/sign/dish-photos/${path}?token=tok123`,
+      `${SUPABASE_URL}/storage/v1/object/public/dish-photos/${path}`,
     );
     expect(resolved[1]?.photo_url).toBe('https://picsum.photos/seed/pataniscas/800/600');
+    // Não altera a lista original
+    expect(sampleDishes[0]?.photo_url).toBe(path);
   });
 
   it('mantém todos os módulos opcionais desligados por defeito quando settings está vazio', () => {

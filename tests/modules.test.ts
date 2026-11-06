@@ -17,10 +17,6 @@ import {
   resolveLocalizedField,
   resolveMenuLocale,
 } from '@/lib/modules/i18n';
-import {
-  DISH_PHOTO_REFRESH_INTERVAL_MS,
-  DISH_PHOTO_SIGNED_URL_TTL_SECONDS,
-} from '@/lib/storage/dish-photos';
 import { createDishSchema, weeklyHoursUpdateSchema } from '@/lib/validations/schemas';
 
 describe('Módulo de Idiomas (PT / EN) e Fallback', () => {
@@ -176,10 +172,5 @@ describe('Módulo de Horário Semanal e Fuso Europe/Lisbon', () => {
       })),
     });
     expect(invalidOverlap.success).toBe(false);
-  });
-
-  it('garante TTL de 24h nas signed URLs com intervalo de refresh inferior ao TTL', () => {
-    expect(DISH_PHOTO_SIGNED_URL_TTL_SECONDS).toBe(86_400);
-    expect(DISH_PHOTO_REFRESH_INTERVAL_MS).toBeLessThan(DISH_PHOTO_SIGNED_URL_TTL_SECONDS * 1000);
   });
 });

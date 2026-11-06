@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { AllergenSheetButton } from '@/components/menu/allergen-sheet';
 import { CategoryNav } from '@/components/menu/category-nav';
 import { CategorySeparator } from '@/components/menu/category-separator';
-import { SignedUrlRefresher } from '@/components/menu/signed-url-refresher';
 import { getAllergenDefinition } from '@/lib/modules/allergens';
 import {
   formatDaySlots,
@@ -97,10 +96,6 @@ export function PublicMenuView({
     })),
   );
 
-  const hasPrivateStorageSignedPhotos = dishes.some((dish) =>
-    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
-  );
-
   return (
     <div
       lang={localeToHtmlLang(effectiveLocale)}
@@ -108,8 +103,6 @@ export function PublicMenuView({
       style={theme.cssVars as CSSProperties}
       data-theme={theme.id}
     >
-      <SignedUrlRefresher hasSignedPhotos={hasPrivateStorageSignedPhotos} />
-
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}
       </a>

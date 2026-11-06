@@ -25,9 +25,10 @@ Plataforma SaaS leve de menus digitais para restaurantes (Grupos 1, 2 e 3 do MVP
   - **Clássico** (`classico`, default da demo): Fraunces 600 + Inter 16px, fundo `#F5EFE6`, texto `#2B2B2B`, azulejo `#1F3A5F`, tijolo `#B5452B`. Hero ~35vh com foto de prato, categorias sticky com scroll-spy, lista tipo carta (nome, linha pontilhada, preço `12,50 €`, miniatura 72px) e ornamento de azulejo só no separador de categoria.
   - **Minimal Café** (`moderno`) e **Noir Gastronómico** (`escuro`).
   - Pré-visualização em `/admin/restaurante`. Alergénios da UE abrem num bottom sheet. Toggle PT/EN no topo do hero.
-- **Armazenamento Privado de Fotografias (`dish-photos`)**:
-  - Bucket privado (`public = false`) com políticas RLS `SELECT` / `INSERT` / `UPDATE` / `DELETE` isoladas por `<restaurant_id>/...`.
-  - Signed URLs geradas em lote no servidor com **TTL de 24 horas (86 400 s)** e revalidação periódica automática na página (`SignedUrlRefresher`) para evitar expiração em separadores abertos.
+- **Armazenamento de Fotografias (`dish-photos`)**:
+  - Bucket público para leitura (`public = true`); escrita, substituição e remoção continuam restritas por RLS aos membros de cada restaurante (`<restaurant_id>/...`).
+  - Na BD guarda-se só o caminho do objeto; o servidor gera o URL público estável (`/storage/v1/object/public/dish-photos/...`). `photo_url` antigos (signed URLs) continuam a funcionar.
+  - As fotografias são redimensionadas e comprimidas no browser antes do envio (lado maior ~1200 px, WebP/JPEG ~0,8, 200–400 KB), para caberem no limite de 1 MB das Server Actions.
   - Validação no servidor antes do upload: tamanho máximo (5 MB), tipo MIME declarado e inspeção binária de **magic bytes** (JPEG, PNG, WebP e AVIF).
 - **Seed de Demonstração (`supabase/seed.sql`)**:
   - Restaurante fictício **Menu Restaurante**, tema `classico`, com os 4 módulos de exemplo ligados, traduções PT/EN, alergénios da UE, destaques, horário semanal e 15 pratos. As fotos são pratos reais (Unsplash/Pexels), não paisagens.

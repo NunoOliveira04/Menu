@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
   ArrowUp,
@@ -34,7 +33,6 @@ import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-
 import { EU_ALLERGENS, getAllergenDefinition } from '@/lib/modules/allergens';
 import { DISH_HIGHLIGHTS, getHighlightLabel } from '@/lib/modules/highlights';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
-import { DISH_PHOTO_REFRESH_INTERVAL_MS } from '@/lib/storage/dish-photos';
 import { formatCentsToEuroInput, formatPriceCents } from '@/lib/utils/price';
 import type { CategoryRow, DishRow, RestaurantModules } from '@/types/database';
 
@@ -46,27 +44,12 @@ interface MenuManagerProps {
 }
 
 export function MenuManager({ restaurantId, categories, dishes, modules }: MenuManagerProps) {
-  const router = useRouter();
   const [showNewCategory, setShowNewCategory] = useState(categories.length === 0);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [addingDishCategoryId, setAddingDishCategoryId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isMutating, startTransition] = useTransition();
-
-  const hasSignedPhotos = dishes.some((dish) =>
-    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
-  );
-
-  useEffect(() => {
-    if (!hasSignedPhotos) {
-      return;
-    }
-    const timer = window.setInterval(() => {
-      router.refresh();
-    }, DISH_PHOTO_REFRESH_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [hasSignedPhotos, router]);
 
   function runQuickFormAction(
     action: (fd: FormData) => Promise<{ status: string; message?: string }>,

@@ -4,7 +4,8 @@ import { PublicMenuView } from '@/components/menu/public-menu-view';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
 import { resolveLocalizedField, resolveMenuLocale } from '@/lib/modules/i18n';
-import { attachSignedDishPhotoUrls } from '@/lib/storage/dish-photos';
+import { withPublicDishPhotoUrls } from '@/lib/storage/dish-photos';
+import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
 
@@ -110,7 +111,8 @@ export default async function PublicMenuPage({ params, searchParams }: PublicMen
       : Promise.resolve({ data: [] }),
   ]);
 
-  const dishes = await attachSignedDishPhotoUrls(supabase, rawDishes ?? []);
+  const { url: supabaseUrl } = getSupabaseEnv();
+  const dishes = withPublicDishPhotoUrls(rawDishes ?? [], supabaseUrl);
   const weeklySchedule = settings.modules.hours ? normalizeWeeklySchedule(hoursRows ?? []) : [];
 
   return (
