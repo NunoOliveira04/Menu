@@ -79,7 +79,8 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
     id: 'moderno',
     label: 'Minimal Café',
     description: 'Papel quente, tipografia sóbria e muito ar. Sem ornamento, só um filete.',
-    availableInMvp: true,
+    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
+    availableInMvp: false,
     ornament: 'rule',
     cssVars: {
       '--color-bg': '#F6F4F1',
@@ -111,7 +112,8 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
     id: 'escuro',
     label: 'Noir Gastronómico',
     description: 'Carvão profundo, Fraunces e um acento dourado quente com contraste AA.',
-    availableInMvp: true,
+    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
+    availableInMvp: false,
     ornament: 'rule',
     cssVars: {
       '--color-bg': '#0E0D0C',
@@ -140,6 +142,13 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
     },
   },
 };
+
+/** Estilos que o dono pode escolher no admin (no piloto, só «classico»). */
+export const SELECTABLE_STYLES: readonly RestaurantStyle[] = (
+  Object.values(MENU_THEMES) as MenuThemeTokens[]
+)
+  .filter((theme) => theme.availableInMvp)
+  .map((theme) => theme.id);
 
 export function resolveMenuTheme(style: string | null | undefined): MenuThemeTokens {
   if (style === 'moderno' || style === 'escuro' || style === 'classico') {

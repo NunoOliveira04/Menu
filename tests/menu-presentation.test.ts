@@ -9,7 +9,7 @@ import {
   resolveLegacyAdminRedirect,
   resolveSafeAdminNextPath,
 } from '@/lib/routing/admin-paths';
-import { MENU_THEMES, resolveMenuTheme } from '@/lib/themes/registry';
+import { MENU_THEMES, SELECTABLE_STYLES, resolveMenuTheme } from '@/lib/themes/registry';
 
 describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => {
   it('mapeia rotas legadas para /admin e protege tudo excepto login', () => {
@@ -88,6 +88,20 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(MENU_THEMES.moderno.ornament).toBe('rule');
     expect(MENU_THEMES.escuro.ornament).toBe('rule');
     expect(resolveMenuTheme('desconhecido').id).toBe('classico');
+  });
+
+  it('no piloto o dono só vê o estilo clássico, sem apagar os outros temas (ponto 8)', () => {
+    expect(SELECTABLE_STYLES).toEqual(['classico']);
+    // O código dos outros temas mantém-se e a carta continua a sabê-los mostrar.
+    expect(resolveMenuTheme('moderno').id).toBe('moderno');
+    expect(resolveMenuTheme('escuro').id).toBe('escuro');
+
+    const form = readFileSync(
+      resolve(process.cwd(), 'src/components/dashboard/restaurant-settings-form.tsx'),
+      'utf8',
+    );
+    expect(form).toContain('SELECTABLE_STYLES.map');
+    expect(form).not.toMatch(/\['classico',\s*'moderno',\s*'escuro'\]/);
   });
 
   it('o menu público não tem secção Em Destaque e a seed só usa fotos de comida', () => {

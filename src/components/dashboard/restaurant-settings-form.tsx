@@ -9,7 +9,7 @@ import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { WEEKDAY_LABELS, type DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
-import { MENU_THEMES } from '@/lib/themes/registry';
+import { MENU_THEMES, SELECTABLE_STYLES } from '@/lib/themes/registry';
 import type { RestaurantMemberRole, RestaurantRow, RestaurantStyle } from '@/types/database';
 
 interface RestaurantSettingsFormProps {
@@ -19,8 +19,6 @@ interface RestaurantSettingsFormProps {
   /** URL público da foto de capa atual, ou null. */
   coverPhotoUrl: string | null;
 }
-
-const STYLE_OPTIONS: RestaurantStyle[] = ['classico', 'moderno', 'escuro'];
 
 const COVER_PHOTO_FIELDS = ['coverPhoto'] as const;
 
@@ -76,7 +74,10 @@ export function RestaurantSettingsForm({
   const initialSettings = parseRestaurantSettings(restaurant.settings);
   const existingTranslations = parseTranslationsJson(restaurant.translations);
 
-  const [selectedStyle, setSelectedStyle] = useState<RestaurantStyle>(restaurant.style);
+  // No piloto só «classico» está disponível; um estilo escondido volta a «classico» ao guardar.
+  const [selectedStyle, setSelectedStyle] = useState<RestaurantStyle>(
+    SELECTABLE_STYLES.includes(restaurant.style) ? restaurant.style : 'classico',
+  );
   const [languagesEnabled, setLanguagesEnabled] = useState(initialSettings.modules.languages);
   const [allergensEnabled, setAllergensEnabled] = useState(initialSettings.modules.allergens);
   const [highlightsEnabled, setHighlightsEnabled] = useState(initialSettings.modules.highlights);
@@ -325,7 +326,7 @@ export function RestaurantSettingsForm({
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {STYLE_OPTIONS.map((styleKey) => {
+          {SELECTABLE_STYLES.map((styleKey) => {
             const theme = MENU_THEMES[styleKey];
             const isSelected = selectedStyle === theme.id;
             return (
