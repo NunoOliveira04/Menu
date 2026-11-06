@@ -47,7 +47,10 @@ export async function generateMetadata({
   const enUrl = `${ptUrl}?lang=en`;
 
   return {
-    title: locale === 'en' ? `${restaurant.name} — Menu` : `${restaurant.name} — Ementa`,
+    // `absolute` ignora o template do layout raiz ("%s · Ementa Digital").
+    title: {
+      absolute: locale === 'en' ? `${restaurant.name} — Menu` : `${restaurant.name} — Ementa`,
+    },
     description:
       localizedDescription ??
       (locale === 'en'
