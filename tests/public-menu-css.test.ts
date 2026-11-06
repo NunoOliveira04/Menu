@@ -26,3 +26,29 @@ describe('Carta pública — legibilidade (ponto 3)', () => {
     expect(price).toMatch(/color:\s*var\(--color-muted\)/);
   });
 });
+
+describe('Carta pública — alinhamento (ponto 4)', () => {
+  it('o nome não tem largura máxima e pode partir linha', () => {
+    const name = ruleBody('.menu-dish-name');
+    expect(name).not.toMatch(/max-width/);
+    expect(name).toMatch(/min-width:\s*0/);
+  });
+
+  it('o preço nunca parte linha nem encolhe', () => {
+    const price = ruleBody('.menu-price');
+    expect(price).toMatch(/white-space:\s*nowrap/);
+    expect(price).toMatch(/flex:\s*none/);
+  });
+
+  it('a miniatura vem antes do texto do prato', () => {
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    const thumbIdx = view.indexOf('className="menu-thumb"');
+    const copyIdx = view.indexOf('className="menu-dish-copy"');
+    expect(thumbIdx).toBeGreaterThan(-1);
+    expect(copyIdx).toBeGreaterThan(-1);
+    expect(thumbIdx).toBeLessThan(copyIdx);
+  });
+});

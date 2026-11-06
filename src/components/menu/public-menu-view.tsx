@@ -243,6 +243,19 @@ export function PublicMenuView({
                         <article
                           className={`menu-dish${dish.available ? '' : ' menu-dish-unavailable'}`}
                         >
+                          {dish.photo_url && (
+                            <div className="menu-thumb">
+                              <Image
+                                src={dish.photo_url}
+                                alt={`${ui.photoAltPrefix} ${dishName}`}
+                                width={72}
+                                height={72}
+                                sizes="72px"
+                                className="menu-thumb-img"
+                              />
+                            </div>
+                          )}
+
                           <div className="menu-dish-copy">
                             {houseBadge && <span className="menu-house">{ui.houseBadge}</span>}
                             <div className="menu-dish-line">
@@ -274,19 +287,6 @@ export function PublicMenuView({
                               </div>
                             )}
                           </div>
-
-                          {dish.photo_url && (
-                            <div className="menu-thumb">
-                              <Image
-                                src={dish.photo_url}
-                                alt={`${ui.photoAltPrefix} ${dishName}`}
-                                width={72}
-                                height={72}
-                                sizes="72px"
-                                className="menu-thumb-img"
-                              />
-                            </div>
-                          )}
                         </article>
                       </li>
                     );
