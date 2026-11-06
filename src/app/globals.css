@@ -22,7 +22,10 @@
   scrollbar-width: none;
 }
 
-/* Menu público — tokens em .menu-theme (--color-*, --font-*, --radius-*) */
+/*
+ * Menu público — visual moderno e limpo.
+ * Tokens em .menu-theme (--color-*, --font-*, --radius-*), definidos em lib/themes/registry.ts.
+ */
 .menu-theme {
   min-height: 100vh;
   background: var(--color-bg);
@@ -30,6 +33,7 @@
   font-family: var(--font-body), Inter, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 .menu-theme :focus-visible {
@@ -62,14 +66,14 @@
   color: #3d2a08;
   padding: 10px 20px;
   text-align: center;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-/*
- * Capa da carta (~27vh). Com foto escolhida pelo dono: foto + gradiente suave.
+/* ---------------------------------------------------------------------------
+ * Capa (~27vh). Com foto do dono: foto + gradiente suave em baixo.
  * Sem foto: cabeçalho só tipográfico sobre azul #1F3A5F.
- * O conteúdo fica alinhado em baixo e a altura cresce se o texto precisar (nunca é cortado).
- */
+ * O conteúdo fica em baixo e a altura cresce se o texto precisar.
+ * ------------------------------------------------------------------------- */
 .menu-hero {
   position: relative;
   display: flex;
@@ -78,11 +82,11 @@
   justify-content: flex-end;
   overflow: hidden;
   background: #1f3a5f;
-  color: #f7f3ec;
+  color: #ffffff;
 }
 
 .menu-hero-with-lang {
-  padding-top: 64px;
+  padding-top: 60px;
 }
 
 .menu-hero-img {
@@ -95,45 +99,47 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(16, 12, 10, 0.66) 0%,
-    rgba(16, 12, 10, 0.28) 55%,
-    rgba(16, 12, 10, 0.06) 100%
+    rgba(10, 10, 12, 0.7) 0%,
+    rgba(10, 10, 12, 0.3) 50%,
+    rgba(10, 10, 12, 0.05) 100%
   );
 }
 
 .menu-hero-photo .menu-hero-content {
-  text-shadow: 0 1px 12px rgba(16, 12, 10, 0.45);
+  text-shadow: 0 1px 10px rgba(10, 10, 12, 0.35);
 }
 
 .menu-lang {
   position: absolute;
-  top: 16px;
+  top: 14px;
   right: 16px;
   z-index: 2;
   display: flex;
-  height: 44px;
-  align-items: stretch;
+  gap: 2px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.94);
-  padding: 0;
-  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 3px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 .menu-lang a {
   display: inline-flex;
-  min-width: 44px;
+  min-width: 40px;
+  min-height: 34px;
   align-items: center;
   justify-content: center;
-  padding: 0 14px;
-  font-size: 16px;
+  border-radius: var(--radius-pill);
+  padding: 0 10px;
+  color: #3f3f46;
+  font-size: 14px;
   font-weight: 600;
-  color: #2b2b2b;
+  letter-spacing: 0.02em;
   text-decoration: none;
 }
 
 .menu-lang a[aria-current='page'] {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-text);
+  color: #ffffff;
 }
 
 .menu-hero-content {
@@ -146,40 +152,39 @@
 }
 
 .menu-hero-title {
-  max-width: 18ch;
+  max-width: 20ch;
   margin: 0;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(2.25rem, 9vw, 3.75rem);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: #f7f3ec;
+  font-family: var(--font-display), Inter, system-ui, sans-serif;
+  font-size: clamp(2rem, 8.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: #ffffff;
 }
 
 .menu-hero-description {
-  max-width: 38ch;
+  max-width: 40ch;
   margin: 8px 0 0;
-  font-size: 16px;
-  line-height: 1.4;
-  color: rgba(247, 243, 236, 0.92);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 15px;
+  line-height: 1.45;
 }
 
 .menu-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  margin: 10px 0 0;
-  font-size: 16px;
+  align-items: center;
+  gap: 6px 0;
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.4;
-  color: #f7f3ec;
 }
 
 .menu-hero-dot {
-  padding: 0 0.4rem;
+  padding: 0 0.5rem;
+  opacity: 0.6;
 }
 
 .menu-hero-meta-link {
@@ -195,51 +200,71 @@
   inset: -12px -8px;
 }
 
+/* ---------------------------------------------------------------------------
+ * Navegação de categorias: uma só linha, scroll horizontal, nunca parte linha.
+ * ------------------------------------------------------------------------- */
 .menu-nav {
   position: sticky;
   top: 0;
   z-index: 20;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
-  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
-  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
 }
 
 .menu-nav-scroll {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   max-width: 40rem;
   margin: 0 auto;
   overflow-x: auto;
   padding: 10px 16px;
   list-style: none;
+  scroll-padding-inline: 16px;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+
+.menu-nav-scroll > li {
+  flex: none;
 }
 
 .menu-pill {
   display: inline-flex;
-  min-height: 44px;
-  flex: none;
+  min-height: 40px;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
   border-radius: var(--radius-pill);
-  background: var(--color-card);
-  padding: 0 16px;
-  color: var(--color-text);
-  font-family: var(--font-body), Inter, system-ui, sans-serif;
-  font-size: 16px;
+  background: transparent;
+  padding: 0 14px;
+  color: var(--color-muted);
+  font-size: 15px;
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.menu-pill:hover {
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+  color: var(--color-text);
 }
 
 .menu-pill[aria-current='true'] {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
+/* ---------------------------------------------------------------------------
+ * Secções e pratos
+ * ------------------------------------------------------------------------- */
 .menu-main {
   max-width: 40rem;
   margin: 0 auto;
-  padding: 8px 16px 48px;
+  padding: 4px 16px 40px;
 }
 
 @media (min-width: 640px) {
@@ -250,25 +275,27 @@
 }
 
 .menu-section {
-  scroll-margin-top: 76px;
+  scroll-margin-top: 72px;
   margin-top: 28px;
 }
 
 .menu-section-title {
   margin: 0;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.85rem;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display), Inter, system-ui, sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
 .menu-section-desc {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 15px;
+  line-height: 1.45;
 }
 
+/* Ornamentos dos temas antigos (ficam disponíveis para outros temas). */
 .menu-azulejo {
   display: flex;
   justify-content: center;
@@ -289,9 +316,12 @@
 }
 
 .menu-sheet {
+  margin-top: 12px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-card);
-  padding: 4px 16px;
+  padding: 0 16px;
+  box-shadow: 0 1px 2px rgba(16, 16, 20, 0.04);
 }
 
 .menu-dish-list {
@@ -303,21 +333,12 @@
 .menu-dish {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
   padding: 16px 0;
 }
 
-.menu-dish + .menu-dish,
 .menu-dish-list > li + li .menu-dish {
-  border-top: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
-}
-
-/* Indisponível: cores normais (contraste AA); só o preço fica esbatido e riscado. */
-.menu-dish-unavailable .menu-price {
-  color: var(--color-muted);
-  font-weight: 500;
-  text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
+  border-top: 1px solid var(--color-border);
 }
 
 .menu-dish-copy {
@@ -330,43 +351,42 @@
   align-items: center;
   margin-bottom: 6px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  padding: 2px 10px;
-  color: var(--color-on-accent);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  padding: 2px 9px;
+  color: var(--color-accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
 }
 
 /*
- * Nome · pontilhado · preço. O preço fica sempre encostado à margem direita (com ou sem foto,
- * porque a miniatura está à esquerda do texto). Um nome longo parte linha e o pontilhado e o
- * preço alinham pela última linha do nome; o preço nunca parte linha.
+ * Nome e preço na mesma linha: o preço fica sempre encostado à direita, alinhado com a
+ * primeira linha do nome, e nunca parte linha. Um nome longo parte linha sem empurrar o preço.
  */
 .menu-dish-line {
   display: flex;
   align-items: baseline;
-  align-items: last baseline;
-  gap: 8px;
+  gap: 12px;
 }
 
 .menu-dish-name {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.125rem;
+  font-family: var(--font-display), Inter, system-ui, sans-serif;
+  font-size: 1.0625rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
   overflow-wrap: break-word;
   hyphens: auto;
 }
 
+/* Linha pontilhada dos temas antigos: escondida no visual moderno. */
 .menu-leader {
-  min-width: 16px;
-  flex: 1 1 16px;
-  border-bottom: 1.5px dotted var(--color-line);
-  transform: translateY(-0.28em);
+  display: none;
 }
 
 .menu-price {
@@ -380,9 +400,9 @@
 }
 
 .menu-desc {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.45;
   overflow-wrap: break-word;
 }
@@ -391,60 +411,84 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 10px;
 }
 
 .menu-allergen-btn {
+  position: relative;
   display: inline-flex;
-  min-height: 44px;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  border: 1px solid color-mix(in srgb, var(--color-azulejo) 45%, transparent);
+  gap: 6px;
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background: transparent;
-  padding: 0 14px;
-  color: var(--color-azulejo);
-  font-size: 16px;
-  font-weight: 600;
+  padding: 0 12px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Área de toque de 44 px sem aumentar o botão visualmente. */
+.menu-allergen-btn::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.menu-allergen-btn:hover {
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
 .menu-allergen-nums {
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .menu-unavailable {
   display: inline-flex;
+  min-height: 32px;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent);
   border-radius: var(--radius-pill);
-  padding: 2px 10px;
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  padding: 0 12px;
   color: var(--color-text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.4;
+}
+
+/* Indisponível: cores normais (contraste AA); só o preço fica esbatido e riscado. */
+.menu-dish-unavailable .menu-price {
+  color: var(--color-muted);
+  font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
 }
 
 .menu-thumb {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   flex: none;
   overflow: hidden;
   aspect-ratio: 1;
   border-radius: var(--radius-thumb);
-  background: color-mix(in srgb, var(--color-text) 8%, var(--color-card));
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-card));
 }
 
 .menu-thumb-img {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   object-fit: cover;
 }
 
 .menu-empty,
 .menu-info {
   margin-top: 28px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-card);
   padding: 20px 16px;
@@ -453,9 +497,9 @@
 .menu-empty-title,
 .menu-info-title {
   margin: 0;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: var(--font-display), Inter, system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .menu-info-head {
@@ -469,11 +513,11 @@
 .menu-status-open,
 .menu-status-closed {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 32px;
   align-items: center;
   border-radius: var(--radius-pill);
   padding: 0 12px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -483,7 +527,7 @@
 }
 
 .menu-status-closed {
-  background: color-mix(in srgb, var(--color-text) 8%, var(--color-card));
+  background: color-mix(in srgb, var(--color-text) 7%, var(--color-card));
   color: var(--color-text);
 }
 
@@ -496,7 +540,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 6px 0;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .menu-hours-today {
@@ -512,23 +556,30 @@
 .menu-sheet-note {
   margin: 12px 0 0;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .menu-footer {
   display: flex;
   max-width: 40rem;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   margin: 0 auto;
-  border-top: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
-  padding: 20px 20px 32px;
+  padding: 8px 20px 40px;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 13px;
+  text-align: center;
 }
 
+.menu-footer p {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Ficha de alergénios (bottom sheet)
+ * ------------------------------------------------------------------------- */
 .menu-sheet-root {
   position: fixed;
   inset: 0;
@@ -539,7 +590,7 @@
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(16, 12, 10, 0.5);
+  background: rgba(10, 10, 12, 0.45);
   cursor: pointer;
 }
 
@@ -548,20 +599,23 @@
   right: 0;
   bottom: 0;
   left: 0;
+  max-width: 40rem;
   max-height: min(80vh, 560px);
+  margin: 0 auto;
   overflow: auto;
   border-radius: 20px 20px 0 0;
   background: var(--color-card);
   color: var(--color-text);
   padding: 10px 20px 28px;
+  box-shadow: 0 -8px 30px rgba(10, 10, 12, 0.12);
 }
 
 .menu-sheet-handle {
-  width: 42px;
+  width: 40px;
   height: 4px;
-  margin: 4px auto 12px;
+  margin: 4px auto 14px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-text) 22%, transparent);
+  background: color-mix(in srgb, var(--color-text) 18%, transparent);
 }
 
 .menu-sheet-header {
@@ -574,31 +628,32 @@
 .menu-sheet-kicker {
   margin: 0;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .menu-sheet-title {
   margin: 2px 0 0;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: var(--font-display), Inter, system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .menu-sheet-close {
-  min-height: 44px;
+  min-height: 40px;
   flex: none;
-  border: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background: transparent;
   padding: 0 16px;
   color: var(--color-text);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .menu-sheet-list {
-  margin: 16px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -607,24 +662,29 @@
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding: 8px 0;
-  font-size: 16px;
+  padding: 9px 0;
+  font-size: 15px;
+}
+
+.menu-sheet-list li + li {
+  border-top: 1px solid var(--color-border);
 }
 
 .menu-sheet-number {
   display: inline-flex;
-  width: 28px;
+  width: 26px;
   flex: none;
   align-items: center;
   justify-content: center;
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .menu-sheet-code {
   margin-right: 8px;
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 

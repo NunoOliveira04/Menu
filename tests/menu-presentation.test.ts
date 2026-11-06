@@ -75,16 +75,21 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(showsHouseBadge('featured', false)).toBe(false);
   });
 
-  it('o tema clássico é Clássico com tokens de azulejo e tijolo', () => {
-    const classic = resolveMenuTheme('classico');
-    expect(classic.label).toBe('Clássico');
-    expect(classic.ornament).toBe('azulejo');
-    expect(classic.cssVars['--color-bg']).toBe('#F5EFE6');
-    expect(classic.cssVars['--color-text']).toBe('#2B2B2B');
-    expect(classic.cssVars['--color-azulejo']).toBe('#1F3A5F');
-    expect(classic.cssVars['--color-accent']).toBe('#B5452B');
-    expect(classic.cssVars['--color-card']).toBe('#FFFFFF');
-    expect(classic.cssVars['--color-muted']).toBe('#6B6B6B');
+  it('o tema do piloto (id classico) tem o visual moderno e limpo', () => {
+    const theme = resolveMenuTheme('classico');
+    expect(theme.label).toBe('Essencial');
+    expect(theme.ornament).toBe('none');
+    expect(theme.cssVars['--color-bg']).toBe('#F6F6F3');
+    expect(theme.cssVars['--color-text']).toBe('#18181B');
+    expect(theme.cssVars['--color-card']).toBe('#FFFFFF');
+    expect(theme.cssVars['--color-muted']).toBe('#5F5F67');
+    expect(theme.cssVars['--font-display']).toContain('--font-sans');
+    // Todos os temas definem os tokens novos usados pelo CSS
+    for (const t of Object.values(MENU_THEMES)) {
+      expect(t.cssVars['--color-border']).toBeTruthy();
+      expect(t.cssVars['--color-border-strong']).toBeTruthy();
+      expect(t.cssVars['--color-accent-text']).toBeTruthy();
+    }
     expect(MENU_THEMES.moderno.ornament).toBe('rule');
     expect(MENU_THEMES.escuro.ornament).toBe('rule');
     expect(resolveMenuTheme('desconhecido').id).toBe('classico');
