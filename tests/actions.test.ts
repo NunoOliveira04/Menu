@@ -7,7 +7,7 @@ const mockRedirect = vi.fn((url: string): never => {
 
 const mockRevalidatePath = vi.fn();
 
-const mockSignUp = vi.fn();
+const mockSignInWithPassword = vi.fn();
 const mockRpc = vi.fn();
 const mockStorageUpload = vi.fn();
 const mockStorageRemove = vi.fn();
@@ -26,8 +26,8 @@ vi.mock('next/cache', () => ({
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     auth: {
-      signUp: mockSignUp,
       getUser: mockGetUser,
+      signInWithPassword: mockSignInWithPassword,
     },
     rpc: mockRpc,
     from: mockFrom,
@@ -49,6 +49,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }));
 
+import { loginAction } from '@/app/actions/auth';
 import {
   createCategoryAction,
   reorderCategoryAction,
@@ -72,6 +73,29 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://dummy-project.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'dummy-anon-key';
   });
+
+  it('loginAction redireciona para ?next= seguro (/admin/restaurante)', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: {} }, error: null });
+    const fd = new FormData();
+    fd.set('email', 'dono@tasca.pt');
+    fd.set('password', 'segredo1234');
+    fd.set('next', '/admin/restaurante');
+    await expect(loginAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow(
+      'NEXT_REDIRECT:/admin/restaurante',
+    );
+  });
+
+  it('loginAction rejeita next open-redirect e cai em /admin', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: {} }, error: null });
+    for (const evil of ['https://evil.com', '//evil.com', '/\\evil.com', '/r/x']) {
+      const fd = new FormData();
+      fd.set('email', 'dono@tasca.pt');
+      fd.set('password', 'segredo1234');
+      fd.set('next', evil);
+      await expect(loginAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow('NEXT_REDIRECT:/admin');
+    }
+  });
+
 
 
 
@@ -638,11 +662,13 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
     );
     expect(retiredRegister.status).toBe(200);
 
-    const protectedAdmin = await updateSession(new NextRequest('http://localhost:3000/admin'));
+    const protectedAdmin = await updateSession(
+      new NextRequest('http://localhost:3000/admin/restaurante'),
+    );
     expect(protectedAdmin.status).toBe(307);
     const loginLocation = protectedAdmin.headers.get('location') ?? '';
     expect(loginLocation).toContain('/admin/login');
-    expect(loginLocation).toContain('next=%2Fadmin');
+    expect(loginLocation).toContain('next=%2Fadmin%2Frestaurante');
 
     const publicLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));
     expect(publicLogin.status).toBe(200);

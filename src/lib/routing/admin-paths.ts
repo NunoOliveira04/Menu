@@ -3,9 +3,11 @@ export const ADMIN_LOGIN_PATH = '/admin/login';
 export const ADMIN_RESTAURANT_PATH = '/admin/restaurante';
 
 /** Rotas /admin retiradas (registo/onboarding). Devem 404 sem redirect para login. */
-const RETIRED_ADMIN_PATHS = new Set<string>(['/admin/registar', '/admin/onboarding']);
+const RETIRED_ADMIN_PATHS = ['/admin/registar', '/admin/onboarding'] as const;
 
 const PUBLIC_ADMIN_PATHS = new Set<string>([ADMIN_LOGIN_PATH]);
+
+const BLOCKED_POST_LOGIN_PATHS = ['/admin/login', '/admin/registar', '/admin/onboarding'] as const;
 
 /**
  * Rotas antigas do Grupo 1/2 que passam a viver em /admin.
@@ -25,13 +27,17 @@ export function resolveLegacyAdminRedirect(pathname: string): string | null {
   return null;
 }
 
+export function isRetiredAdminPath(pathname: string): boolean {
+  return RETIRED_ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 /** Tudo em /admin exige sessão, excepto login. Rotas retiradas não são protegidas (ficam 404). */
 export function isProtectedAdminPath(pathname: string): boolean {
   const inAdmin = pathname === ADMIN_HOME_PATH || pathname.startsWith(`${ADMIN_HOME_PATH}/`);
   if (!inAdmin) {
     return false;
   }
-  if (RETIRED_ADMIN_PATHS.has(pathname)) {
+  if (isRetiredAdminPath(pathname)) {
     return false;
   }
   return !PUBLIC_ADMIN_PATHS.has(pathname);
@@ -39,4 +45,31 @@ export function isProtectedAdminPath(pathname: string): boolean {
 
 export function isPublicAdminAuthPath(pathname: string): boolean {
   return PUBLIC_ADMIN_PATHS.has(pathname);
+}
+
+/**
+ * Valida o destino pós-login (`?next=`).
+ * Aceita apenas caminhos sob /admin, sem open-redirect (`//`, `\\`).
+ * Exclui login/registar/onboarding (e subpaths). Fallback: /admin.
+ */
+export function resolveSafeAdminNextPath(raw: unknown): string {
+  if (typeof raw !== 'string') {
+    return ADMIN_HOME_PATH;
+  }
+
+  const next = raw.trim();
+  if (!next.startsWith('/admin')) {
+    return ADMIN_HOME_PATH;
+  }
+  if (next.includes('//') || next.includes('\\')) {
+    return ADMIN_HOME_PATH;
+  }
+
+  for (const blocked of BLOCKED_POST_LOGIN_PATHS) {
+    if (next === blocked || next.startsWith(`${blocked}/`)) {
+      return ADMIN_HOME_PATH;
+    }
+  }
+
+  return next;
 }

@@ -4,7 +4,6 @@ import {
   MAX_DISH_PHOTO_BYTES,
   createCategorySchema,
   createDishSchema,
-  createRestaurantSchema,
   slugFieldSchema,
   updateRestaurantSchema,
   validateDishPhotoFile,
@@ -90,18 +89,6 @@ describe('Validações Zod — Restaurante e Slugs', () => {
     expect(slugFieldSchema.safeParse('menu--restaurante').success).toBe(false);
     expect(slugFieldSchema.safeParse('menu_restaurante').success).toBe(false);
     expect(slugFieldSchema.safeParse('a').success).toBe(false);
-  });
-
-  it('valida criação de restaurante com estilo classico por defeito', () => {
-    const parsed = createRestaurantSchema.safeParse({
-      name: 'Menu Restaurante',
-      slug: 'menu-restaurante',
-    });
-
-    expect(parsed.success).toBe(true);
-    if (parsed.success) {
-      expect(parsed.data.style).toBe('classico');
-    }
   });
 
   it('valida atualização de restaurante incluindo módulos opcionais', () => {

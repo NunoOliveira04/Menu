@@ -10,7 +10,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const rawNext = params.next;
+  const next = typeof rawNext === 'string' ? rawNext : '';
+
   return (
     <div className="flex min-h-screen flex-col justify-center bg-[#FAF6F0] px-4 py-12 sm:px-6">
       <div className="mx-auto w-full max-w-md">
@@ -28,7 +36,7 @@ export default function LoginPage() {
           </p>
 
           <div className="mt-6">
-            <LoginForm />
+            <LoginForm next={next} />
           </div>
         </div>
       </div>

@@ -4,11 +4,13 @@ import { useActionState } from 'react';
 import { loginAction } from '@/app/actions/auth';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 
-export function LoginForm() {
+export function LoginForm({ next = '' }: { next?: string }) {
   const [state, formAction, isPending] = useActionState(loginAction, INITIAL_ACTION_STATE);
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
+      {next ? <input type="hidden" name="next" value={next} /> : null}
+
       {state.status === 'error' && state.message && (
         <div
           role="alert"

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { resolveSafeAdminNextPath } from '@/lib/routing/admin-paths';
 import { createClient } from '@/lib/supabase/server';
 import { authCredentialsSchema } from '@/lib/validations/schemas';
 import type { ActionState } from './types';
@@ -42,8 +43,10 @@ export async function loginAction(
     };
   }
 
+  const nextPath = resolveSafeAdminNextPath(formData.get('next'));
+
   revalidatePath('/', 'layout');
-  redirect('/admin');
+  redirect(nextPath);
 }
 
 export async function logoutAction(): Promise<void> {

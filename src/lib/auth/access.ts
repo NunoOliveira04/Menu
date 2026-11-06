@@ -51,16 +51,6 @@ export function isRestaurantOwner(
   );
 }
 
-export function canCreateFirstRestaurant(
-  userId: string | null | undefined,
-  memberships: readonly MembershipRecord[],
-): boolean {
-  if (!userId) {
-    return false;
-  }
-  return !memberships.some((member) => member.user_id === userId);
-}
-
 export function canMemberApplyRestaurantUpdate(params: {
   role: RestaurantMemberRole | null | undefined;
   currentSlug: string;

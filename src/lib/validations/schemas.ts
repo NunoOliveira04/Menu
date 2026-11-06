@@ -77,7 +77,8 @@ export const authCredentialsSchema = z.object({
     .max(128, 'A palavra-passe é demasiado longa.'),
 });
 
-export const createRestaurantSchema = z.object({
+export const updateRestaurantSchema = z.object({
+  restaurantId: z.uuid('Identificador de restaurante inválido.'),
   name: z
     .string()
     .trim()
@@ -97,10 +98,6 @@ export const createRestaurantSchema = z.object({
     .optional()
     .or(z.literal('')),
   style: restaurantStyleSchema.default('classico'),
-});
-
-export const updateRestaurantSchema = createRestaurantSchema.extend({
-  restaurantId: z.uuid('Identificador de restaurante inválido.'),
   published: z.boolean(),
   modules: restaurantModulesSchema,
   descriptionEn: z
