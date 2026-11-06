@@ -1,5 +1,5 @@
 -- =============================================================================
--- Seed Demo — Restaurante fictício 'Tasca do Castelo' (Guimarães)
+-- Seed Demo — Restaurante fictício 'Menu Restaurante'
 -- Grupo 2/3: módulos opcionais ligados. Fotografias são pratos reais (sem paisagens).
 -- Idempotente: pode ser executado mais do que uma vez.
 -- =============================================================================
@@ -19,14 +19,14 @@ insert into public.restaurants (
 )
 values (
   '11111111-1111-4111-8111-111111111111',
-  'tasca-do-castelo',
-  'Tasca do Castelo',
-  'Cozinha minhota de raiz junto ao Centro Histórico de Guimarães, confecionada em lume brando com produtos da região.',
-  'Largo da Oliveira, Guimarães',
+  'menu-restaurante',
+  'Menu Restaurante',
+  'Cozinha portuguesa de temporada, confecionada com produtos locais e receitas de casa.',
+  'Portugal',
   'classico',
   true,
   '{"modules":{"languages":true,"allergens":true,"highlights":true,"hours":true}}'::jsonb,
-  '{"en":{"description":"Traditional Minho cuisine right by the Historic Centre of Guimarães, slow-cooked over wood fire with local seasonal produce."}}'::jsonb
+  '{"en":{"description":"Seasonal Portuguese cooking made with local produce and house recipes."}}'::jsonb
 )
 on conflict (slug) do update
 set
@@ -63,7 +63,7 @@ values
     '22222222-2222-4222-8222-222222222201',
     '11111111-1111-4111-8111-111111111111',
     'Petiscos & Entradas',
-    'Para partilhar à chegada com broa de milho caseira e azeite transmontano.',
+    'Para partilhar à chegada com broa de milho caseira e azeite virgem.',
     0,
     '{"en":{"name":"Starters & Portuguese Petiscos","description":"Made to share at the table with homemade cornbread and extra-virgin olive oil."}}'::jsonb
   ),
@@ -71,9 +71,9 @@ values
     '22222222-2222-4222-8222-222222222202',
     '11111111-1111-4111-8111-111111111111',
     'Sopas & Tachos Quentes',
-    'Conforto minhoto servido bem quente em tigela de barro.',
+    'Pratos de conforto servidos bem quentes em tigela de barro.',
     1,
-    '{"en":{"name":"Traditional Soups & Hot Pots","description":"Hearty Minho comfort served piping hot in clay bowls."}}'::jsonb
+    '{"en":{"name":"Traditional Soups & Hot Pots","description":"Hearty comfort dishes served piping hot in clay bowls."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222203',
@@ -86,18 +86,18 @@ values
   (
     '22222222-2222-4222-8222-222222222204',
     '11111111-1111-4111-8111-111111111111',
-    'Carnes do Minho',
+    'Carnes',
     'Assados no forno de lenha e carnes maturadas de produtores locais.',
     3,
-    '{"en":{"name":"Minho Meats","description":"Wood-fired roasts and meats sourced from small local farms."}}'::jsonb
+    '{"en":{"name":"Meats","description":"Wood-fired roasts and meats sourced from small local farms."}}'::jsonb
   ),
   (
     '22222222-2222-4222-8222-222222222205',
     '11111111-1111-4111-8111-111111111111',
     'Doçaria Conventual',
-    'Doces históricos de Guimarães e sobremesas caseiras.',
+    'Doces conventuais e sobremesas caseiras.',
     4,
-    '{"en":{"name":"Conventual Desserts","description":"Historic monastic sweets from Guimarães and house-made desserts."}}'::jsonb
+    '{"en":{"name":"Conventual Desserts","description":"Historic monastic sweets and house-made desserts."}}'::jsonb
   );
 
 -- 15 Pratos com traduções EN, alergénios da UE, destaques e fotografias de comida real (Unsplash/Pexels)
@@ -133,25 +133,25 @@ values
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222201',
     'Chouriça Assada na Brasa em Barro',
-    'Chouriça de fumeiro minhoto flamejada à mesa com aguardente velha e broa de milho.',
+    'Chouriça de fumeiro flamejada à mesa com aguardente velha e broa de milho.',
     890,
     'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
-    '{"en":{"name":"Flame-Roasted Smoked Chorizo","description":"Artisanal Minho pork sausage flambéed tableside in clay dish, served with cornbread."}}'::jsonb,
+    '{"en":{"name":"Flame-Roasted Smoked Chorizo","description":"Artisanal smoked pork sausage flambéed tableside in clay dish, served with cornbread."}}'::jsonb,
     array['gluten', 'sulphites']::text[],
     null
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222201',
-    'Bola de Carne Vimaranense',
+    'Bola de Carne Caseira',
     'Fatia generosa de bola caseira recheada com carnes fumadas e toucinho.',
     550,
     'https://images.pexels.com/photos/139746/pexels-photo-139746.jpeg?auto=compress&cs=tinysrgb&w=1400',
     true,
     2,
-    '{"en":{"name":"Guimarães Savoury Meat Bread","description":"Generous slice of soft house-baked bread stuffed with smoked meats andcured bacon."}}'::jsonb,
+    '{"en":{"name":"House Savoury Meat Bread","description":"Generous slice of soft house-baked bread stuffed with smoked meats and cured bacon."}}'::jsonb,
     array['gluten', 'eggs', 'milk']::text[],
     null
   ),
@@ -173,13 +173,13 @@ values
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222202',
-    'Caldo Verde à Moda do Minho',
+    'Caldo Verde Tradicional',
     'Couve galega cortada finíssima, batata cremosa, fio de azeite novo e rodela de chouriço.',
     420,
     'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg?auto=compress&cs=tinysrgb&w=1400',
     true,
     0,
-    '{"en":{"name":"Minho-Style Caldo Verde","description":"Finely shredded Galician kale, velvety potato broth, extra-virgin olive oil and smoked chorizo."}}'::jsonb,
+    '{"en":{"name":"Traditional Caldo Verde","description":"Finely shredded Galician kale, velvety potato broth, extra-virgin olive oil and smoked chorizo."}}'::jsonb,
     array['sulphites']::text[],
     null
   ),
@@ -192,7 +192,7 @@ values
     'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
-    '{"en":{"name":"Traditional Sarrabulho Porridge","description":"Heritage Minho savoury dish slow-simmered with selected meats, cumin and cornbread."}}'::jsonb,
+    '{"en":{"name":"Traditional Sarrabulho Porridge","description":"Heritage savoury dish slow-simmered with selected meats, cumin and cornbread."}}'::jsonb,
     array['gluten', 'sulphites']::text[],
     null
   ),
@@ -201,13 +201,13 @@ values
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222203',
-    'Bacalhau Assado à Tasca do Castelo',
+    'Bacalhau Assado da Casa',
     'Lombo alto de bacalhau assado com crosta de broa de milho, grelos salteados e batata a murro.',
     1850,
     'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1600&h=1000&q=75',
     true,
     0,
-    '{"en":{"name":"Tasca do Castelo Roasted Salt Cod","description":"Thick Atlantic cod loin baked with cornbread crust, sautéed turnip greens and punched potatoes."}}'::jsonb,
+    '{"en":{"name":"House Roasted Salt Cod","description":"Thick Atlantic cod loin baked with cornbread crust, sautéed turnip greens and punched potatoes."}}'::jsonb,
     array['gluten', 'fish']::text[],
     'featured'
   ),
@@ -238,17 +238,17 @@ values
     null
   ),
 
-  -- Carnes do Minho (3)
+  -- Carnes (3)
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222204',
-    'Rojões à Minhota com Castanhas',
+    'Rojões com Castanhas',
     'Carne de porco marinada em vinho verde branco e alho, servida com tripas enfarinhadas e batata dourada.',
     1590,
     'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=1400&q=75',
     true,
     0,
-    '{"en":{"name":"Minho-Style Pork Rojões with Chestnuts","description":"Pork chunks marinated in Vinho Verde and garlic, served with chestnuts and golden potatoes."}}'::jsonb,
+    '{"en":{"name":"Pork Rojões with Chestnuts","description":"Pork chunks marinated in white wine and garlic, served with chestnuts and golden potatoes."}}'::jsonb,
     array['gluten', 'nuts', 'sulphites']::text[],
     'featured'
   ),
@@ -283,26 +283,26 @@ values
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222205',
-    'Torta de Guimarães',
+    'Torta Conventual',
     'Especialidade conventual estaladiça recheada com doce de chila, amêndoa torrada e canela.',
     480,
     'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1400&q=75',
     true,
     0,
-    '{"en":{"name":"Torta de Guimarães Pastry","description":"Crisp conventual pastry filled with squash preserve, toasted almonds and cinnamon."}}'::jsonb,
+    '{"en":{"name":"Conventual Pastry Tart","description":"Crisp conventual pastry filled with squash preserve, toasted almonds and cinnamon."}}'::jsonb,
     array['gluten', 'eggs', 'nuts']::text[],
     'featured'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222205',
-    'Toucinho do Céu Vimaranense',
+    'Toucinho do Céu',
     'Fatia húmida de gemas, amêndoa moída e chila, polvilhada com açúcar em pó.',
     520,
     'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1400&q=75',
     true,
     1,
-    '{"en":{"name":"Guimarães Toucinho do Céu","description":"Rich conventual almond and egg-yolk cake dusted with icing sugar."}}'::jsonb,
+    '{"en":{"name":"Toucinho do Céu","description":"Rich conventual almond and egg-yolk cake dusted with icing sugar."}}'::jsonb,
     array['gluten', 'eggs', 'nuts']::text[],
     null
   ),

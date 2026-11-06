@@ -113,14 +113,11 @@ export interface MenuUiDictionary {
   draftBanner: string;
   languageSelectorLabel: string;
   categoriesNavLabel: string;
-  highlightsSectionTitle: string;
-  highlightsSectionSubtitle: string;
   emptyMenuTitle: string;
   emptyMenuSubtitle: string;
   priceAriaPrefix: string;
   unavailableBadge: string;
   photoAltPrefix: string;
-  allergensLabel: string;
   allergensButton: string;
   allergensClose: string;
   allergensLegendTitle: string;
@@ -141,14 +138,11 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
       'Pré-visualização de rascunho — apenas visível para membros do restaurante. Ativa a publicação no painel para abrir ao público.',
     languageSelectorLabel: 'Selecionar idioma da ementa',
     categoriesNavLabel: 'Categorias da ementa',
-    highlightsSectionTitle: 'Em Destaque',
-    highlightsSectionSubtitle: 'Sugestões especiais e novidades da nossa cozinha.',
     emptyMenuTitle: 'A nossa ementa está a ser preparada.',
     emptyMenuSubtitle: 'Volta a consultar dentro de momentos.',
     priceAriaPrefix: 'Preço',
     unavailableBadge: 'Temporariamente indisponível',
     photoAltPrefix: 'Fotografia de',
-    allergensLabel: 'Alergénios presentes',
     allergensButton: 'Alergénios',
     allergensClose: 'Fechar',
     houseBadge: 'Da casa',
@@ -168,14 +162,11 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
       'Draft preview — only visible to restaurant members. Enable publishing in the dashboard to open to the public.',
     languageSelectorLabel: 'Select menu language',
     categoriesNavLabel: 'Menu categories',
-    highlightsSectionTitle: 'Highlights',
-    highlightsSectionSubtitle: 'Chef recommendations, house specials and new dishes.',
     emptyMenuTitle: 'Our menu is being prepared.',
     emptyMenuSubtitle: 'Please check back shortly.',
     priceAriaPrefix: 'Price',
     unavailableBadge: 'Temporarily unavailable',
     photoAltPrefix: 'Photo of',
-    allergensLabel: 'Contains allergens',
     allergensButton: 'Allergens',
     allergensClose: 'Close',
     houseBadge: 'House',

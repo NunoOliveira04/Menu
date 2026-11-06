@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { RestaurantSettingsForm } from '@/components/dashboard/restaurant-settings-form';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
@@ -14,7 +13,7 @@ export default async function AdminRestaurantSettingsPage() {
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/admin/onboarding');
+    return null;
   }
 
   const supabase = await createClient();

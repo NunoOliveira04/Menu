@@ -3,17 +3,9 @@ import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatCentsToEuroInput, formatPriceCents, parseEuroToCents } from '@/lib/utils/price';
 import { moveItemInList, normalizePositions } from '@/lib/utils/reorder';
-import { slugifyRestaurantName } from '@/lib/utils/slug';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
 
-describe('Utilitários de Slug, Preço, Reordenação, Temas e Subdomínios', () => {
-  it('gera slugs limpos a partir de nomes em português com acentos', () => {
-    expect(slugifyRestaurantName('Tasca do Castelo — Guimarães!')).toBe(
-      'tasca-do-castelo-guimaraes',
-    );
-    expect(slugifyRestaurantName('  São João & Cia.  ')).toBe('sao-joao-cia');
-  });
-
+describe('Utilitários de Preço, Reordenação, Temas e Subdomínios', () => {
   it('converte e formata preços em euros e cêntimos de forma exata', () => {
     expect(parseEuroToCents('6,50')).toBe(650);
     expect(parseEuroToCents('18.5')).toBe(1850);
@@ -53,7 +45,7 @@ describe('Utilitários de Slug, Preço, Reordenação, Temas e Subdomínios', ()
   it('reescreve subdomínios apenas quando ENABLE_SUBDOMAIN_ROUTING está ativo', () => {
     expect(
       resolveSubdomainRewritePath({
-        hostHeader: 'tasca-do-castelo.menudigital.pt',
+        hostHeader: 'menu-restaurante.menudigital.pt',
         pathname: '/',
         enableSubdomainRouting: false,
         rootDomain: 'menudigital.pt',
@@ -62,12 +54,12 @@ describe('Utilitários de Slug, Preço, Reordenação, Temas e Subdomínios', ()
 
     expect(
       resolveSubdomainRewritePath({
-        hostHeader: 'tasca-do-castelo.menudigital.pt',
+        hostHeader: 'menu-restaurante.menudigital.pt',
         pathname: '/',
         enableSubdomainRouting: true,
         rootDomain: 'menudigital.pt',
       }),
-    ).toBe('/r/tasca-do-castelo');
+    ).toBe('/r/menu-restaurante');
 
     expect(
       resolveSubdomainRewritePath({
@@ -89,8 +81,8 @@ describe('Utilitários de Slug, Preço, Reordenação, Temas e Subdomínios', ()
   });
 
   it('constrói URL público consistente', () => {
-    expect(buildPublicMenuUrl('tasca-do-castelo', 'https://ementa.pt/')).toBe(
-      'https://ementa.pt/r/tasca-do-castelo',
+    expect(buildPublicMenuUrl('menu-restaurante', 'https://ementa.pt/')).toBe(
+      'https://ementa.pt/r/menu-restaurante',
     );
   });
 });

@@ -135,7 +135,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     );
   }
 
-  // Proteger /admin/*, excepto login e registo.
+  // Proteger /admin/*, excepto login.
   if (isProtectedAdminPath(pathname) && !isAuthenticated) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = ADMIN_LOGIN_PATH;

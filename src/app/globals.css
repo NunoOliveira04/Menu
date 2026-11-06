@@ -298,10 +298,6 @@
   border-top: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
 }
 
-.menu-dish-list > li + li .menu-dish {
-  border-top: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
-}
-
 .menu-dish-unavailable {
   opacity: 0.62;
 }

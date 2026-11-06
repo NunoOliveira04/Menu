@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import QRCode from 'qrcode';
 import { MenuManager } from '@/components/dashboard/menu-manager';
 import { QrCodeCard } from '@/components/dashboard/qr-code-card';
@@ -19,7 +18,7 @@ export default async function AdminMenuPage() {
   const context = await getPrimaryUserRestaurant(user.userId);
 
   if (!context) {
-    redirect('/admin/onboarding');
+    return null;
   }
 
   const { restaurant } = context;

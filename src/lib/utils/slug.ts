@@ -14,18 +14,6 @@ const RESERVED_SLUGS = new Set([
   'www',
 ]);
 
-export function slugifyRestaurantName(input: string): string {
-  return input
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-')
-    .slice(0, 63)
-    .replace(/-+$/g, '');
-}
-
 export function isReservedSlug(slug: string): boolean {
   return RESERVED_SLUGS.has(slug.trim().toLowerCase());
 }

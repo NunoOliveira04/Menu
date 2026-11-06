@@ -7,7 +7,7 @@ const mockRedirect = vi.fn((url: string): never => {
 
 const mockRevalidatePath = vi.fn();
 
-const mockSignUp = vi.fn();
+const mockSignInWithPassword = vi.fn();
 const mockRpc = vi.fn();
 const mockStorageUpload = vi.fn();
 const mockStorageRemove = vi.fn();
@@ -26,8 +26,8 @@ vi.mock('next/cache', () => ({
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     auth: {
-      signUp: mockSignUp,
       getUser: mockGetUser,
+      signInWithPassword: mockSignInWithPassword,
     },
     rpc: mockRpc,
     from: mockFrom,
@@ -49,7 +49,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }));
 
-import { registerOwnerAction } from '@/app/actions/auth';
+import { loginAction } from '@/app/actions/auth';
 import {
   createCategoryAction,
   reorderCategoryAction,
@@ -67,53 +67,37 @@ const DISH_1 = '33333333-3333-4333-8333-333333333301';
 const DISH_2 = '33333333-3333-4333-8333-333333333302';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
-describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos Off e Reordenação Transacional', () => {
+describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reordenação Transacional', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://dummy-project.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'dummy-anon-key';
   });
 
-  it('registerOwnerAction devolve erro sem redirect quando create_owner_restaurant falha após retry 23505', async () => {
-    mockSignUp.mockResolvedValue({
-      data: { session: { access_token: 'tok' }, user: { id: USER_ID } },
-      error: null,
-    });
-    mockRpc
-      .mockResolvedValueOnce({ data: null, error: { code: '23505', message: 'duplicate slug' } })
-      .mockResolvedValueOnce({ data: null, error: { code: '23505', message: 'duplicate slug 2' } });
-
+  it('loginAction redireciona para ?next= seguro (/admin/restaurante)', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: {} }, error: null });
     const fd = new FormData();
     fd.set('email', 'dono@tasca.pt');
     fd.set('password', 'segredo1234');
-    fd.set('restaurantName', 'Tasca do Castelo');
-
-    const result = await registerOwnerAction(INITIAL_ACTION_STATE, fd);
-
-    expect(mockRpc).toHaveBeenCalledTimes(2);
-    expect(mockRedirect).not.toHaveBeenCalled();
-    expect(result.status).toBe('error');
-  });
-
-  it('registerOwnerAction faz redirect para /admin apenas quando create_owner_restaurant sucede', async () => {
-    mockSignUp.mockResolvedValue({
-      data: { session: { access_token: 'tok' }, user: { id: USER_ID } },
-      error: null,
-    });
-    mockRpc
-      .mockResolvedValueOnce({ data: null, error: { code: '23505', message: 'duplicate slug' } })
-      .mockResolvedValueOnce({ data: { id: RESTAURANT_ID }, error: null });
-
-    const fd = new FormData();
-    fd.set('email', 'dono@tasca.pt');
-    fd.set('password', 'segredo1234');
-    fd.set('restaurantName', 'Tasca do Castelo');
-
-    await expect(registerOwnerAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow(
-      'NEXT_REDIRECT:/admin',
+    fd.set('next', '/admin/restaurante');
+    await expect(loginAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow(
+      'NEXT_REDIRECT:/admin/restaurante',
     );
-    expect(mockRpc).toHaveBeenCalledTimes(2);
   });
+
+  it('loginAction rejeita next open-redirect e cai em /admin', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: {} }, error: null });
+    for (const evil of ['https://evil.com', '//evil.com', '/\\evil.com', '/r/x']) {
+      const fd = new FormData();
+      fd.set('email', 'dono@tasca.pt');
+      fd.set('password', 'segredo1234');
+      fd.set('next', evil);
+      await expect(loginAction(INITIAL_ACTION_STATE, fd)).rejects.toThrow('NEXT_REDIRECT:/admin');
+    }
+  });
+
+
+
 
   it('createDishAction bloqueia upload antes de chamar Storage se os magic bytes forem inválidos', async () => {
     mockGetUser.mockResolvedValue({
@@ -200,7 +184,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
             eq: () => ({
               maybeSingle: async () => ({
                 data: {
-                  slug: 'tasca-do-castelo',
+                  slug: 'menu-restaurante',
                   settings: {
                     modules: {
                       languages: false,
@@ -295,7 +279,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
             eq: () => ({
               maybeSingle: async () => ({
                 data: {
-                  slug: 'tasca-do-castelo',
+                  slug: 'menu-restaurante',
                   settings: {
                     modules: {
                       languages: false,
@@ -391,7 +375,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
             eq: () => ({
               maybeSingle: async () => ({
                 data: {
-                  slug: 'tasca-do-castelo',
+                  slug: 'menu-restaurante',
                   settings: {
                     modules: {
                       languages: false,
@@ -483,7 +467,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
       }),
     }));
 
-    const reqOff = new NextRequest('http://localhost:3000/r/tasca-do-castelo?lang=en');
+    const reqOff = new NextRequest('http://localhost:3000/r/menu-restaurante?lang=en');
     const resOff = await updateSession(reqOff);
     expect(resOff.headers.get('x-middleware-override-headers')).toContain('x-menu-html-lang');
     expect(resOff.headers.get('x-middleware-request-x-menu-html-lang')).toBe('pt-PT');
@@ -500,7 +484,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
       }),
     }));
 
-    const reqOn = new NextRequest('http://localhost:3000/r/tasca-do-castelo?lang=en');
+    const reqOn = new NextRequest('http://localhost:3000/r/menu-restaurante?lang=en');
     const resOn = await updateSession(reqOn);
     expect(resOn.headers.get('x-middleware-request-x-menu-html-lang')).toBe('en');
   });
@@ -531,7 +515,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
               maybeSingle: async () => ({
                 data: {
                   id: RESTAURANT_ID,
-                  slug: 'tasca-do-castelo',
+                  slug: 'menu-restaurante',
                   published: false,
                   translations: {},
                 },
@@ -547,7 +531,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
 
     const fd = new FormData();
     fd.set('restaurantId', RESTAURANT_ID);
-    fd.set('name', 'Tasca do Castelo');
+    fd.set('name', 'Menu Restaurante');
     fd.set('slug', 'novo-slug-proibido');
     fd.set('published', 'on');
     fd.set('style', 'classico');
@@ -617,7 +601,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: async () => ({ data: { slug: 'tasca-do-castelo' }, error: null }),
+              maybeSingle: async () => ({ data: { slug: 'menu-restaurante' }, error: null }),
             }),
           }),
         };
@@ -654,7 +638,7 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
     });
   });
 
-  it('redireciona /dashboard/* para /admin/* com 308 e protege /admin excepto login e registo', async () => {
+  it('redireciona /dashboard/* para /admin/* com 308 e protege /admin excepto login', async () => {
     mockGetClaims.mockResolvedValue({ data: { claims: null } });
 
     const legacy = await updateSession(
@@ -667,21 +651,27 @@ describe('Server Actions — Registo, Permissões Owner, Magic Bytes, Módulos O
     expect(loginLegacy.status).toBe(308);
     expect(loginLegacy.headers.get('location')).toBe('http://localhost:3000/admin/login');
 
-    const protectedAdmin = await updateSession(
+    // Rotas retiradas (registo/onboarding) não redirecionam para login — ficam 404 na app.
+    const retiredOnboarding = await updateSession(
       new NextRequest('http://localhost:3000/admin/onboarding'),
+    );
+    expect(retiredOnboarding.status).toBe(200);
+
+    const retiredRegister = await updateSession(
+      new NextRequest('http://localhost:3000/admin/registar'),
+    );
+    expect(retiredRegister.status).toBe(200);
+
+    const protectedAdmin = await updateSession(
+      new NextRequest('http://localhost:3000/admin/restaurante'),
     );
     expect(protectedAdmin.status).toBe(307);
     const loginLocation = protectedAdmin.headers.get('location') ?? '';
     expect(loginLocation).toContain('/admin/login');
-    expect(loginLocation).toContain('next=%2Fadmin%2Fonboarding');
+    expect(loginLocation).toContain('next=%2Fadmin%2Frestaurante');
 
     const publicLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));
     expect(publicLogin.status).toBe(200);
-
-    const publicRegister = await updateSession(
-      new NextRequest('http://localhost:3000/admin/registar'),
-    );
-    expect(publicRegister.status).toBe(200);
 
     mockGetClaims.mockResolvedValue({ data: { claims: { sub: USER_ID } } });
     const authedLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));

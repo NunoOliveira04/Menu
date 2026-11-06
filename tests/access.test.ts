@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildDishPhotoStoragePath,
-  canCreateFirstRestaurant,
   canMemberApplyRestaurantUpdate,
   canUserWriteRestaurant,
   canViewRestaurantMenu,
@@ -62,8 +61,8 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'editor',
-        currentSlug: 'tasca-do-castelo',
-        nextSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
+        nextSlug: 'menu-restaurante',
         currentPublished: false,
         nextPublished: false,
       }),
@@ -73,8 +72,8 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'editor',
-        currentSlug: 'tasca-do-castelo',
-        nextSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
+        nextSlug: 'menu-restaurante',
         currentPublished: false,
         nextPublished: true,
       }),
@@ -83,7 +82,7 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'manager',
-        currentSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
         nextSlug: 'novo-slug',
         currentPublished: true,
         nextPublished: true,
@@ -94,19 +93,12 @@ describe('Lógica de Acesso, Membros, Storage Privado e Definições Modulares',
     expect(
       canMemberApplyRestaurantUpdate({
         role: 'owner',
-        currentSlug: 'tasca-do-castelo',
+        currentSlug: 'menu-restaurante',
         nextSlug: 'novo-slug',
         currentPublished: false,
         nextPublished: true,
       }),
     ).toBe(true);
-  });
-
-  it('recusa criação de 1.º restaurante se o utilizador já tiver alguma membership', () => {
-    expect(canCreateFirstRestaurant(strangerId, memberships)).toBe(true);
-    expect(canCreateFirstRestaurant(ownerId, memberships)).toBe(false);
-    expect(canCreateFirstRestaurant(editorId, memberships)).toBe(false);
-    expect(canCreateFirstRestaurant(null, memberships)).toBe(false);
   });
 
   it('isola os caminhos do bucket privado dish-photos e resolve signed URLs em lote', async () => {
