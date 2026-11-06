@@ -258,7 +258,6 @@ export function PublicMenuView({
                             {houseBadge && <span className="menu-house">{ui.houseBadge}</span>}
                             <div className="menu-dish-line">
                               <h3 className="menu-dish-name">{dishName}</h3>
-                              <span className="menu-leader" aria-hidden="true" />
                               <p
                                 className="menu-price"
                                 aria-label={`${ui.priceAriaPrefix}: ${formatPriceCents(dish.price_cents)}`}

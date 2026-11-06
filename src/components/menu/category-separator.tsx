@@ -1,8 +1,12 @@
 interface CategorySeparatorProps {
-  ornament: 'azulejo' | 'rule';
+  ornament: 'azulejo' | 'rule' | 'none';
 }
 
 export function CategorySeparator({ ornament }: CategorySeparatorProps) {
+  if (ornament === 'none') {
+    return null;
+  }
+
   if (ornament === 'rule') {
     return <div className="menu-rule" aria-hidden="true" />;
   }

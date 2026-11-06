@@ -20,6 +20,12 @@ export interface MenuThemeCssVars {
   '--color-card': string;
   '--color-muted': string;
   '--color-line': string;
+  /** Separadores e contornos subtis (listas, cartões, barra de categorias). */
+  '--color-border': string;
+  /** Contornos de botões secundários (alergénios, fechar). */
+  '--color-border-strong': string;
+  /** Texto na cor do acento sobre fundo claro (contraste AA). */
+  '--color-accent-text': string;
   '--radius-card': string;
   '--radius-pill': string;
   '--radius-thumb': string;
@@ -32,8 +38,8 @@ export interface MenuThemeTokens {
   label: string;
   description: string;
   availableInMvp: boolean;
-  /** Azulejo só no tema clássico. Os outros usam um filete. */
-  ornament: 'azulejo' | 'rule';
+  /** Ornamento entre o título da categoria e os pratos (`none` no visual moderno). */
+  ornament: 'azulejo' | 'rule' | 'none';
   cssVars: MenuThemeCssVars;
   preview: MenuThemePreviewPalette;
 }
@@ -42,37 +48,41 @@ const DISPLAY = 'var(--font-serif), Georgia, serif';
 const BODY = 'var(--font-sans), system-ui, sans-serif';
 
 export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
+  // O id mantém-se `classico` (valor por omissão na BD); o visual é o moderno e limpo do piloto.
   classico: {
     id: 'classico',
-    label: 'Clássico',
+    label: 'Essencial',
     description:
-      'Marfim, Fraunces e tijolo. Um ornamento de azulejo só nos separadores de categoria.',
+      'Moderno e limpo: fundo claro, tipografia Inter, fotografias em destaque e categorias numa só linha.',
     availableInMvp: true,
-    ornament: 'azulejo',
+    ornament: 'none',
     cssVars: {
-      '--color-bg': '#F5EFE6',
-      '--color-text': '#2B2B2B',
+      '--color-bg': '#F6F6F3',
+      '--color-text': '#18181B',
       '--color-azulejo': '#1F3A5F',
       '--color-accent': '#B5452B',
       '--color-on-accent': '#FFFFFF',
       '--color-card': '#FFFFFF',
-      '--color-muted': '#6B6B6B',
-      '--color-line': 'rgba(43, 43, 43, 0.38)',
-      '--radius-card': '18px',
+      '--color-muted': '#5F5F67',
+      '--color-line': 'rgba(24, 24, 27, 0.3)',
+      '--color-border': 'rgba(24, 24, 27, 0.08)',
+      '--color-border-strong': 'rgba(24, 24, 27, 0.18)',
+      '--color-accent-text': '#9E3A24',
+      '--radius-card': '16px',
       '--radius-pill': '999px',
       '--radius-thumb': '12px',
-      '--font-display': DISPLAY,
+      '--font-display': BODY,
       '--font-body': BODY,
     },
     preview: {
-      surfaceBg: 'bg-[#F5EFE6]',
+      surfaceBg: 'bg-[#F6F6F3]',
       cardBg: 'bg-white',
-      cardBorder: 'border-[#E4D8C8]',
-      headingText: 'text-[#2B2B2B]',
-      bodyText: 'text-[#6B6B6B]',
-      accentBg: 'bg-[#B5452B]',
-      accentText: 'text-[#B5452B]',
-      fontClass: 'font-serif',
+      cardBorder: 'border-[#E7E7E4]',
+      headingText: 'text-[#18181B]',
+      bodyText: 'text-[#5F5F67]',
+      accentBg: 'bg-[#18181B]',
+      accentText: 'text-[#18181B]',
+      fontClass: 'font-sans',
     },
   },
   moderno: {
@@ -91,6 +101,9 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--color-card': '#FFFFFF',
       '--color-muted': '#5E5E5E',
       '--color-line': 'rgba(28, 28, 28, 0.32)',
+      '--color-border': 'rgba(28, 28, 28, 0.08)',
+      '--color-border-strong': 'rgba(28, 28, 28, 0.18)',
+      '--color-accent-text': '#1C1C1C',
       '--radius-card': '12px',
       '--radius-pill': '999px',
       '--radius-thumb': '8px',
@@ -124,6 +137,9 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--color-card': '#1A1816',
       '--color-muted': '#CDBFB0',
       '--color-line': 'rgba(244, 239, 232, 0.4)',
+      '--color-border': 'rgba(244, 239, 232, 0.12)',
+      '--color-border-strong': 'rgba(244, 239, 232, 0.28)',
+      '--color-accent-text': '#C6A57A',
       '--radius-card': '16px',
       '--radius-pill': '999px',
       '--radius-thumb': '12px',

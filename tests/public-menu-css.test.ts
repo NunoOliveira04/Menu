@@ -40,6 +40,12 @@ describe('Carta pública — alinhamento (ponto 4)', () => {
     expect(price).toMatch(/flex:\s*none/);
   });
 
+  it('as categorias ficam sempre numa só linha', () => {
+    expect(ruleBody('.menu-pill')).toMatch(/white-space:\s*nowrap/);
+    expect(ruleBody('.menu-nav-scroll > li')).toMatch(/flex:\s*none/);
+    expect(ruleBody('.menu-nav-scroll')).toMatch(/overflow-x:\s*auto/);
+  });
+
   it('a miniatura vem antes do texto do prato', () => {
     const view = readFileSync(
       resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
