@@ -4,7 +4,7 @@ import { PublicMenuView } from '@/components/menu/public-menu-view';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
 import { resolveLocalizedField, resolveMenuLocale } from '@/lib/modules/i18n';
-import { withPublicDishPhotoUrls } from '@/lib/storage/dish-photos';
+import { resolvePhotoDisplayUrl, withPublicDishPhotoUrls } from '@/lib/storage/dish-photos';
 import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
@@ -120,6 +120,7 @@ export default async function PublicMenuPage({ params, searchParams }: PublicMen
       restaurant={restaurant}
       categories={categories ?? []}
       dishes={dishes}
+      coverPhotoUrl={resolvePhotoDisplayUrl(restaurant.cover_photo_path, supabaseUrl)}
       modules={settings.modules}
       locale={locale}
       weeklySchedule={weeklySchedule}

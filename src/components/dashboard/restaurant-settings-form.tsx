@@ -1,9 +1,11 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { WEEKDAY_LABELS, type DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
@@ -14,9 +16,13 @@ interface RestaurantSettingsFormProps {
   restaurant: RestaurantRow;
   role: RestaurantMemberRole;
   initialSchedule: DaySchedule[];
+  /** URL público da foto de capa atual, ou null. */
+  coverPhotoUrl: string | null;
 }
 
 const STYLE_OPTIONS: RestaurantStyle[] = ['classico', 'moderno', 'escuro'];
+
+const COVER_PHOTO_FIELDS = ['coverPhoto'] as const;
 
 interface EditableDayRow {
   dayOfWeek: number;
@@ -49,11 +55,24 @@ export function RestaurantSettingsForm({
   restaurant,
   role,
   initialSchedule,
+  coverPhotoUrl,
 }: RestaurantSettingsFormProps) {
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isActionPending] = useActionState(
     updateRestaurantAction,
     INITIAL_ACTION_STATE,
   );
+  const { handleSubmit, clearPhotoFields, isPreparingPhoto, isSubmitting, photoError } =
+    useCompressedPhotoSubmit(formAction, COVER_PHOTO_FIELDS);
+
+  useEffect(() => {
+    if (state.status === 'success') {
+      clearPhotoFields();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- corre a cada novo resultado da action
+  }, [state]);
+  const isPending = isActionPending || isSubmitting;
+  const isBusy = isPending || isPreparingPhoto;
+  const coverFieldError = photoError ?? state.fieldErrors?.coverPhoto?.[0];
   const initialSettings = parseRestaurantSettings(restaurant.settings);
   const existingTranslations = parseTranslationsJson(restaurant.translations);
 
@@ -76,7 +95,7 @@ export function RestaurantSettingsForm({
   }
 
   return (
-    <form action={formAction} className="space-y-8" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-8" noValidate aria-busy={isBusy}>
       <input type="hidden" name="restaurantId" value={restaurant.id} />
 
       {state.status === 'error' && state.message && (
@@ -179,6 +198,70 @@ export function RestaurantSettingsForm({
               placeholder="Breve descrição da cozinha, especialidades ou história."
               className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="coverPhoto" className="block text-sm font-medium text-stone-800">
+              Foto de capa da carta
+            </label>
+            <p className="mt-0.5 text-xs text-stone-500">
+              Aparece no topo da carta, por trás do nome. Sem foto, a carta mostra só o nome sobre
+              fundo azul.
+            </p>
+            <div className="mt-2 flex flex-wrap items-start gap-4">
+              {coverPhotoUrl ? (
+                <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+                  <Image
+                    src={coverPhotoUrl}
+                    alt="Foto de capa atual"
+                    fill
+                    sizes="144px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="flex h-20 w-36 shrink-0 items-end rounded-xl bg-[#1F3A5F] p-2.5"
+                >
+                  <span className="truncate font-serif text-sm font-semibold text-[#F7F3EC]">
+                    {restaurant.name}
+                  </span>
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1 space-y-2">
+                <input
+                  id="coverPhoto"
+                  name="coverPhoto"
+                  type="file"
+                  accept="image/*"
+                  disabled={isBusy}
+                  aria-describedby="coverPhoto-help"
+                  className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
+                />
+                <p id="coverPhoto-help" aria-live="polite" className="text-xs text-stone-500">
+                  {isPreparingPhoto
+                    ? 'A otimizar a fotografia…'
+                    : 'A foto é reduzida automaticamente antes de ser enviada.'}
+                </p>
+                {coverPhotoUrl && (
+                  <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-red-700">
+                    <input
+                      type="checkbox"
+                      name="removeCoverPhoto"
+                      className="h-4 w-4 rounded border-stone-300 text-red-600 focus:ring-red-600"
+                    />
+                    Remover foto de capa
+                  </label>
+                )}
+                {coverFieldError && (
+                  <p role="alert" className="text-xs text-red-600">
+                    {coverFieldError}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           {languagesEnabled && (
@@ -568,10 +651,14 @@ export function RestaurantSettingsForm({
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isBusy}
           className="rounded-xl bg-[#8C3B2B] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? 'A guardar alterações...' : 'Guardar definições'}
+          {isPreparingPhoto
+            ? 'A otimizar fotografia…'
+            : isPending
+              ? 'A guardar alterações...'
+              : 'Guardar definições'}
         </button>
       </div>
     </form>

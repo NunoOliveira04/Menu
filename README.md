@@ -22,7 +22,7 @@ Plataforma SaaS leve de menus digitais para restaurantes (Grupos 1, 2 e 3 do MVP
   - **`highlights` (Destaques):** marcação interna de pratos. No menu público **não existe secção «Em Destaque»**. Só o selo pontual **«Da casa»** aparece quando o prato está marcado como destaque da casa.
   - **`hours` (Horário Semanal):** editor dos 7 dias da semana (até 2 turnos por dia ou encerrado) via RPC transacional `upsert_restaurant_hours`, exibido no menu com cálculo automático de **Aberto agora / Encerrado de momento** no fuso `Europe/Lisbon` (incluindo horário de verão e turnos após a meia-noite).
 - **Três Temas Visuais (contraste AA + mobile-first)**, com tokens CSS (`--color-*`, `--font-*`, `--radius-*`):
-  - **Clássico** (`classico`, default da demo): Fraunces 600 + Inter 16px, fundo `#F5EFE6`, texto `#2B2B2B`, azulejo `#1F3A5F`, tijolo `#B5452B`. Hero ~35vh com foto de prato, categorias sticky com scroll-spy, lista tipo carta (nome, linha pontilhada, preço `12,50 €`, miniatura 72px) e ornamento de azulejo só no separador de categoria.
+  - **Clássico** (`classico`, default da demo): Fraunces 600 + Inter 16px, fundo `#F5EFE6`, texto `#2B2B2B`, azulejo `#1F3A5F`, tijolo `#B5452B`. Capa ~27vh com a foto escolhida pelo dono em `/admin/restaurante` (ou só o nome sobre azul `#1F3A5F` se não houver foto), categorias sticky com scroll-spy, lista tipo carta (nome, linha pontilhada, preço `12,50 €`, miniatura 72px) e ornamento de azulejo só no separador de categoria.
   - **Minimal Café** (`moderno`) e **Noir Gastronómico** (`escuro`).
   - Pré-visualização em `/admin/restaurante`. Alergénios da UE abrem num bottom sheet. Toggle PT/EN no topo do hero.
 - **Armazenamento de Fotografias (`dish-photos`)**:

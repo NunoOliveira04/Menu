@@ -36,6 +36,8 @@ import { parseTranslationsJson } from '@/lib/modules/i18n';
 import { formatCentsToEuroInput, formatPriceCents } from '@/lib/utils/price';
 import type { CategoryRow, DishRow, RestaurantModules } from '@/types/database';
 
+const DISH_PHOTO_FIELDS = ['photo'] as const;
+
 interface MenuManagerProps {
   restaurantId: string;
   categories: CategoryRow[];
@@ -706,7 +708,7 @@ function DishForm({
   const [state, formAction, isActionPending] = useActionState(actionFn, INITIAL_ACTION_STATE);
   const { handleSubmit, isPreparingPhoto, isSubmitting, photoError } = useCompressedPhotoSubmit(
     formAction,
-    ['photo'],
+    DISH_PHOTO_FIELDS,
   );
   const isPending = isActionPending || isSubmitting;
   const isBusy = isPending || isPreparingPhoto;

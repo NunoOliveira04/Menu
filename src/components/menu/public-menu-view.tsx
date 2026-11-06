@@ -12,7 +12,7 @@ import {
   type DaySchedule,
 } from '@/lib/modules/hours';
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
-import { selectMenuHero, showsHouseBadge } from '@/lib/menu/hero';
+import { showsHouseBadge } from '@/lib/menu/hero';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -27,6 +27,8 @@ interface PublicMenuViewProps {
   restaurant: RestaurantRow;
   categories: CategoryRow[];
   dishes: DishRow[];
+  /** URL público da foto de capa escolhida pelo dono; null = cabeçalho tipográfico. */
+  coverPhotoUrl?: string | null;
   modules: RestaurantModules;
   locale: MenuLocale;
   weeklySchedule: DaySchedule[];
@@ -38,6 +40,7 @@ export function PublicMenuView({
   restaurant,
   categories,
   dishes,
+  coverPhotoUrl = null,
   modules,
   locale,
   weeklySchedule,
@@ -81,21 +84,6 @@ export function PublicMenuView({
     : undefined;
   const todayHours = todaySchedule ? formatDaySlots(todaySchedule, ui.closedDayLabel) : null;
 
-  const hero = selectMenuHero(
-    dishes.map((dish) => ({
-      name:
-        resolveLocalizedField(
-          dish.name,
-          modules.languages ? dish.translations : null,
-          'name',
-          effectiveLocale,
-        ) ?? dish.name,
-      photoUrl: dish.photo_url,
-      highlight: dish.highlight,
-      available: dish.available,
-    })),
-  );
-
   return (
     <div
       lang={localeToHtmlLang(effectiveLocale)}
@@ -113,18 +101,28 @@ export function PublicMenuView({
         </div>
       )}
 
-      <header className="menu-hero">
-        {hero ? (
-          <Image
-            src={hero.photoUrl}
-            alt={`${ui.photoAltPrefix} ${hero.name}`}
-            fill
-            priority
-            sizes="100vw"
-            className="menu-hero-img"
-          />
-        ) : null}
-        <div className="menu-hero-scrim" aria-hidden="true" />
+      <header
+        className={[
+          'menu-hero',
+          coverPhotoUrl ? 'menu-hero-photo' : 'menu-hero-plain',
+          modules.languages ? 'menu-hero-with-lang' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {coverPhotoUrl && (
+          <>
+            <Image
+              src={coverPhotoUrl}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="menu-hero-img"
+            />
+            <div className="menu-hero-scrim" aria-hidden="true" />
+          </>
+        )}
 
         {modules.languages && (
           <nav aria-label={ui.languageSelectorLabel} className="menu-lang">

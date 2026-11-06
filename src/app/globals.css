@@ -65,14 +65,24 @@
   font-size: 16px;
 }
 
+/*
+ * Capa da carta (~27vh). Com foto escolhida pelo dono: foto + gradiente suave.
+ * Sem foto: cabeçalho só tipográfico sobre azul #1F3A5F.
+ * O conteúdo fica alinhado em baixo e a altura cresce se o texto precisar (nunca é cortado).
+ */
 .menu-hero {
   position: relative;
-  height: 35vh;
-  min-height: 220px;
-  max-height: 420px;
+  display: flex;
+  min-height: max(27vh, 180px);
+  flex-direction: column;
+  justify-content: flex-end;
   overflow: hidden;
-  background: var(--color-azulejo);
+  background: #1f3a5f;
   color: #f7f3ec;
+}
+
+.menu-hero-with-lang {
+  padding-top: 64px;
 }
 
 .menu-hero-img {
@@ -85,10 +95,14 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(16, 12, 10, 0.88) 0%,
-    rgba(16, 12, 10, 0.42) 46%,
-    rgba(16, 12, 10, 0.18) 100%
+    rgba(16, 12, 10, 0.66) 0%,
+    rgba(16, 12, 10, 0.28) 55%,
+    rgba(16, 12, 10, 0.06) 100%
   );
+}
+
+.menu-hero-photo .menu-hero-content {
+  text-shadow: 0 1px 12px rgba(16, 12, 10, 0.45);
 }
 
 .menu-lang {
@@ -123,11 +137,11 @@
 }
 
 .menu-hero-content {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
   padding: 20px 20px 22px;
 }
 

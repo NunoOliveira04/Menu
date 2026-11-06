@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { RestaurantSettingsForm } from '@/components/dashboard/restaurant-settings-form';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
+import { resolvePhotoDisplayUrl } from '@/lib/storage/dish-photos';
+import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
@@ -40,6 +42,10 @@ export default async function AdminRestaurantSettingsPage() {
         restaurant={context.restaurant}
         role={context.role}
         initialSchedule={initialSchedule}
+        coverPhotoUrl={resolvePhotoDisplayUrl(
+          context.restaurant.cover_photo_path,
+          getSupabaseEnv().url,
+        )}
       />
     </div>
   );

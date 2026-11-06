@@ -2,20 +2,19 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { buildDishPhotoStoragePath, parseRestaurantSettings } from '@/lib/auth/access';
+import { parseRestaurantSettings } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
+import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
 import { moveItemInList } from '@/lib/utils/reorder';
 import {
-  MAX_DISH_PHOTO_BYTES,
   createDishSchema,
   deleteDishSchema,
   reorderDishSchema,
   toggleDishAvailabilitySchema,
   updateDishSchema,
-  validateDishPhotoFile,
 } from '@/lib/validations/schemas';
 import type { ActionState } from './types';
 
@@ -36,54 +35,6 @@ async function revalidateRestaurantMenu(restaurantId: string) {
   if (data?.slug) {
     revalidatePath(`/r/${data.slug}`);
   }
-}
-
-async function uploadValidatedPhoto(
-  restaurantId: string,
-  fileEntry: FormDataEntryValue | null,
-): Promise<{ ok: true; objectPath: string | null } | { ok: false; error: string }> {
-  if (!(fileEntry instanceof File) || fileEntry.size === 0) {
-    return { ok: true, objectPath: null };
-  }
-
-  if (fileEntry.size > MAX_DISH_PHOTO_BYTES) {
-    return {
-      ok: false,
-      error: 'A fotografia excede o tamanho máximo permitido de 5 MB.',
-    };
-  }
-
-  const arrayBuffer = await fileEntry.arrayBuffer();
-  const validation = validateDishPhotoFile({
-    size: fileEntry.size,
-    type: fileEntry.type,
-    name: fileEntry.name,
-    bytes: arrayBuffer,
-  });
-
-  if (!validation.valid) {
-    return { ok: false, error: validation.error };
-  }
-
-  const uniqueName = `${Date.now()}-${crypto.randomUUID()}.${validation.extension}`;
-  const storagePath = buildDishPhotoStoragePath(restaurantId, uniqueName);
-
-  const supabase = await createClient();
-  const { error: uploadError } = await supabase.storage
-    .from(DISH_PHOTOS_BUCKET)
-    .upload(storagePath, arrayBuffer, {
-      contentType: validation.mimeType,
-      upsert: false,
-    });
-
-  if (uploadError) {
-    return {
-      ok: false,
-      error: 'Não foi possível carregar a fotografia para o armazenamento.',
-    };
-  }
-
-  return { ok: true, objectPath: storagePath };
 }
 
 export async function createDishAction(

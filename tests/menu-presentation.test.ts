@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { selectMenuHero, showsHouseBadge } from '@/lib/menu/hero';
+import { showsHouseBadge } from '@/lib/menu/hero';
 import {
   isProtectedAdminPath,
   isPublicAdminAuthPath,
@@ -53,29 +53,23 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveSafeAdminNextPath(null)).toBe('/admin');
   });
 
-  it('escolhe uma foto de prato para o hero e só mostra «Da casa» no selo featured', () => {
-    const hero = selectMenuHero([
-      {
-        name: 'Pataniscas',
-        photoUrl: 'https://images.unsplash.com/photo-pataniscas',
-        highlight: null,
-        available: true,
-      },
-      {
-        name: 'Bacalhau',
-        photoUrl: 'https://images.unsplash.com/photo-bacalhau',
-        highlight: 'featured',
-        available: true,
-      },
-    ]);
-    expect(hero).toEqual({
-      photoUrl: 'https://images.unsplash.com/photo-bacalhau',
-      name: 'Bacalhau',
-    });
+  it('a capa usa a foto escolhida pelo dono (não um prato) e há cabeçalho tipográfico sem foto', () => {
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    expect(view).not.toContain('selectMenuHero');
+    expect(view).toContain('coverPhotoUrl');
+    expect(view).toContain('menu-hero-plain');
 
-    expect(
-      selectMenuHero([{ name: 'Sem foto', photoUrl: null, highlight: null, available: true }]),
-    ).toBeNull();
+    const css = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8');
+    const heroRule = css.match(/\n\.menu-hero \{([^}]*)\}/)?.[1] ?? '';
+    expect(heroRule).toMatch(/min-height:\s*max\(27vh/);
+    expect(heroRule).toMatch(/background:\s*#1f3a5f/i);
+    expect(heroRule).not.toMatch(/35vh/);
+  });
+
+  it('só mostra «Da casa» no selo featured', () => {
     expect(showsHouseBadge('featured', true)).toBe(true);
     expect(showsHouseBadge('recommended', true)).toBe(false);
     expect(showsHouseBadge('featured', false)).toBe(false);

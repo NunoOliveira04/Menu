@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useRef, useState, useTransition, type FormEvent } from 'react';
 import { preparePhotoField } from '@/lib/images/compress-photo';
 
 /**
@@ -14,6 +14,21 @@ export function useCompressedPhotoSubmit(
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isSubmitting, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  /** Limpa os campos de fotografia (para não reenviar a mesma foto no próximo submit). */
+  function clearPhotoFields() {
+    const form = formRef.current;
+    if (!form) {
+      return;
+    }
+    for (const fieldName of photoFieldNames) {
+      const input = form.elements.namedItem(fieldName);
+      if (input instanceof HTMLInputElement) {
+        input.value = '';
+      }
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,6 +36,7 @@ export function useCompressedPhotoSubmit(
       return;
     }
 
+    formRef.current = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     setPhotoError(null);
     setIsPreparingPhoto(true);
@@ -42,5 +58,5 @@ export function useCompressedPhotoSubmit(
     });
   }
 
-  return { handleSubmit, isPreparingPhoto, isSubmitting, photoError };
+  return { handleSubmit, clearPhotoFields, isPreparingPhoto, isSubmitting, photoError };
 }
