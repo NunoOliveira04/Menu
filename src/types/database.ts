@@ -60,6 +60,7 @@ export interface Database {
           published: boolean;
           settings: Json;
           translations: Json;
+          cover_photo_path: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +74,7 @@ export interface Database {
           published?: boolean;
           settings?: Json;
           translations?: Json;
+          cover_photo_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,6 +88,7 @@ export interface Database {
           published?: boolean;
           settings?: Json;
           translations?: Json;
+          cover_photo_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };

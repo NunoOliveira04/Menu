@@ -1,23 +1,13 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { extractRestaurantIdFromStoragePath } from '@/lib/auth/access';
-import type { Database, DishRow } from '@/types/database';
 
 export const DISH_PHOTOS_BUCKET = 'dish-photos';
 
-/**
- * TTL alargado para URLs assinados de fotografias servidas em SSR (24 horas = 86 400 s),
- * evitando que imagens expirem quando um separador de menu permanece aberto durante o serviço.
- */
-export const DISH_PHOTO_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
+/** Prefixo dos URLs públicos e estáveis do bucket `dish-photos` (bucket público para leitura). */
+export const DISH_PHOTOS_PUBLIC_PATH_PREFIX = `/storage/v1/object/public/${DISH_PHOTOS_BUCKET}/`;
 
-/**
- * Intervalo de revalidação automática no cliente (a cada 6 horas) para renovar signed URLs
- * antes de atingirem o TTL de 24 horas.
- */
-export const DISH_PHOTO_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
-
+/** Formatos de URL do Supabase Storage que podem existir em `photo_url` antigos. */
 const STORAGE_URL_MARKERS = [
-  `/storage/v1/object/public/${DISH_PHOTOS_BUCKET}/`,
+  DISH_PHOTOS_PUBLIC_PATH_PREFIX,
   `/storage/v1/object/sign/${DISH_PHOTOS_BUCKET}/`,
   `/storage/v1/object/authenticated/${DISH_PHOTOS_BUCKET}/`,
 ] as const;
@@ -28,8 +18,8 @@ export function isExternalHttpUrl(value: string): boolean {
 
 /**
  * Extrai o caminho interno do objeto (`<restaurant_id>/<ficheiro>`) no bucket `dish-photos`.
- * Suporta tanto caminhos internos guardados diretamente na BD como URLs antigos do Supabase Storage.
- * Devolve `null` para URLs externos (ex.: fotografias de pratos na seed, Unsplash/Pexels).
+ * Suporta caminhos guardados diretamente na BD (formato atual) e URLs antigos do Supabase Storage
+ * (signed, authenticated ou public). Devolve `null` para URLs externos (ex.: Unsplash/Pexels da seed).
  */
 export function resolveDishPhotoObjectPath(
   storedPhotoRef: string | null | undefined,
@@ -52,8 +42,13 @@ export function resolveDishPhotoObjectPath(
     const idx = trimmed.indexOf(marker);
     if (idx !== -1) {
       const afterMarker = trimmed.slice(idx + marker.length);
-      const withoutQuery = afterMarker.split('?')[0] ?? '';
-      const decoded = decodeURIComponent(withoutQuery);
+      const withoutQuery = afterMarker.split(/[?#]/)[0] ?? '';
+      let decoded: string;
+      try {
+        decoded = decodeURIComponent(withoutQuery);
+      } catch {
+        return null;
+      }
       return extractRestaurantIdFromStoragePath(decoded) ? decoded : null;
     }
   }
@@ -61,55 +56,47 @@ export function resolveDishPhotoObjectPath(
   return null;
 }
 
+/** Constrói o URL público estável de um objeto do bucket `dish-photos`. */
+export function buildDishPhotoPublicUrl(objectPath: string, supabaseUrl: string): string {
+  const base = supabaseUrl.trim().replace(/\/+$/, '');
+  const encodedPath = objectPath
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  return `${base}${DISH_PHOTOS_PUBLIC_PATH_PREFIX}${encodedPath}`;
+}
+
 /**
- * Resolve as referências `photo_url` de uma lista de pratos no servidor:
- * - Objetos no bucket privado `dish-photos` recebem signed URLs gerados em lote (`createSignedUrls`)
- *   com TTL de 24 horas respeitando as políticas SELECT (restaurante publicado ou membro autenticado).
- * - URLs externos (ex.: seed demo) são preservados tal como estão.
+ * Converte o valor guardado em `photo_url` (ou `cover_photo_path`) no URL a mostrar:
+ * - caminho do objeto ou URL antigo do Supabase (incl. signed URLs expirados) → URL público estável;
+ * - URL externo (seed demo) → mantido tal como está;
+ * - vazio ou inválido → `null`.
  */
-export async function attachSignedDishPhotoUrls(
-  supabase: SupabaseClient<Database>,
-  dishes: readonly DishRow[],
-  ttlSeconds: number = DISH_PHOTO_SIGNED_URL_TTL_SECONDS,
-): Promise<DishRow[]> {
-  if (dishes.length === 0) {
-    return [];
+export function resolvePhotoDisplayUrl(
+  storedPhotoRef: string | null | undefined,
+  supabaseUrl: string,
+): string | null {
+  const objectPath = resolveDishPhotoObjectPath(storedPhotoRef);
+  if (objectPath) {
+    return buildDishPhotoPublicUrl(objectPath, supabaseUrl);
   }
 
-  const pathsToSign = Array.from(
-    new Set(
-      dishes
-        .map((dish) => resolveDishPhotoObjectPath(dish.photo_url))
-        .filter((path): path is string => path !== null),
-    ),
-  );
-
-  if (pathsToSign.length === 0) {
-    return [...dishes];
+  const trimmed = storedPhotoRef?.trim() ?? '';
+  if (isExternalHttpUrl(trimmed) && !trimmed.includes(`/${DISH_PHOTOS_BUCKET}/`)) {
+    return trimmed;
   }
 
-  const { data: signedItems, error } = await supabase.storage
-    .from(DISH_PHOTOS_BUCKET)
-    .createSignedUrls(pathsToSign, ttlSeconds);
+  return null;
+}
 
-  const signedMap = new Map<string, string>();
-  if (!error && signedItems) {
-    for (const entry of signedItems) {
-      if (entry.path && entry.signedUrl && !entry.error) {
-        signedMap.set(entry.path, entry.signedUrl);
-      }
-    }
-  }
-
-  return dishes.map((dish) => {
-    const objectPath = resolveDishPhotoObjectPath(dish.photo_url);
-    if (!objectPath) {
-      return dish;
-    }
-
-    return {
-      ...dish,
-      photo_url: signedMap.get(objectPath) ?? null,
-    };
-  });
+/** Aplica `resolvePhotoDisplayUrl` ao `photo_url` de cada prato (sem chamadas de rede). */
+export function withPublicDishPhotoUrls<T extends { photo_url: string | null }>(
+  dishes: readonly T[],
+  supabaseUrl: string,
+): T[] {
+  return dishes.map((dish) => ({
+    ...dish,
+    photo_url: resolvePhotoDisplayUrl(dish.photo_url, supabaseUrl),
+  }));
 }

@@ -5,7 +5,8 @@ import { MenuManager } from '@/components/dashboard/menu-manager';
 import { QrCodeCard } from '@/components/dashboard/qr-code-card';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
-import { attachSignedDishPhotoUrls } from '@/lib/storage/dish-photos';
+import { withPublicDishPhotoUrls } from '@/lib/storage/dish-photos';
+import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
 
@@ -41,7 +42,7 @@ export default async function AdminMenuPage() {
     headers(),
   ]);
 
-  const dishes = await attachSignedDishPhotoUrls(supabase, rawDishes ?? []);
+  const dishes = withPublicDishPhotoUrls(rawDishes ?? [], getSupabaseEnv().url);
 
   const host = headerList.get('x-forwarded-host') ?? headerList.get('host') ?? 'localhost:3000';
   const proto =

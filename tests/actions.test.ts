@@ -96,9 +96,6 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
     }
   });
 
-
-
-
   it('createDishAction bloqueia upload antes de chamar Storage se os magic bytes forem inválidos', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: USER_ID, email: 'dono@tasca.pt' } },
@@ -541,6 +538,130 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
     expect(result.status).toBe('error');
     expect(result.message).toContain('proprietário');
     expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  describe('updateRestaurantAction — foto de capa (ponto 6)', () => {
+    const OLD_COVER = `${RESTAURANT_ID}/cover-1700000000000-antiga.webp`;
+
+    function mockOwnerRestaurant(update: ReturnType<typeof vi.fn>) {
+      mockGetUser.mockResolvedValue({
+        data: { user: { id: USER_ID, email: 'dono@tasca.pt' } },
+        error: null,
+      });
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'restaurant_members') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: { role: 'owner' }, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'restaurants') {
+          return {
+            select: (cols: string) => ({
+              eq: () => ({
+                maybeSingle: async () =>
+                  cols === 'cover_photo_path'
+                    ? { data: { cover_photo_path: OLD_COVER }, error: null }
+                    : {
+                        data: {
+                          id: RESTAURANT_ID,
+                          slug: 'menu-restaurante',
+                          published: true,
+                          translations: {},
+                        },
+                        error: null,
+                      },
+              }),
+            }),
+            update: (payload: Record<string, unknown>) => {
+              update(payload);
+              return { eq: async () => ({ error: null }) };
+            },
+          };
+        }
+        throw new Error(`Unexpected table: ${table}`);
+      });
+    }
+
+    function baseRestaurantForm() {
+      const fd = new FormData();
+      fd.set('restaurantId', RESTAURANT_ID);
+      fd.set('name', 'Menu Restaurante');
+      fd.set('slug', 'menu-restaurante');
+      fd.set('published', 'on');
+      fd.set('style', 'classico');
+      return fd;
+    }
+
+    it('não toca em cover_photo_path quando a capa não muda', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.set('coverPhoto', new File([], ''));
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      expect(update).toHaveBeenCalledTimes(1);
+      expect(update.mock.calls[0]?.[0]).not.toHaveProperty('cover_photo_path');
+      expect(mockStorageUpload).not.toHaveBeenCalled();
+      expect(mockStorageRemove).not.toHaveBeenCalled();
+    });
+
+    it('carrega a nova capa na pasta do restaurante e apaga a antiga', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+      mockStorageUpload.mockResolvedValue({ data: {}, error: null });
+      mockStorageRemove.mockResolvedValue({ data: [], error: null });
+
+      const webpBytes = new Uint8Array([
+        0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38,
+        0x20,
+      ]);
+      const fd = baseRestaurantForm();
+      fd.set('coverPhoto', new File([webpBytes], 'capa.webp', { type: 'image/webp' }));
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      const uploadedPath = mockStorageUpload.mock.calls[0]?.[0] as string;
+      expect(uploadedPath).toMatch(new RegExp(`^${RESTAURANT_ID}/cover-\\d+-[0-9a-f-]+\\.webp$`));
+      expect(update.mock.calls[0]?.[0]).toMatchObject({ cover_photo_path: uploadedPath });
+      expect(mockStorageRemove).toHaveBeenCalledWith([OLD_COVER]);
+    });
+
+    it('remove a capa quando o dono o pede', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+      mockStorageRemove.mockResolvedValue({ data: [], error: null });
+
+      const fd = baseRestaurantForm();
+      fd.set('removeCoverPhoto', 'on');
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      expect(update.mock.calls[0]?.[0]).toMatchObject({ cover_photo_path: null });
+      expect(mockStorageUpload).not.toHaveBeenCalled();
+      expect(mockStorageRemove).toHaveBeenCalledWith([OLD_COVER]);
+    });
+
+    it('rejeita uma capa cujo conteúdo não é imagem, sem chamar o Storage', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.set('coverPhoto', new File(['nao sou imagem'], 'capa.jpg', { type: 'image/jpeg' }));
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('error');
+      expect(result.fieldErrors?.coverPhoto?.[0]).toBeTruthy();
+      expect(mockStorageUpload).not.toHaveBeenCalled();
+      expect(update).not.toHaveBeenCalled();
+    });
   });
 
   it('reorderCategoryAction e reorderDishAction executam reordenação atómica via RPC SQL', async () => {

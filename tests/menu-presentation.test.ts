@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { selectMenuHero, showsHouseBadge } from '@/lib/menu/hero';
+import { showsHouseBadge } from '@/lib/menu/hero';
 import {
   isProtectedAdminPath,
   isPublicAdminAuthPath,
@@ -9,7 +9,7 @@ import {
   resolveLegacyAdminRedirect,
   resolveSafeAdminNextPath,
 } from '@/lib/routing/admin-paths';
-import { MENU_THEMES, resolveMenuTheme } from '@/lib/themes/registry';
+import { MENU_THEMES, SELECTABLE_STYLES, resolveMenuTheme } from '@/lib/themes/registry';
 
 describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => {
   it('mapeia rotas legadas para /admin e protege tudo excepto login', () => {
@@ -53,29 +53,23 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveSafeAdminNextPath(null)).toBe('/admin');
   });
 
-  it('escolhe uma foto de prato para o hero e só mostra «Da casa» no selo featured', () => {
-    const hero = selectMenuHero([
-      {
-        name: 'Pataniscas',
-        photoUrl: 'https://images.unsplash.com/photo-pataniscas',
-        highlight: null,
-        available: true,
-      },
-      {
-        name: 'Bacalhau',
-        photoUrl: 'https://images.unsplash.com/photo-bacalhau',
-        highlight: 'featured',
-        available: true,
-      },
-    ]);
-    expect(hero).toEqual({
-      photoUrl: 'https://images.unsplash.com/photo-bacalhau',
-      name: 'Bacalhau',
-    });
+  it('a capa usa a foto escolhida pelo dono (não um prato) e há cabeçalho tipográfico sem foto', () => {
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    expect(view).not.toContain('selectMenuHero');
+    expect(view).toContain('coverPhotoUrl');
+    expect(view).toContain('menu-hero-plain');
 
-    expect(
-      selectMenuHero([{ name: 'Sem foto', photoUrl: null, highlight: null, available: true }]),
-    ).toBeNull();
+    const css = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8');
+    const heroRule = css.match(/\n\.menu-hero \{([^}]*)\}/)?.[1] ?? '';
+    expect(heroRule).toMatch(/min-height:\s*max\(27vh/);
+    expect(heroRule).toMatch(/background:\s*#1f3a5f/i);
+    expect(heroRule).not.toMatch(/35vh/);
+  });
+
+  it('só mostra «Da casa» no selo featured', () => {
     expect(showsHouseBadge('featured', true)).toBe(true);
     expect(showsHouseBadge('recommended', true)).toBe(false);
     expect(showsHouseBadge('featured', false)).toBe(false);
@@ -94,6 +88,20 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(MENU_THEMES.moderno.ornament).toBe('rule');
     expect(MENU_THEMES.escuro.ornament).toBe('rule');
     expect(resolveMenuTheme('desconhecido').id).toBe('classico');
+  });
+
+  it('no piloto o dono só vê o estilo clássico, sem apagar os outros temas (ponto 8)', () => {
+    expect(SELECTABLE_STYLES).toEqual(['classico']);
+    // O código dos outros temas mantém-se e a carta continua a sabê-los mostrar.
+    expect(resolveMenuTheme('moderno').id).toBe('moderno');
+    expect(resolveMenuTheme('escuro').id).toBe('escuro');
+
+    const form = readFileSync(
+      resolve(process.cwd(), 'src/components/dashboard/restaurant-settings-form.tsx'),
+      'utf8',
+    );
+    expect(form).toContain('SELECTABLE_STYLES.map');
+    expect(form).not.toMatch(/\['classico',\s*'moderno',\s*'escuro'\]/);
   });
 
   it('o menu público não tem secção Em Destaque e a seed só usa fotos de comida', () => {

@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
   ArrowUp,
@@ -30,12 +29,14 @@ import {
   updateDishAction,
 } from '@/app/actions/dishes';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
 import { EU_ALLERGENS, getAllergenDefinition } from '@/lib/modules/allergens';
 import { DISH_HIGHLIGHTS, getHighlightLabel } from '@/lib/modules/highlights';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
-import { DISH_PHOTO_REFRESH_INTERVAL_MS } from '@/lib/storage/dish-photos';
 import { formatCentsToEuroInput, formatPriceCents } from '@/lib/utils/price';
 import type { CategoryRow, DishRow, RestaurantModules } from '@/types/database';
+
+const DISH_PHOTO_FIELDS = ['photo'] as const;
 
 interface MenuManagerProps {
   restaurantId: string;
@@ -45,27 +46,12 @@ interface MenuManagerProps {
 }
 
 export function MenuManager({ restaurantId, categories, dishes, modules }: MenuManagerProps) {
-  const router = useRouter();
   const [showNewCategory, setShowNewCategory] = useState(categories.length === 0);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [addingDishCategoryId, setAddingDishCategoryId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isMutating, startTransition] = useTransition();
-
-  const hasSignedPhotos = dishes.some((dish) =>
-    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
-  );
-
-  useEffect(() => {
-    if (!hasSignedPhotos) {
-      return;
-    }
-    const timer = window.setInterval(() => {
-      router.refresh();
-    }, DISH_PHOTO_REFRESH_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [hasSignedPhotos, router]);
 
   function runQuickFormAction(
     action: (fd: FormData) => Promise<{ status: string; message?: string }>,
@@ -719,7 +705,14 @@ function DishForm({
   onClose: () => void;
 }) {
   const actionFn = mode === 'create' ? createDishAction : updateDishAction;
-  const [state, formAction, isPending] = useActionState(actionFn, INITIAL_ACTION_STATE);
+  const [state, formAction, isActionPending] = useActionState(actionFn, INITIAL_ACTION_STATE);
+  const { handleSubmit, isPreparingPhoto, isSubmitting, photoError } = useCompressedPhotoSubmit(
+    formAction,
+    DISH_PHOTO_FIELDS,
+  );
+  const isPending = isActionPending || isSubmitting;
+  const isBusy = isPending || isPreparingPhoto;
+  const photoFieldError = photoError ?? state.fieldErrors?.photo?.[0];
   const existingTranslations = parseTranslationsJson(dish?.translations);
   const selectedAllergens = new Set(dish?.allergens ?? []);
 
@@ -730,7 +723,7 @@ function DishForm({
   }, [state.status, onClose]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isBusy}>
       <input type="hidden" name="restaurantId" value={restaurantId} />
       {dish && <input type="hidden" name="dishId" value={dish.id} />}
 
@@ -806,17 +799,34 @@ function DishForm({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-stone-700">
-            Fotografia (JPEG, PNG, WebP ou AVIF · máx. 5 MB)
+          <label
+            htmlFor={`dish-photo-${dish?.id ?? 'new'}`}
+            className="block text-xs font-medium text-stone-700"
+          >
+            Fotografia (tirada no telemóvel ou da galeria)
           </label>
           <input
+            id={`dish-photo-${dish?.id ?? 'new'}`}
             name="photo"
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif"
+            accept="image/*"
+            disabled={isBusy}
+            aria-describedby={`dish-photo-help-${dish?.id ?? 'new'}`}
             className="mt-1 block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
           />
-          {state.fieldErrors?.photo?.[0] && (
-            <p className="mt-1 text-xs text-red-600">{state.fieldErrors.photo[0]}</p>
+          <p
+            id={`dish-photo-help-${dish?.id ?? 'new'}`}
+            aria-live="polite"
+            className="mt-1 text-xs text-stone-500"
+          >
+            {isPreparingPhoto
+              ? 'A otimizar a fotografia…'
+              : 'A foto é reduzida automaticamente antes de ser enviada.'}
+          </p>
+          {photoFieldError && (
+            <p role="alert" className="mt-1 text-xs text-red-600">
+              {photoFieldError}
+            </p>
           )}
         </div>
       </div>
@@ -944,14 +954,16 @@ function DishForm({
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isBusy}
           className="rounded-xl bg-[#8C3B2B] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#763123] disabled:opacity-60"
         >
-          {isPending
-            ? 'A guardar...'
-            : mode === 'create'
-              ? 'Adicionar prato'
-              : 'Guardar alterações'}
+          {isPreparingPhoto
+            ? 'A otimizar fotografia…'
+            : isPending
+              ? 'A guardar...'
+              : mode === 'create'
+                ? 'Adicionar prato'
+                : 'Guardar alterações'}
         </button>
       </div>
     </form>

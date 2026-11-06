@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { AllergenSheetButton } from '@/components/menu/allergen-sheet';
 import { CategoryNav } from '@/components/menu/category-nav';
 import { CategorySeparator } from '@/components/menu/category-separator';
-import { SignedUrlRefresher } from '@/components/menu/signed-url-refresher';
 import { getAllergenDefinition } from '@/lib/modules/allergens';
 import {
   formatDaySlots,
@@ -13,7 +12,7 @@ import {
   type DaySchedule,
 } from '@/lib/modules/hours';
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
-import { selectMenuHero, showsHouseBadge } from '@/lib/menu/hero';
+import { showsHouseBadge } from '@/lib/menu/hero';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -28,6 +27,8 @@ interface PublicMenuViewProps {
   restaurant: RestaurantRow;
   categories: CategoryRow[];
   dishes: DishRow[];
+  /** URL público da foto de capa escolhida pelo dono; null = cabeçalho tipográfico. */
+  coverPhotoUrl?: string | null;
   modules: RestaurantModules;
   locale: MenuLocale;
   weeklySchedule: DaySchedule[];
@@ -39,6 +40,7 @@ export function PublicMenuView({
   restaurant,
   categories,
   dishes,
+  coverPhotoUrl = null,
   modules,
   locale,
   weeklySchedule,
@@ -82,25 +84,6 @@ export function PublicMenuView({
     : undefined;
   const todayHours = todaySchedule ? formatDaySlots(todaySchedule, ui.closedDayLabel) : null;
 
-  const hero = selectMenuHero(
-    dishes.map((dish) => ({
-      name:
-        resolveLocalizedField(
-          dish.name,
-          modules.languages ? dish.translations : null,
-          'name',
-          effectiveLocale,
-        ) ?? dish.name,
-      photoUrl: dish.photo_url,
-      highlight: dish.highlight,
-      available: dish.available,
-    })),
-  );
-
-  const hasPrivateStorageSignedPhotos = dishes.some((dish) =>
-    Boolean(dish.photo_url?.includes('/storage/v1/object/sign/dish-photos/')),
-  );
-
   return (
     <div
       lang={localeToHtmlLang(effectiveLocale)}
@@ -108,8 +91,6 @@ export function PublicMenuView({
       style={theme.cssVars as CSSProperties}
       data-theme={theme.id}
     >
-      <SignedUrlRefresher hasSignedPhotos={hasPrivateStorageSignedPhotos} />
-
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}
       </a>
@@ -120,18 +101,28 @@ export function PublicMenuView({
         </div>
       )}
 
-      <header className="menu-hero">
-        {hero ? (
-          <Image
-            src={hero.photoUrl}
-            alt={`${ui.photoAltPrefix} ${hero.name}`}
-            fill
-            priority
-            sizes="100vw"
-            className="menu-hero-img"
-          />
-        ) : null}
-        <div className="menu-hero-scrim" aria-hidden="true" />
+      <header
+        className={[
+          'menu-hero',
+          coverPhotoUrl ? 'menu-hero-photo' : 'menu-hero-plain',
+          modules.languages ? 'menu-hero-with-lang' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {coverPhotoUrl && (
+          <>
+            <Image
+              src={coverPhotoUrl}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="menu-hero-img"
+            />
+            <div className="menu-hero-scrim" aria-hidden="true" />
+          </>
+        )}
 
         {modules.languages && (
           <nav aria-label={ui.languageSelectorLabel} className="menu-lang">
@@ -250,6 +241,19 @@ export function PublicMenuView({
                         <article
                           className={`menu-dish${dish.available ? '' : ' menu-dish-unavailable'}`}
                         >
+                          {dish.photo_url && (
+                            <div className="menu-thumb">
+                              <Image
+                                src={dish.photo_url}
+                                alt={`${ui.photoAltPrefix} ${dishName}`}
+                                width={72}
+                                height={72}
+                                sizes="72px"
+                                className="menu-thumb-img"
+                              />
+                            </div>
+                          )}
+
                           <div className="menu-dish-copy">
                             {houseBadge && <span className="menu-house">{ui.houseBadge}</span>}
                             <div className="menu-dish-line">
@@ -281,19 +285,6 @@ export function PublicMenuView({
                               </div>
                             )}
                           </div>
-
-                          {dish.photo_url && (
-                            <div className="menu-thumb">
-                              <Image
-                                src={dish.photo_url}
-                                alt={`${ui.photoAltPrefix} ${dishName}`}
-                                width={72}
-                                height={72}
-                                sizes="72px"
-                                className="menu-thumb-img"
-                              />
-                            </div>
-                          )}
                         </article>
                       </li>
                     );

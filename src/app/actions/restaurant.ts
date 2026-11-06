@@ -5,11 +5,10 @@ import { z } from 'zod';
 import { canMemberApplyRestaurantUpdate } from '@/lib/auth/access';
 import { getAuthenticatedUser, verifyUserRestaurantAccess } from '@/lib/auth/session';
 import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
+import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
+import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
-import {
-  updateRestaurantSchema,
-  weeklyHoursUpdateSchema,
-} from '@/lib/validations/schemas';
+import { updateRestaurantSchema, weeklyHoursUpdateSchema } from '@/lib/validations/schemas';
 import type { Json, TimeSlot } from '@/types/database';
 import type { ActionState } from './types';
 
@@ -175,6 +174,48 @@ export async function updateRestaurantAction(
     }));
   }
 
+  // Foto de capa: só se lê/escreve cover_photo_path quando o dono a altera ou remove.
+  const coverEntry = formData.get('coverPhoto');
+  const hasNewCover = coverEntry instanceof File && coverEntry.size > 0;
+  const removeCover =
+    formData.get('removeCoverPhoto') === 'on' || formData.get('removeCoverPhoto') === 'true';
+  const wantsCoverChange = hasNewCover || removeCover;
+
+  let previousCoverPath: string | null = null;
+  let uploadedCoverPath: string | null = null;
+
+  if (wantsCoverChange) {
+    const { data: coverRow, error: coverReadError } = await supabase
+      .from('restaurants')
+      .select('cover_photo_path')
+      .eq('id', parsed.data.restaurantId)
+      .maybeSingle();
+
+    if (coverReadError) {
+      return {
+        status: 'error',
+        message: 'Não foi possível atualizar a foto de capa. Tenta novamente.',
+      };
+    }
+    previousCoverPath = coverRow?.cover_photo_path ?? null;
+
+    if (hasNewCover) {
+      const coverUpload = await uploadValidatedPhoto(
+        parsed.data.restaurantId,
+        coverEntry,
+        'cover-',
+      );
+      if (!coverUpload.ok) {
+        return {
+          status: 'error',
+          message: coverUpload.error,
+          fieldErrors: { coverPhoto: [coverUpload.error] },
+        };
+      }
+      uploadedCoverPath = coverUpload.objectPath;
+    }
+  }
+
   const settingsPayload: Json = {
     modules: {
       languages: parsed.data.modules.languages,
@@ -201,8 +242,13 @@ export async function updateRestaurantAction(
       published: parsed.data.published,
       settings: settingsPayload,
       translations: nextTranslations,
+      ...(wantsCoverChange ? { cover_photo_path: uploadedCoverPath } : {}),
     })
     .eq('id', parsed.data.restaurantId);
+
+  if (error && uploadedCoverPath) {
+    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([uploadedCoverPath]);
+  }
 
   if (error) {
     if (error.code === '23505') {
@@ -227,6 +273,11 @@ export async function updateRestaurantAction(
       status: 'error',
       message: 'Ocorreu um erro ao guardar as alterações do restaurante.',
     };
+  }
+
+  const oldCoverObjectPath = resolveDishPhotoObjectPath(previousCoverPath);
+  if (wantsCoverChange && oldCoverObjectPath && oldCoverObjectPath !== uploadedCoverPath) {
+    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([oldCoverObjectPath]);
   }
 
   if (validatedHoursPayload) {

@@ -48,9 +48,15 @@ export function isPublicAdminAuthPath(pathname: string): boolean {
 }
 
 /**
- * Valida o destino pós-login (`?next=`).
- * Aceita apenas caminhos sob /admin, sem open-redirect (`//`, `\\`).
- * Exclui login/registar/onboarding (e subpaths). Fallback: /admin.
+ * Valida o destino pós-login (`?next=`). Fallback: /admin.
+ *
+ * Aceita só `next === '/admin'` ou `next.startsWith('/admin/')`. Rejeita:
+ * - prefixos parecidos (`/adminfoo`, `/admin?x`, `/admin#x`);
+ * - `//` e `\` em qualquer posição (URLs relativos ao protocolo / open-redirect);
+ * - qualquer esquema (`https:`, `javascript:`, …), espaços e caracteres de controlo
+ *   (os browsers removem tabs/newlines, o que podia transformar `/\t/x` em `//x`);
+ * - segmentos `.` / `..` (sair de /admin);
+ * - login/registar/onboarding (e subpaths).
  */
 export function resolveSafeAdminNextPath(raw: unknown): string {
   if (typeof raw !== 'string') {
@@ -58,10 +64,19 @@ export function resolveSafeAdminNextPath(raw: unknown): string {
   }
 
   const next = raw.trim();
-  if (!next.startsWith('/admin')) {
+  if (next !== ADMIN_HOME_PATH && !next.startsWith(`${ADMIN_HOME_PATH}/`)) {
     return ADMIN_HOME_PATH;
   }
-  if (next.includes('//') || next.includes('\\')) {
+  if (/[\s\u0000-\u001f\u007f\\]/.test(next) || next.includes('//') || next.includes(':')) {
+    return ADMIN_HOME_PATH;
+  }
+  // O parser de URLs trata `%2e` como `.`, por isso `/admin/%2e%2e/x` também sai de /admin.
+  const pathOnly = next.split(/[?#]/)[0] ?? '';
+  const hasDotSegment = pathOnly
+    .split('/')
+    .map((segment) => segment.toLowerCase().replace(/%2e/g, '.'))
+    .some((segment) => segment === '.' || segment === '..');
+  if (hasDotSegment) {
     return ADMIN_HOME_PATH;
   }
 
