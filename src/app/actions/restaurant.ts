@@ -8,6 +8,7 @@ import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
 import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
+import { parseMenuBackgroundId, resolveMenuBackground } from '@/lib/themes/backgrounds';
 import { updateRestaurantSchema, weeklyHoursUpdateSchema } from '@/lib/validations/schemas';
 import type { Json, TimeSlot } from '@/types/database';
 import type { ActionState } from './types';
@@ -94,7 +95,7 @@ export async function updateRestaurantAction(
 
   const { data: currentRestaurant, error: currentError } = await supabase
     .from('restaurants')
-    .select('id, slug, published, translations')
+    .select('id, slug, published, translations, settings')
     .eq('id', restaurantIdInput)
     .maybeSingle();
 
@@ -256,6 +257,13 @@ export async function updateRestaurantAction(
     imagePayload[slot.column] = nextPath;
   }
 
+  // Fundo da carta («Fundo» nas definições). Sem o campo, mantém o fundo atual.
+  const rawBackground = formData.get('background');
+  const background =
+    typeof rawBackground === 'string'
+      ? resolveMenuBackground(rawBackground).id
+      : parseMenuBackgroundId(currentRestaurant.settings);
+
   const settingsPayload: Json = {
     modules: {
       languages: parsed.data.modules.languages,
@@ -263,6 +271,7 @@ export async function updateRestaurantAction(
       highlights: parsed.data.modules.highlights,
       hours: parsed.data.modules.hours,
     },
+    appearance: { background },
   };
 
   const nextTranslations = languagesEnabled

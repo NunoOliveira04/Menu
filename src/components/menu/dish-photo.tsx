@@ -60,7 +60,14 @@ export function DishPhoto({ src, alt, dishName, openLabel, closeLabel }: DishPho
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >
-        <Image src={src} alt={alt} width={76} height={76} sizes="76px" className="menu-thumb-img" />
+        <Image
+          src={src}
+          alt={alt}
+          width={640}
+          height={400}
+          sizes="(min-width: 640px) 600px, 100vw"
+          className="menu-thumb-img"
+        />
       </button>
 
       {open && (

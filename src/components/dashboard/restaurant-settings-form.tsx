@@ -5,11 +5,13 @@ import Image from 'next/image';
 import { ChevronDown, Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { AppearancePicker } from '@/components/dashboard/appearance-picker';
 import { HoursEditor } from '@/components/dashboard/hours-editor';
 import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { LOGO_COMPRESS_OPTIONS } from '@/lib/images/compress-photo';
 import { restaurantInitials } from '@/lib/menu/hero';
+import { parseMenuBackgroundId } from '@/lib/themes/backgrounds';
 import type { DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
 import type { RestaurantMemberRole, RestaurantRow } from '@/types/database';
@@ -133,7 +135,6 @@ export function RestaurantSettingsForm({
     <form onSubmit={handleSubmit} className="space-y-5 pb-4" noValidate aria-busy={isBusy}>
       <input type="hidden" name="restaurantId" value={restaurant.id} />
       {/* Campos que já não aparecem no painel mantêm o valor atual. */}
-      <input type="hidden" name="style" value="classico" />
       <input type="hidden" name="location" value={restaurant.location ?? ''} />
 
       {state.status === 'error' && state.message && (
@@ -250,6 +251,13 @@ export function RestaurantSettingsForm({
             </div>
           )}
         </div>
+      </Section>
+
+      <Section title="Aspeto" description="Escolhe as cores e o fundo da carta.">
+        <AppearancePicker
+          initialStyle={restaurant.style}
+          initialBackground={parseMenuBackgroundId(restaurant.settings)}
+        />
       </Section>
 
       <Section

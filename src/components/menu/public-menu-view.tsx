@@ -15,6 +15,11 @@ import {
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
 import { buildCategoryAnchors } from '@/lib/menu/anchors';
 import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
+import {
+  backgroundCssVars,
+  parseMenuBackgroundId,
+  resolveMenuBackground,
+} from '@/lib/themes/backgrounds';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -52,6 +57,8 @@ export function PublicMenuView({
   const effectiveLocale: MenuLocale = modules.languages ? locale : 'pt';
   const ui = MENU_UI_STRINGS[effectiveLocale];
   const theme = resolveMenuTheme(restaurant.style);
+  const background = resolveMenuBackground(parseMenuBackgroundId(restaurant.settings));
+  const themeStyle = { ...theme.cssVars, ...backgroundCssVars(background) } as CSSProperties;
 
   const localizedRestaurantDescription = resolveLocalizedField(
     restaurant.description,
@@ -93,8 +100,9 @@ export function PublicMenuView({
     <div
       lang={localeToHtmlLang(effectiveLocale)}
       className="menu-theme"
-      style={theme.cssVars as CSSProperties}
+      style={themeStyle}
       data-theme={theme.id}
+      data-background={background.id}
     >
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}

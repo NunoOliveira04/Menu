@@ -1,16 +1,9 @@
 import type { RestaurantStyle } from '@/types/database';
 
-export interface MenuThemePreviewPalette {
-  surfaceBg: string;
-  cardBg: string;
-  cardBorder: string;
-  headingText: string;
-  bodyText: string;
-  accentBg: string;
-  accentText: string;
-  fontClass: 'font-serif' | 'font-sans';
-}
-
+/**
+ * Tokens CSS de cada paleta (aplicados em `.menu-theme`). Os ids mantêm os valores aceites
+ * pela BD (`classico`, `moderno`, `escuro`); o nome mostrado ao dono é o `label`.
+ */
 export interface MenuThemeCssVars {
   '--color-bg': string;
   '--color-text': string;
@@ -20,12 +13,29 @@ export interface MenuThemeCssVars {
   '--color-card': string;
   '--color-muted': string;
   '--color-line': string;
-  /** Separadores e contornos subtis (listas, cartões, barra de categorias). */
+  /** Separadores e contornos subtis. */
   '--color-border': string;
   /** Contornos de botões secundários (alergénios, fechar). */
   '--color-border-strong': string;
-  /** Texto na cor do acento sobre fundo claro (contraste AA). */
+  /** Texto na cor do acento sobre o cartão (contraste AA). */
   '--color-accent-text': string;
+  /** Topo da carta. */
+  '--header-bg': string;
+  '--header-fg': string;
+  '--header-muted': string;
+  /** Barra de categorias. */
+  '--nav-bg': string;
+  '--pill-bg': string;
+  '--pill-fg': string;
+  '--pill-active-bg': string;
+  '--pill-active-fg': string;
+  /** Títulos e descrições das secções (sobre o fundo da página). */
+  '--section-fg': string;
+  '--section-muted': string;
+  /** Preço em etiqueta. */
+  '--price-bg': string;
+  '--price-fg': string;
+  '--card-shadow': string;
   '--radius-card': string;
   '--radius-pill': string;
   '--radius-thumb': string;
@@ -38,128 +48,138 @@ export interface MenuThemeTokens {
   label: string;
   description: string;
   availableInMvp: boolean;
-  /** Ornamento entre o título da categoria e os pratos (`none` no visual moderno). */
+  /** Ornamento entre o título da categoria e os pratos (`none` no visual atual). */
   ornament: 'azulejo' | 'rule' | 'none';
+  /** Cores para a amostra no painel (topo, fundo, acento). */
+  swatch: { header: string; background: string; accent: string };
   cssVars: MenuThemeCssVars;
-  preview: MenuThemePreviewPalette;
 }
 
-const DISPLAY = 'var(--font-serif), Georgia, serif';
-const BODY = 'var(--font-sans), system-ui, sans-serif';
+const SERIF = 'var(--font-serif), Georgia, serif';
+const SANS = 'var(--font-sans), system-ui, sans-serif';
 
 export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
-  // O id mantém-se `classico` (valor por omissão na BD); o visual é o moderno e limpo do piloto.
   classico: {
     id: 'classico',
-    label: 'Essencial',
-    description:
-      'Moderno e limpo: fundo claro, tipografia Inter, fotografias em destaque e categorias numa só linha.',
+    label: 'Quente',
+    description: 'Terracota e areia, títulos elegantes.',
     availableInMvp: true,
     ornament: 'none',
+    swatch: { header: '#B9461F', background: '#F6E7D7', accent: '#B9461F' },
     cssVars: {
-      '--color-bg': '#F6F6F3',
-      '--color-text': '#18181B',
+      '--color-bg': '#F6E7D7',
+      '--color-text': '#2B1A12',
       '--color-azulejo': '#1F3A5F',
-      '--color-accent': '#B5452B',
-      '--color-on-accent': '#FFFFFF',
-      '--color-card': '#FFFFFF',
-      '--color-muted': '#5F5F67',
-      '--color-line': 'rgba(24, 24, 27, 0.3)',
-      '--color-border': 'rgba(24, 24, 27, 0.08)',
-      '--color-border-strong': 'rgba(24, 24, 27, 0.18)',
-      '--color-accent-text': '#9E3A24',
-      '--radius-card': '16px',
+      '--color-accent': '#B9461F',
+      '--color-on-accent': '#FFF6EE',
+      '--color-card': '#FFFBF6',
+      '--color-muted': '#6E5446',
+      '--color-line': 'rgba(43, 26, 18, 0.3)',
+      '--color-border': 'rgba(43, 26, 18, 0.08)',
+      '--color-border-strong': 'rgba(185, 70, 31, 0.35)',
+      '--color-accent-text': '#A63C18',
+      '--header-bg': 'radial-gradient(120% 100% at 50% 0%, #D9663A 0%, #B9461F 55%, #8F3214 100%)',
+      '--header-fg': '#FFF6EE',
+      '--header-muted': 'rgba(255, 246, 238, 0.88)',
+      '--nav-bg': 'rgba(246, 231, 215, 0.92)',
+      '--pill-bg': 'transparent',
+      '--pill-fg': '#6B4434',
+      '--pill-active-bg': '#B9461F',
+      '--pill-active-fg': '#FFF6EE',
+      '--section-fg': '#8F3214',
+      '--section-muted': '#6E5446',
+      '--price-bg': '#B9461F',
+      '--price-fg': '#FFF6EE',
+      '--card-shadow': '0 2px 4px rgba(120, 50, 20, 0.06), 0 16px 36px rgba(120, 50, 20, 0.12)',
+      '--radius-card': '22px',
       '--radius-pill': '999px',
-      '--radius-thumb': '12px',
-      '--font-display': BODY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#F6F6F3]',
-      cardBg: 'bg-white',
-      cardBorder: 'border-[#E7E7E4]',
-      headingText: 'text-[#18181B]',
-      bodyText: 'text-[#5F5F67]',
-      accentBg: 'bg-[#18181B]',
-      accentText: 'text-[#18181B]',
-      fontClass: 'font-sans',
+      '--radius-thumb': '0px',
+      '--font-display': SERIF,
+      '--font-body': SANS,
     },
   },
   moderno: {
     id: 'moderno',
-    label: 'Minimal Café',
-    description: 'Papel quente, tipografia sóbria e muito ar. Sem ornamento, só um filete.',
-    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
-    availableInMvp: false,
-    ornament: 'rule',
+    label: 'Viva',
+    description: 'Verde-garrafa e laranja, moderno e fresco.',
+    availableInMvp: true,
+    ornament: 'none',
+    swatch: { header: '#1E4D3A', background: '#FFF3EA', accent: '#FF6A3D' },
     cssVars: {
-      '--color-bg': '#F6F4F1',
-      '--color-text': '#1C1C1C',
-      '--color-azulejo': '#1C1C1C',
-      '--color-accent': '#1C1C1C',
+      '--color-bg': '#FFF3EA',
+      '--color-text': '#14231C',
+      '--color-azulejo': '#1E4D3A',
+      '--color-accent': '#FF6A3D',
       '--color-on-accent': '#FFFFFF',
       '--color-card': '#FFFFFF',
-      '--color-muted': '#5E5E5E',
-      '--color-line': 'rgba(28, 28, 28, 0.32)',
-      '--color-border': 'rgba(28, 28, 28, 0.08)',
-      '--color-border-strong': 'rgba(28, 28, 28, 0.18)',
-      '--color-accent-text': '#1C1C1C',
-      '--radius-card': '12px',
+      '--color-muted': '#55645C',
+      '--color-line': 'rgba(20, 35, 28, 0.3)',
+      '--color-border': 'rgba(20, 35, 28, 0.07)',
+      '--color-border-strong': 'rgba(20, 35, 28, 0.18)',
+      '--color-accent-text': '#C2410C',
+      '--header-bg': 'radial-gradient(120% 100% at 50% 0%, #2E6B52 0%, #1E4D3A 60%, #153829 100%)',
+      '--header-fg': '#FFFFFF',
+      '--header-muted': 'rgba(255, 255, 255, 0.86)',
+      '--nav-bg': 'rgba(255, 243, 234, 0.92)',
+      '--pill-bg': '#FFFFFF',
+      '--pill-fg': '#1E4D3A',
+      '--pill-active-bg': '#1E4D3A',
+      '--pill-active-fg': '#FFFFFF',
+      '--section-fg': '#1E4D3A',
+      '--section-muted': '#55645C',
+      '--price-bg': '#C2410C',
+      '--price-fg': '#FFFFFF',
+      '--card-shadow': '0 2px 6px rgba(20, 35, 28, 0.05), 0 16px 36px rgba(20, 35, 28, 0.1)',
+      '--radius-card': '22px',
       '--radius-pill': '999px',
-      '--radius-thumb': '8px',
-      '--font-display': BODY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#F6F4F1]',
-      cardBg: 'bg-white',
-      cardBorder: 'border-[#E6E2DC]',
-      headingText: 'text-[#1C1C1C]',
-      bodyText: 'text-[#5E5E5E]',
-      accentBg: 'bg-[#1C1C1C]',
-      accentText: 'text-[#1C1C1C]',
-      fontClass: 'font-sans',
+      '--radius-thumb': '0px',
+      '--font-display': SANS,
+      '--font-body': SANS,
     },
   },
   escuro: {
     id: 'escuro',
-    label: 'Noir Gastronómico',
-    description: 'Carvão profundo, Fraunces e um acento dourado quente com contraste AA.',
-    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
-    availableInMvp: false,
-    ornament: 'rule',
+    label: 'Noite',
+    description: 'Fundo escuro com detalhes dourados.',
+    availableInMvp: true,
+    ornament: 'none',
+    swatch: { header: '#12100E', background: '#1C1916', accent: '#D9A65A' },
     cssVars: {
-      '--color-bg': '#0E0D0C',
-      '--color-text': '#F4EFE8',
-      '--color-azulejo': '#C6A57A',
-      '--color-accent': '#C6A57A',
-      '--color-on-accent': '#1A120C',
-      '--color-card': '#1A1816',
-      '--color-muted': '#CDBFB0',
-      '--color-line': 'rgba(244, 239, 232, 0.4)',
-      '--color-border': 'rgba(244, 239, 232, 0.12)',
-      '--color-border-strong': 'rgba(244, 239, 232, 0.28)',
-      '--color-accent-text': '#C6A57A',
-      '--radius-card': '16px',
+      '--color-bg': '#12100E',
+      '--color-text': '#F4EEE6',
+      '--color-azulejo': '#D9A65A',
+      '--color-accent': '#D9A65A',
+      '--color-on-accent': '#12100E',
+      '--color-card': '#1C1916',
+      '--color-muted': '#B9AE9F',
+      '--color-line': 'rgba(244, 238, 230, 0.35)',
+      '--color-border': 'rgba(255, 255, 255, 0.08)',
+      '--color-border-strong': 'rgba(255, 255, 255, 0.22)',
+      '--color-accent-text': '#E5B76B',
+      '--header-bg':
+        'radial-gradient(80% 90% at 50% 0%, rgba(217, 166, 90, 0.22) 0%, transparent 70%), #12100E',
+      '--header-fg': '#F4EEE6',
+      '--header-muted': '#B9AE9F',
+      '--nav-bg': 'rgba(18, 16, 14, 0.88)',
+      '--pill-bg': 'transparent',
+      '--pill-fg': '#B9AE9F',
+      '--pill-active-bg': '#D9A65A',
+      '--pill-active-fg': '#12100E',
+      '--section-fg': '#F4EEE6',
+      '--section-muted': '#B9AE9F',
+      '--price-bg': 'rgba(217, 166, 90, 0.16)',
+      '--price-fg': '#E5B76B',
+      '--card-shadow': '0 0 0 1px rgba(255, 255, 255, 0.05), 0 18px 40px rgba(0, 0, 0, 0.45)',
+      '--radius-card': '22px',
       '--radius-pill': '999px',
-      '--radius-thumb': '12px',
-      '--font-display': DISPLAY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#0E0D0C]',
-      cardBg: 'bg-[#1A1816]',
-      cardBorder: 'border-[#3A342C]',
-      headingText: 'text-[#F4EFE8]',
-      bodyText: 'text-[#CDBFB0]',
-      accentBg: 'bg-[#C6A57A]',
-      accentText: 'text-[#C6A57A]',
-      fontClass: 'font-serif',
+      '--radius-thumb': '0px',
+      '--font-display': SERIF,
+      '--font-body': SANS,
     },
   },
 };
 
-/** Estilos que o dono pode escolher no admin (no piloto, só «classico»). */
+/** Paletas que o dono pode escolher no painel («Cores»). */
 export const SELECTABLE_STYLES: readonly RestaurantStyle[] = (
   Object.values(MENU_THEMES) as MenuThemeTokens[]
 )

@@ -112,9 +112,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
 
       {categories.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
-          <p className="text-lg font-medium text-stone-800">
-            Ainda não tens categorias na ementa
-          </p>
+          <p className="text-lg font-medium text-stone-800">Ainda não tens categorias na ementa</p>
           <p className="mt-1 text-sm text-stone-500">
             Começa por criar secções como &ldquo;Entradas&rdquo;, &ldquo;Pratos Principais&rdquo; ou
             &ldquo;Sobremesas&rdquo;.
@@ -145,9 +143,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                   ) : (
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-stone-900">
-                          {category.name}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-stone-900">{category.name}</h3>
                         <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
                           {categoryDishes.length} {categoryDishes.length === 1 ? 'prato' : 'pratos'}
                         </span>
