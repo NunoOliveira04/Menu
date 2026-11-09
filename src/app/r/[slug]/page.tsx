@@ -124,6 +124,7 @@ export default async function PublicMenuPage({ params, searchParams }: PublicMen
       categories={categories ?? []}
       dishes={dishes}
       coverPhotoUrl={resolvePhotoDisplayUrl(restaurant.cover_photo_path, supabaseUrl)}
+      logoUrl={resolvePhotoDisplayUrl(restaurant.logo_path, supabaseUrl)}
       modules={settings.modules}
       locale={locale}
       weeklySchedule={weeklySchedule}

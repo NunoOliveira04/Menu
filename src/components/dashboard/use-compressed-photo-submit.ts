@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useTransition, type FormEvent } from 'react';
-import { preparePhotoField } from '@/lib/images/compress-photo';
+import { preparePhotoField, type CompressPhotoOptions } from '@/lib/images/compress-photo';
 
 /**
  * Intercepta o submit de um formulário com um campo de fotografia, comprime a imagem no browser
@@ -10,9 +10,11 @@ import { preparePhotoField } from '@/lib/images/compress-photo';
 export function useCompressedPhotoSubmit(
   formAction: (payload: FormData) => void,
   photoFieldNames: readonly string[],
+  fieldOptions: Readonly<Partial<Record<string, CompressPhotoOptions>>> = {},
 ) {
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoErrorField, setPhotoErrorField] = useState<string | null>(null);
   const [isSubmitting, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -39,13 +41,15 @@ export function useCompressedPhotoSubmit(
     formRef.current = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     setPhotoError(null);
+    setPhotoErrorField(null);
     setIsPreparingPhoto(true);
 
     try {
       for (const fieldName of photoFieldNames) {
-        const result = await preparePhotoField(formData, fieldName);
+        const result = await preparePhotoField(formData, fieldName, fieldOptions[fieldName]);
         if (!result.ok) {
           setPhotoError(result.error);
+          setPhotoErrorField(fieldName);
           return;
         }
       }
@@ -58,5 +62,12 @@ export function useCompressedPhotoSubmit(
     });
   }
 
-  return { handleSubmit, clearPhotoFields, isPreparingPhoto, isSubmitting, photoError };
+  return {
+    handleSubmit,
+    clearPhotoFields,
+    isPreparingPhoto,
+    isSubmitting,
+    photoError,
+    photoErrorField,
+  };
 }

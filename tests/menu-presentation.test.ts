@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { showsHouseBadge } from '@/lib/menu/hero';
+import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
 import {
   isProtectedAdminPath,
   isPublicAdminAuthPath,
@@ -53,20 +53,22 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveSafeAdminNextPath(null)).toBe('/admin');
   });
 
-  it('a capa usa a foto escolhida pelo dono (não um prato) e há cabeçalho tipográfico sem foto', () => {
+  it('o cabeçalho usa a capa e o logotipo do dono (não um prato) e funciona sem eles', () => {
     const view = readFileSync(
       resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
       'utf8',
     );
     expect(view).not.toContain('selectMenuHero');
     expect(view).toContain('coverPhotoUrl');
-    expect(view).toContain('menu-hero-plain');
+    expect(view).toContain('logoUrl');
+    expect(view).toContain('menu-logo-initials');
+    // A foto de capa já não leva texto por cima (sem gradiente escuro).
+    expect(view).not.toContain('menu-hero-scrim');
 
-    const css = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8');
-    const heroRule = css.match(/\n\.menu-hero \{([^}]*)\}/)?.[1] ?? '';
-    expect(heroRule).toMatch(/min-height:\s*max\(27vh/);
-    expect(heroRule).toMatch(/background:\s*#1f3a5f/i);
-    expect(heroRule).not.toMatch(/35vh/);
+    expect(restaurantInitials('Menu Restaurante')).toBe('MR');
+    expect(restaurantInitials('  tasca  ')).toBe('T');
+    expect(restaurantInitials('Casa do Zé Grande')).toBe('CD');
+    expect(restaurantInitials('')).toBe('?');
   });
 
   it('só mostra «Da casa» no selo featured', () => {
