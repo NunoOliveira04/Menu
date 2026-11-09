@@ -10,11 +10,44 @@ const PUBLIC_ADMIN_PATHS = new Set<string>([ADMIN_LOGIN_PATH]);
 const BLOCKED_POST_LOGIN_PATHS = ['/admin/login', '/admin/registar', '/admin/onboarding'] as const;
 
 /**
+ * Corrige endereços do admin escritos com maiúsculas ou com espaço/ponto no fim
+ * (ex.: `/Admin`, `/ADMIN/Restaurante`, `/admin%20` — comum no teclado do telemóvel).
+ * Devolve o caminho correto em minúsculas, ou null se já estiver certo ou não for do admin.
+ */
+export function normalizeMistypedAdminPath(pathname: string): string | null {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+
+  const cleaned = decoded
+    .toLowerCase()
+    .replace(/[\s.]+$/, '')
+    .replace(/\/+$/, '');
+
+  if (cleaned !== ADMIN_HOME_PATH && !cleaned.startsWith(`${ADMIN_HOME_PATH}/`)) {
+    return null;
+  }
+  // Só caracteres seguros num caminho do admin (evita redirecionar lixo).
+  if (!/^\/admin(\/[a-z0-9-]+)*$/.test(cleaned)) {
+    return null;
+  }
+  return cleaned === pathname ? null : cleaned;
+}
+
+/**
  * Rotas antigas do Grupo 1/2 que passam a viver em /admin.
  * Devolve o caminho de destino (sem query) ou null.
  * /registar e /onboarding deixam de redirecionar (404) para não revelar o admin.
  */
 export function resolveLegacyAdminRedirect(pathname: string): string | null {
+  const normalizedAdmin = normalizeMistypedAdminPath(pathname);
+  if (normalizedAdmin) {
+    return normalizedAdmin;
+  }
+
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
     const suffix = pathname.slice('/dashboard'.length);
     return `${ADMIN_HOME_PATH}${suffix}`;
