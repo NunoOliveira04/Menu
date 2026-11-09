@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveSafeAdminNextPath } from '@/lib/routing/admin-paths';
+import {
+  normalizeMistypedAdminPath,
+  resolveLegacyAdminRedirect,
+  resolveSafeAdminNextPath,
+} from '@/lib/routing/admin-paths';
 
 describe('resolveSafeAdminNextPath (ponto 5)', () => {
   it.each([
@@ -72,6 +76,52 @@ describe('resolveSafeAdminNextPath (ponto 5)', () => {
     'rejeita valores que não são texto (%j)',
     (input) => {
       expect(resolveSafeAdminNextPath(input)).toBe('/admin');
+    },
+  );
+});
+
+describe('Endereços do admin mal escritos (maiúsculas, espaço ou ponto no fim)', () => {
+  it.each([
+    ['/Admin', '/admin'],
+    ['/ADMIN', '/admin'],
+    ['/admin%20', '/admin'],
+    ['/admin.', '/admin'],
+    ['/Admin/', '/admin'],
+    ['/Admin/Restaurante', '/admin/restaurante'],
+    ['/admin/Login', '/admin/login'],
+  ])('%s redireciona para %s', (input, expected) => {
+    expect(normalizeMistypedAdminPath(input)).toBe(expected);
+    expect(resolveLegacyAdminRedirect(input)).toBe(expected);
+  });
+
+  it.each([
+    '/admin',
+    '/admin/restaurante',
+    '/admin/login',
+    '/r/menu-restaurante',
+    '/',
+    '/administrador',
+    '/Admin%ZZ',
+    '/Admin/<script>',
+  ])('não mexe em %s', (input) => {
+    expect(normalizeMistypedAdminPath(input)).toBeNull();
+  });
+});
+
+describe('Atalho /r/<slug>/admin', () => {
+  it.each([
+    ['/r/menu-restaurante/admin', '/admin'],
+    ['/r/menu-restaurante/admin/', '/admin'],
+    ['/r/menu-restaurante/Admin', '/admin'],
+    ['/r/menu-restaurante/admin/restaurante', '/admin/restaurante'],
+  ])('%s redireciona para %s', (input, expected) => {
+    expect(resolveLegacyAdminRedirect(input)).toBe(expected);
+  });
+
+  it.each(['/r/menu-restaurante', '/r/menu-restaurante/administrador', '/r/admin'])(
+    'não mexe em %s',
+    (input) => {
+      expect(resolveLegacyAdminRedirect(input)).toBeNull();
     },
   );
 });
