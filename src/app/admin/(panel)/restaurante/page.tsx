@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { RestaurantSettingsForm } from '@/components/dashboard/restaurant-settings-form';
 import { getPrimaryUserRestaurant, requireAuthenticatedUser } from '@/lib/auth/session';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
 import { resolvePhotoDisplayUrl } from '@/lib/storage/dish-photos';
 import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
+import { buildPublicMenuUrl } from '@/lib/utils/url';
 
 export const metadata: Metadata = {
-  title: 'Definições do Restaurante',
+  title: 'Definições',
 };
 
 export default async function AdminRestaurantSettingsPage() {
@@ -27,14 +29,18 @@ export default async function AdminRestaurantSettingsPage() {
 
   const initialSchedule = normalizeWeeklySchedule(hoursRows ?? []);
 
+  const headerList = await headers();
+  const host = headerList.get('x-forwarded-host') ?? headerList.get('host') ?? 'localhost:3000';
+  const proto =
+    headerList.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
+  const publicMenuUrl = buildPublicMenuUrl(context.restaurant.slug, `${proto}://${host}`);
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <h1 className="font-serif text-3xl font-semibold text-stone-900">
-          Definições do Restaurante
-        </h1>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold text-stone-900">Definições</h1>
         <p className="mt-1 text-sm text-stone-600">
-          Personaliza o nome, o endereço público, o tema visual e os módulos ativos da tua ementa.
+          Nome, logotipo e o que aparece na carta. Carrega em «Guardar» no fim.
         </p>
       </div>
 
@@ -42,11 +48,8 @@ export default async function AdminRestaurantSettingsPage() {
         restaurant={context.restaurant}
         role={context.role}
         initialSchedule={initialSchedule}
-        coverPhotoUrl={resolvePhotoDisplayUrl(
-          context.restaurant.cover_photo_path,
-          getSupabaseEnv().url,
-        )}
         logoUrl={resolvePhotoDisplayUrl(context.restaurant.logo_path, getSupabaseEnv().url)}
+        publicMenuUrl={publicMenuUrl}
       />
     </div>
   );

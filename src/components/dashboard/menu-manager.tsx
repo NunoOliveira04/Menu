@@ -5,8 +5,6 @@ import Image from 'next/image';
 import {
   ArrowDown,
   ArrowUp,
-  Eye,
-  EyeOff,
   Globe,
   ImagePlus,
   Pencil,
@@ -70,7 +68,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-2xl font-semibold text-stone-900">Categorias e Pratos</h2>
+          <h2 className="text-xl font-semibold text-stone-900">Categorias e Pratos</h2>
           <p className="text-sm text-stone-600">
             Organiza as secções do menu, adiciona fotografias e controla os pratos disponíveis.
           </p>
@@ -114,7 +112,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
 
       {categories.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
-          <p className="font-serif text-xl font-medium text-stone-800">
+          <p className="text-lg font-medium text-stone-800">
             Ainda não tens categorias na ementa
           </p>
           <p className="mt-1 text-sm text-stone-500">
@@ -147,7 +145,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                   ) : (
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-serif text-xl font-semibold text-stone-900">
+                        <h3 className="text-lg font-semibold text-stone-900">
                           {category.name}
                         </h3>
                         <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">
@@ -292,9 +290,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                       return (
                         <div
                           key={dish.id}
-                          className={`flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:px-5 ${
-                            !dish.available ? 'bg-stone-50/60 opacity-75' : ''
-                          }`}
+                          className={`p-4 sm:px-5 ${!dish.available ? 'bg-stone-50/70' : ''}`}
                         >
                           <div className="flex items-start gap-3.5">
                             {dish.photo_url ? (
@@ -304,7 +300,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                   alt={dish.name}
                                   fill
                                   sizes="64px"
-                                  className="object-cover"
+                                  className={`object-cover ${!dish.available ? 'opacity-60' : ''}`}
                                 />
                               </div>
                             ) : (
@@ -316,37 +312,45 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                               </div>
                             )}
 
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h4 className="font-medium text-stone-900">{dish.name}</h4>
-                                <span className="text-sm font-semibold tabular-nums text-[#8C3B2B]">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-3">
+                                <h4 className="min-w-0 font-medium leading-snug text-stone-900">
+                                  {dish.name}
+                                </h4>
+                                <span className="shrink-0 text-sm font-semibold tabular-nums text-stone-900">
                                   {formatPriceCents(dish.price_cents)}
                                 </span>
-                                {highlightText && (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
-                                    <Sparkles className="h-3 w-3" aria-hidden="true" />
-                                    {highlightText}
-                                  </span>
-                                )}
-                                {!dish.available && (
-                                  <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-medium text-stone-700">
-                                    Indisponível
-                                  </span>
-                                )}
                               </div>
 
+                              {(highlightText || !dish.available) && (
+                                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                  {!dish.available && (
+                                    <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
+                                      Esgotado
+                                    </span>
+                                  )}
+                                  {highlightText && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                                      <Sparkles className="h-3 w-3" aria-hidden="true" />
+                                      {highlightText}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
                               {dish.description && (
-                                <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-relaxed text-stone-600">
+                                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-stone-600">
                                   {dish.description}
                                 </p>
                               )}
 
-                              {(modules.languages || modules.allergens) && (
+                              {((modules.languages && dishTranslations.en?.name) ||
+                                (modules.allergens && (dish.allergens?.length ?? 0) > 0)) && (
                                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                                   {modules.languages && dishTranslations.en?.name && (
-                                    <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] text-stone-600">
+                                    <span className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] text-stone-600">
                                       <Globe
-                                        className="h-3 w-3 text-[#8C3B2B]"
+                                        className="h-3 w-3 shrink-0 text-[#8C3B2B]"
                                         aria-hidden="true"
                                       />
                                       EN: {dishTranslations.en.name}
@@ -374,45 +378,12 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-center">
+                          <div className="mt-3 flex flex-wrap items-center gap-2 sm:pl-[4.875rem]">
                             <button
                               type="button"
-                              disabled={dishIdx === 0 || isMutating}
-                              onClick={() => {
-                                const fd = new FormData();
-                                fd.set('restaurantId', restaurantId);
-                                fd.set('categoryId', category.id);
-                                fd.set('dishId', dish.id);
-                                fd.set('direction', 'up');
-                                runQuickFormAction(reorderDishAction, fd);
-                              }}
-                              title="Subir prato"
-                              aria-label={`Mover prato ${dish.name} para cima`}
-                              className="rounded-lg border border-stone-200 p-1.5 text-stone-600 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                              <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-                            </button>
-
-                            <button
-                              type="button"
-                              disabled={dishIdx === categoryDishes.length - 1 || isMutating}
-                              onClick={() => {
-                                const fd = new FormData();
-                                fd.set('restaurantId', restaurantId);
-                                fd.set('categoryId', category.id);
-                                fd.set('dishId', dish.id);
-                                fd.set('direction', 'down');
-                                runQuickFormAction(reorderDishAction, fd);
-                              }}
-                              title="Descer prato"
-                              aria-label={`Mover prato ${dish.name} para baixo`}
-                              className="rounded-lg border border-stone-200 p-1.5 text-stone-600 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                              <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
-                            </button>
-
-                            <button
-                              type="button"
+                              role="switch"
+                              aria-checked={dish.available}
+                              aria-label={`${dish.name}: disponível`}
                               disabled={isMutating}
                               onClick={() => {
                                 const fd = new FormData();
@@ -421,50 +392,86 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                 fd.set('available', String(!dish.available));
                                 runQuickFormAction(toggleDishAvailabilityAction, fd);
                               }}
-                              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+                              className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
                             >
-                              {dish.available ? (
-                                <>
-                                  <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
-                                  Esgotar
-                                </>
-                              ) : (
-                                <>
-                                  <Eye
-                                    className="h-3.5 w-3.5 text-emerald-600"
-                                    aria-hidden="true"
-                                  />
-                                  Ativar
-                                </>
-                              )}
+                              <span
+                                aria-hidden="true"
+                                className={`relative h-4 w-7 rounded-full transition ${
+                                  dish.available ? 'bg-emerald-600' : 'bg-stone-300'
+                                }`}
+                              >
+                                <span
+                                  className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all ${
+                                    dish.available ? 'left-3.5' : 'left-0.5'
+                                  }`}
+                                />
+                              </span>
+                              {dish.available ? 'Disponível' : 'Esgotado'}
                             </button>
 
                             <button
                               type="button"
                               onClick={() => setEditingDishId(dish.id)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
                             >
                               <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                               Editar
                             </button>
 
-                            <button
-                              type="button"
-                              disabled={isMutating}
-                              onClick={() => {
-                                if (!window.confirm(`Eliminar o prato "${dish.name}"?`)) {
-                                  return;
-                                }
-                                const fd = new FormData();
-                                fd.set('restaurantId', restaurantId);
-                                fd.set('dishId', dish.id);
-                                runQuickFormAction(deleteDishAction, fd);
-                              }}
-                              aria-label={`Eliminar prato ${dish.name}`}
-                              className="rounded-lg border border-stone-200 p-1.5 text-red-600 transition hover:border-red-200 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            </button>
+                            <span className="ml-auto flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={dishIdx === 0 || isMutating}
+                                onClick={() => {
+                                  const fd = new FormData();
+                                  fd.set('restaurantId', restaurantId);
+                                  fd.set('categoryId', category.id);
+                                  fd.set('dishId', dish.id);
+                                  fd.set('direction', 'up');
+                                  runQuickFormAction(reorderDishAction, fd);
+                                }}
+                                title="Subir"
+                                aria-label={`Mover prato ${dish.name} para cima`}
+                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                <ArrowUp className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={dishIdx === categoryDishes.length - 1 || isMutating}
+                                onClick={() => {
+                                  const fd = new FormData();
+                                  fd.set('restaurantId', restaurantId);
+                                  fd.set('categoryId', category.id);
+                                  fd.set('dishId', dish.id);
+                                  fd.set('direction', 'down');
+                                  runQuickFormAction(reorderDishAction, fd);
+                                }}
+                                title="Descer"
+                                aria-label={`Mover prato ${dish.name} para baixo`}
+                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isMutating}
+                                onClick={() => {
+                                  if (!window.confirm(`Eliminar o prato "${dish.name}"?`)) {
+                                    return;
+                                  }
+                                  const fd = new FormData();
+                                  fd.set('restaurantId', restaurantId);
+                                  fd.set('dishId', dish.id);
+                                  runQuickFormAction(deleteDishAction, fd);
+                                }}
+                                title="Eliminar"
+                                aria-label={`Eliminar prato ${dish.name}`}
+                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-red-50 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                            </span>
                           </div>
                         </div>
                       );
@@ -503,7 +510,7 @@ function CreateCategoryPanel({
       className="rounded-2xl border border-[#DFD3C3] bg-[#FAF6F0] p-5 shadow-sm"
     >
       <input type="hidden" name="restaurantId" value={restaurantId} />
-      <h3 className="font-serif text-lg font-semibold text-stone-900">Nova Categoria</h3>
+      <h3 className="text-base font-semibold text-stone-900">Nova Categoria</h3>
 
       {state.status === 'error' && state.message && (
         <p role="alert" className="mt-2 text-xs font-medium text-red-600">
@@ -728,7 +735,7 @@ function DishForm({
       {dish && <input type="hidden" name="dishId" value={dish.id} />}
 
       <div className="flex items-center justify-between">
-        <h4 className="font-serif text-lg font-semibold text-stone-900">
+        <h4 className="text-base font-semibold text-stone-900">
           {mode === 'create' ? 'Novo prato' : `Editar "${dish?.name}"`}
         </h4>
         <button

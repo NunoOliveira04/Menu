@@ -1,159 +1,99 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import { Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronDown, Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
+import { HoursEditor } from '@/components/dashboard/hours-editor';
 import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
+import { parseRestaurantSettings } from '@/lib/auth/access';
 import { LOGO_COMPRESS_OPTIONS } from '@/lib/images/compress-photo';
 import { restaurantInitials } from '@/lib/menu/hero';
-import { parseRestaurantSettings } from '@/lib/auth/access';
-import { WEEKDAY_LABELS, type DaySchedule } from '@/lib/modules/hours';
+import type { DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
-import { MENU_THEMES, SELECTABLE_STYLES } from '@/lib/themes/registry';
-import type { RestaurantMemberRole, RestaurantRow, RestaurantStyle } from '@/types/database';
+import type { RestaurantMemberRole, RestaurantRow } from '@/types/database';
 
 interface RestaurantSettingsFormProps {
   restaurant: RestaurantRow;
   role: RestaurantMemberRole;
   initialSchedule: DaySchedule[];
-  /** URL público da foto de capa atual, ou null. */
-  coverPhotoUrl: string | null;
   /** URL público do logotipo atual, ou null. */
   logoUrl: string | null;
+  /** Endereço público da carta (para mostrar ao dono). */
+  publicMenuUrl: string;
 }
 
-const IMAGE_FIELDS = ['logoPhoto', 'coverPhoto'] as const;
+const IMAGE_FIELDS = ['logoPhoto'] as const;
 const IMAGE_FIELD_OPTIONS = { logoPhoto: LOGO_COMPRESS_OPTIONS } as const;
 
-interface RestaurantImageFieldProps {
-  field: string;
-  removeField: string;
-  label: string;
-  help: string;
-  currentUrl: string | null;
-  shape: 'circle' | 'banner';
-  placeholder: string;
-  removeLabel: string;
-  disabled: boolean;
-  isPreparing: boolean;
-  error: string | null | undefined;
-}
+const INPUT =
+  'mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20';
 
-function RestaurantImageField({
-  field,
-  removeField,
-  label,
-  help,
-  currentUrl,
-  shape,
-  placeholder,
-  removeLabel,
-  disabled,
-  isPreparing,
-  error,
-}: RestaurantImageFieldProps) {
-  const frame =
-    shape === 'circle'
-      ? 'relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-white'
-      : 'relative h-20 w-36 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100';
-
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
-    <div>
-      <label htmlFor={field} className="block text-sm font-medium text-stone-800">
-        {label}
-      </label>
-      <p className="mt-0.5 text-xs text-stone-500">{help}</p>
-      <div className="mt-2 flex flex-wrap items-start gap-4">
-        {currentUrl ? (
-          <div className={frame}>
-            <Image
-              src={currentUrl}
-              alt={`${label} atual`}
-              fill
-              sizes={shape === 'circle' ? '80px' : '144px'}
-              className={shape === 'circle' ? 'object-contain p-1' : 'object-cover'}
-            />
-          </div>
-        ) : (
-          <div
-            aria-hidden="true"
-            className={`${frame} flex items-center justify-center text-lg font-semibold text-stone-400`}
-          >
-            {placeholder}
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1 space-y-2">
-          <input
-            id={field}
-            name={field}
-            type="file"
-            accept="image/*"
-            disabled={disabled}
-            aria-describedby={`${field}-help`}
-            className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
-          />
-          <p id={`${field}-help`} aria-live="polite" className="text-xs text-stone-500">
-            {isPreparing
-              ? 'A otimizar a imagem…'
-              : 'A imagem é reduzida automaticamente antes de ser enviada.'}
-          </p>
-          {currentUrl && (
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-red-700">
-              <input
-                type="checkbox"
-                name={removeField}
-                className="h-4 w-4 rounded border-stone-300 text-red-600 focus:ring-red-600"
-              />
-              {removeLabel}
-            </label>
-          )}
-          {error && (
-            <p role="alert" className="text-xs text-red-600">
-              {error}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
+    <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
+      {description && <p className="mt-1 text-sm text-stone-600">{description}</p>}
+      <div className="mt-5">{children}</div>
+    </section>
   );
 }
 
-interface EditableDayRow {
-  dayOfWeek: number;
-  closed: boolean;
-  slot1Open: string;
-  slot1Close: string;
-  hasSlot2: boolean;
-  slot2Open: string;
-  slot2Close: string;
-}
-
-function buildEditableSchedule(schedule: DaySchedule[]): EditableDayRow[] {
-  return Array.from({ length: 7 }, (_, dayIdx) => {
-    const found = schedule.find((d) => d.dayOfWeek === dayIdx);
-    const slot1 = found?.slots[0];
-    const slot2 = found?.slots[1];
-    return {
-      dayOfWeek: dayIdx,
-      closed: found ? found.closed : dayIdx === 0,
-      slot1Open: slot1?.open ?? '12:00',
-      slot1Close: slot1?.close ?? '15:00',
-      hasSlot2: Boolean(slot2),
-      slot2Open: slot2?.open ?? '19:00',
-      slot2Close: slot2?.close ?? '23:00',
-    };
-  });
+function ModuleSwitch({
+  name,
+  checked,
+  onChange,
+  icon,
+  title,
+  description,
+}: {
+  name: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 py-3.5">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FAF6F0] text-[#8C3B2B]">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-stone-900">{title}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-stone-500">{description}</span>
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        name={name}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className="relative mt-1 h-6 w-11 shrink-0 rounded-full bg-stone-300 transition peer-checked:bg-[#8C3B2B] peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
+      />
+    </label>
+  );
 }
 
 export function RestaurantSettingsForm({
   restaurant,
   role,
   initialSchedule,
-  coverPhotoUrl,
   logoUrl,
+  publicMenuUrl,
 }: RestaurantSettingsFormProps) {
   const [state, formAction, isActionPending] = useActionState(
     updateRestaurantAction,
@@ -174,35 +114,27 @@ export function RestaurantSettingsForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- corre a cada novo resultado da action
   }, [state]);
+
   const isPending = isActionPending || isSubmitting;
   const isBusy = isPending || isPreparingPhoto;
+  const logoError =
+    photoErrorField === 'logoPhoto' ? photoError : state.fieldErrors?.logoPhoto?.[0];
+
   const initialSettings = parseRestaurantSettings(restaurant.settings);
   const existingTranslations = parseTranslationsJson(restaurant.translations);
+  const isOwner = role === 'owner';
 
-  // No piloto só «classico» está disponível; um estilo escondido volta a «classico» ao guardar.
-  const [selectedStyle, setSelectedStyle] = useState<RestaurantStyle>(
-    SELECTABLE_STYLES.includes(restaurant.style) ? restaurant.style : 'classico',
-  );
   const [languagesEnabled, setLanguagesEnabled] = useState(initialSettings.modules.languages);
   const [allergensEnabled, setAllergensEnabled] = useState(initialSettings.modules.allergens);
   const [highlightsEnabled, setHighlightsEnabled] = useState(initialSettings.modules.highlights);
   const [hoursEnabled, setHoursEnabled] = useState(initialSettings.modules.hours);
-  const [daysState, setDaysState] = useState<EditableDayRow[]>(() =>
-    buildEditableSchedule(initialSchedule),
-  );
-
-  const isOwner = role === 'owner';
-  const activePreviewTheme = MENU_THEMES[selectedStyle];
-
-  function updateDayRow(dayIdx: number, patch: Partial<EditableDayRow>) {
-    setDaysState((prev) =>
-      prev.map((row) => (row.dayOfWeek === dayIdx ? { ...row, ...patch } : row)),
-    );
-  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8" noValidate aria-busy={isBusy}>
+    <form onSubmit={handleSubmit} className="space-y-5 pb-4" noValidate aria-busy={isBusy}>
       <input type="hidden" name="restaurantId" value={restaurant.id} />
+      {/* Campos que já não aparecem no painel mantêm o valor atual. */}
+      <input type="hidden" name="style" value="classico" />
+      <input type="hidden" name="location" value={restaurant.location ?? ''} />
 
       {state.status === 'error' && state.message && (
         <div
@@ -213,25 +145,61 @@ export function RestaurantSettingsForm({
         </div>
       )}
 
-      {state.status === 'success' && state.message && (
-        <div
-          role="status"
-          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
-        >
-          {state.message}
-        </div>
-      )}
+      <Section title="Restaurante" description="O que aparece no topo da carta.">
+        <div className="space-y-5">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-white text-xl font-semibold text-[#1F3A5F]">
+              {logoUrl ? (
+                <Image
+                  src={logoUrl}
+                  alt="Logotipo atual"
+                  fill
+                  sizes="80px"
+                  className="object-contain"
+                />
+              ) : (
+                <span aria-hidden="true">{restaurantInitials(restaurant.name)}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <label htmlFor="logoPhoto" className="block text-sm font-medium text-stone-800">
+                Logotipo
+              </label>
+              <input
+                id="logoPhoto"
+                name="logoPhoto"
+                type="file"
+                accept="image/*"
+                disabled={isBusy}
+                aria-describedby="logoPhoto-help"
+                className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
+              />
+              <p id="logoPhoto-help" aria-live="polite" className="text-xs text-stone-500">
+                {isPreparingPhoto
+                  ? 'A otimizar a imagem…'
+                  : 'Imagem quadrada. PNG com fundo transparente fica melhor.'}
+              </p>
+              {logoUrl && (
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-red-700">
+                  <input
+                    type="checkbox"
+                    name="removeLogo"
+                    className="h-4 w-4 rounded border-stone-300 text-red-600 focus:ring-red-600"
+                  />
+                  Remover logotipo
+                </label>
+              )}
+              {logoError && (
+                <p role="alert" className="text-xs text-red-600">
+                  {logoError}
+                </p>
+              )}
+            </div>
+          </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-xl font-semibold text-stone-900">Identidade e Publicação</h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Informação principal visível no topo do menu público.
-        </p>
-
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-stone-800">
-              Nome do restaurante
+              Nome
             </label>
             <input
               id="name"
@@ -239,7 +207,7 @@ export function RestaurantSettingsForm({
               type="text"
               required
               defaultValue={restaurant.name}
-              className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
+              className={INPUT}
             />
             {state.fieldErrors?.name?.[0] && (
               <p className="mt-1 text-xs text-red-600">{state.fieldErrors.name[0]}</p>
@@ -247,114 +215,34 @@ export function RestaurantSettingsForm({
           </div>
 
           <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-stone-800">
-              Identificador único (slug)
-            </label>
-            <div
-              className={`mt-1.5 flex items-center rounded-xl border border-stone-300 ${
-                isOwner
-                  ? 'bg-white focus-within:border-[#8C3B2B] focus-within:ring-2 focus-within:ring-[#8C3B2B]/20'
-                  : 'bg-stone-100 opacity-75'
-              }`}
-            >
-              <span className="select-none pl-3.5 pr-1 text-sm text-stone-400">/r/</span>
-              <input
-                id="slug"
-                name="slug"
-                type="text"
-                required
-                disabled={!isOwner}
-                defaultValue={restaurant.slug}
-                className="block w-full rounded-r-xl border-0 bg-transparent py-2.5 pr-3.5 text-sm text-stone-900 focus:outline-none disabled:cursor-not-allowed"
-              />
-            </div>
-            {!isOwner && (
-              <p className="mt-1 text-xs text-stone-500">
-                Apenas o proprietário (owner) pode alterar o endereço público.
-              </p>
-            )}
-            {state.fieldErrors?.slug?.[0] && (
-              <p className="mt-1 text-xs text-red-600">{state.fieldErrors.slug[0]}</p>
-            )}
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="location" className="block text-sm font-medium text-stone-800">
-              Localidade / Morada curta
-            </label>
-            <input
-              id="location"
-              name="location"
-              type="text"
-              defaultValue={restaurant.location ?? ''}
-              placeholder="Ex.: Rua Principal, 12"
-              className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
             <label htmlFor="description" className="block text-sm font-medium text-stone-800">
-              Apresentação do restaurante (PT)
+              Descrição curta
             </label>
             <textarea
               id="description"
               name="description"
-              rows={3}
+              rows={2}
               defaultValue={restaurant.description ?? ''}
-              placeholder="Breve descrição da cozinha, especialidades ou história."
-              className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
-            />
-          </div>
-
-          <div className="sm:col-span-2 grid gap-5">
-            <RestaurantImageField
-              field="logoPhoto"
-              removeField="removeLogo"
-              label="Logotipo"
-              help="Aparece redondo no topo da carta. Usa uma imagem quadrada; PNG com fundo transparente fica melhor."
-              currentUrl={logoUrl}
-              shape="circle"
-              placeholder={restaurantInitials(restaurant.name)}
-              removeLabel="Remover logotipo"
-              disabled={isBusy}
-              isPreparing={isPreparingPhoto}
-              error={
-                photoErrorField === 'logoPhoto' ? photoError : state.fieldErrors?.logoPhoto?.[0]
-              }
-            />
-            <RestaurantImageField
-              field="coverPhoto"
-              removeField="removeCoverPhoto"
-              label="Foto de capa"
-              help="Faixa de imagem no topo da carta, por cima do logotipo. É opcional."
-              currentUrl={coverPhotoUrl}
-              shape="banner"
-              placeholder=""
-              removeLabel="Remover foto de capa"
-              disabled={isBusy}
-              isPreparing={isPreparingPhoto}
-              error={
-                photoErrorField === 'coverPhoto' ? photoError : state.fieldErrors?.coverPhoto?.[0]
-              }
+              placeholder="Ex.: Cozinha portuguesa de temporada."
+              className={INPUT}
             />
           </div>
 
           {languagesEnabled && (
-            <div className="sm:col-span-2 rounded-xl border border-[#DFD3C3] bg-[#FAF6F0]/70 p-4">
+            <div>
               <label htmlFor="descriptionEn" className="block text-sm font-medium text-stone-800">
-                Apresentação do restaurante em Inglês (EN)
+                Descrição curta em inglês
               </label>
               <textarea
                 id="descriptionEn"
                 name="descriptionEn"
-                rows={3}
+                rows={2}
                 defaultValue={existingTranslations.en?.description ?? ''}
-                placeholder="Ex.: Seasonal Portuguese cooking with house recipes..."
-                className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
+                placeholder="Ex.: Seasonal Portuguese cooking."
+                className={INPUT}
               />
               <p className="mt-1 text-xs text-stone-500">
-                Se ficar em branco, o menu em inglês mostra automaticamente o texto original em
-                português.
+                Se ficar vazio, a carta em inglês mostra o texto em português.
               </p>
               {state.fieldErrors?.descriptionEn?.[0] && (
                 <p className="mt-1 text-xs text-red-600">{state.fieldErrors.descriptionEn[0]}</p>
@@ -362,379 +250,126 @@ export function RestaurantSettingsForm({
             </div>
           )}
         </div>
+      </Section>
 
-        <div className="mt-6 rounded-xl border border-stone-200 bg-stone-50 p-4">
-          <label
-            className={`flex items-start gap-3 ${
-              isOwner ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
-            }`}
-          >
-            <input
-              type="checkbox"
-              name="published"
-              disabled={!isOwner}
-              defaultChecked={restaurant.published}
-              className="mt-1 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B] disabled:cursor-not-allowed"
-            />
-            <div>
-              <span className="block text-sm font-semibold text-stone-900">
-                Publicar menu publicamente
-              </span>
-              <span className="block text-xs text-stone-600">
-                Quando ativo, qualquer pessoa com o link ou código QR pode consultar a ementa.
-                Quando desligado, apenas membros autenticados do restaurante a conseguem
-                pré-visualizar.
-                {!isOwner && ' (Reservado ao proprietário.)'}
-              </span>
-            </div>
-          </label>
+      <Section
+        title="O que aparece na carta"
+        description="Liga só o que precisas. O que está desligado não aparece na carta nem no painel."
+      >
+        <div className="-my-3.5 divide-y divide-stone-100">
+          <ModuleSwitch
+            name="module_languages"
+            checked={languagesEnabled}
+            onChange={setLanguagesEnabled}
+            icon={<Globe className="h-4 w-4" aria-hidden="true" />}
+            title="Versão em inglês"
+            description="Mostra o botão PT / EN e deixa-te escrever os pratos em inglês."
+          />
+          <ModuleSwitch
+            name="module_allergens"
+            checked={allergensEnabled}
+            onChange={setAllergensEnabled}
+            icon={<ShieldAlert className="h-4 w-4" aria-hidden="true" />}
+            title="Alergénios"
+            description="Marca em cada prato os 14 alergénios obrigatórios."
+          />
+          <ModuleSwitch
+            name="module_highlights"
+            checked={highlightsEnabled}
+            onChange={setHighlightsEnabled}
+            icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
+            title="Selo «Da casa»"
+            description="Destaca pratos especiais com uma etiqueta."
+          />
+          <ModuleSwitch
+            name="module_hours"
+            checked={hoursEnabled}
+            onChange={setHoursEnabled}
+            icon={<Clock className="h-4 w-4" aria-hidden="true" />}
+            title="Horário"
+            description="Mostra o horário de funcionamento no fim da carta."
+          />
         </div>
-      </section>
-
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-xl font-semibold text-stone-900">
-          Tema Visual e Pré-visualização
-        </h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Escolhe o ambiente visual do teu menu mobile-first. Todos os temas cumprem contraste AA.
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {SELECTABLE_STYLES.map((styleKey) => {
-            const theme = MENU_THEMES[styleKey];
-            const isSelected = selectedStyle === theme.id;
-            return (
-              <label
-                key={theme.id}
-                className={`relative flex cursor-pointer flex-col rounded-xl border p-4 transition ${
-                  isSelected
-                    ? 'border-[#8C3B2B] bg-[#FAF6F0] ring-1 ring-[#8C3B2B]'
-                    : 'border-stone-200 hover:border-[#8C3B2B]/50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-stone-900">{theme.label}</span>
-                  <input
-                    type="radio"
-                    name="style"
-                    value={theme.id}
-                    checked={isSelected}
-                    onChange={() => setSelectedStyle(theme.id)}
-                    className="h-4 w-4 border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-                  />
-                </div>
-                <span className="mt-1.5 text-xs leading-relaxed text-stone-600">
-                  {theme.description}
-                </span>
-
-                <div
-                  aria-hidden="true"
-                  className={`mt-3 rounded-lg border p-2.5 ${theme.preview.surfaceBg} ${theme.preview.cardBorder}`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`truncate text-xs font-semibold ${theme.preview.fontClass} ${theme.preview.headingText}`}
-                    >
-                      {restaurant.name}
-                    </span>
-                    <span className={`h-2 w-5 rounded-full ${theme.preview.accentBg}`} />
-                  </div>
-                  <div
-                    className={`mt-2 rounded-md border p-2 ${theme.preview.cardBg} ${theme.preview.cardBorder}`}
-                  >
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span
-                        className={`text-[11px] font-medium ${theme.preview.fontClass} ${theme.preview.headingText}`}
-                      >
-                        Bacalhau Assado
-                      </span>
-                      <span className={`text-[11px] font-bold ${theme.preview.accentText}`}>
-                        18,50 €
-                      </span>
-                    </div>
-                    <p className={`mt-0.5 truncate text-[10px] ${theme.preview.bodyText}`}>
-                      Crosta de broa de milho e batata a murro.
-                    </p>
-                  </div>
-                </div>
-              </label>
-            );
-          })}
-        </div>
-
-        <div
-          aria-label={`Pré-visualização ao vivo do tema ${activePreviewTheme.label}`}
-          className={`mt-5 overflow-hidden rounded-2xl border ${activePreviewTheme.preview.cardBorder} ${activePreviewTheme.preview.surfaceBg} p-5 transition`}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p
-                className={`text-[11px] uppercase tracking-wider ${activePreviewTheme.preview.bodyText}`}
-              >
-                Pré-visualização · {activePreviewTheme.label}
-              </p>
-              <p
-                className={`mt-0.5 text-xl font-semibold ${activePreviewTheme.preview.fontClass} ${activePreviewTheme.preview.headingText}`}
-              >
-                {restaurant.name}
-              </p>
-            </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                selectedStyle === 'escuro'
-                  ? 'bg-[#C6A57A] text-[#1A120C]'
-                  : `${activePreviewTheme.preview.accentBg} text-white`
-              }`}
-            >
-              Entradas
-            </span>
-          </div>
-
-          <div
-            className={`mt-4 rounded-xl border p-3.5 ${activePreviewTheme.preview.cardBg} ${activePreviewTheme.preview.cardBorder}`}
-          >
-            <div className="flex items-baseline justify-between gap-3">
-              <span
-                className={`text-sm font-semibold ${activePreviewTheme.preview.fontClass} ${activePreviewTheme.preview.headingText}`}
-              >
-                Pataniscas de Bacalhau
-              </span>
-              <span
-                className={`text-sm font-bold tabular-nums ${activePreviewTheme.preview.accentText}`}
-              >
-                6,50 €
-              </span>
-            </div>
-            <p className={`mt-1 text-xs ${activePreviewTheme.preview.bodyText}`}>
-              Fritas na hora em azeite virgem com salsa fresca.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-xl font-semibold text-stone-900">Módulos Opcionais</h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Liga apenas o que o teu restaurante precisa. Quando um módulo está desligado, os seus
-          campos desaparecem do painel e não são mostrados no menu público.
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3.5 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]/60">
-            <input
-              type="checkbox"
-              name="module_languages"
-              checked={languagesEnabled}
-              onChange={(e) => setLanguagesEnabled(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-            />
-            <div className="flex-1">
-              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-900">
-                <Globe className="h-4 w-4 text-[#8C3B2B]" aria-hidden="true" />
-                Traduções PT / EN
-              </span>
-              <span className="mt-0.5 block text-xs text-stone-500">
-                Edita textos em inglês para categorias, pratos e descrição, com seletor PT/EN no
-                menu público.
-              </span>
-            </div>
-          </label>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3.5 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]/60">
-            <input
-              type="checkbox"
-              name="module_allergens"
-              checked={allergensEnabled}
-              onChange={(e) => setAllergensEnabled(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-            />
-            <div className="flex-1">
-              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-900">
-                <ShieldAlert className="h-4 w-4 text-[#8C3B2B]" aria-hidden="true" />
-                Alergénios (14 da UE)
-              </span>
-              <span className="mt-0.5 block text-xs text-stone-500">
-                Assinala os 14 alergénios oficiais por prato; no menu abrem numa ficha (bottom
-                sheet).
-              </span>
-            </div>
-          </label>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3.5 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]/60">
-            <input
-              type="checkbox"
-              name="module_highlights"
-              checked={highlightsEnabled}
-              onChange={(e) => setHighlightsEnabled(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-            />
-            <div className="flex-1">
-              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-900">
-                <Sparkles className="h-4 w-4 text-[#8C3B2B]" aria-hidden="true" />
-                Destaques, Recomendados e Novos
-              </span>
-              <span className="mt-0.5 block text-xs text-stone-500">
-                Marca pratos especiais com o selo «Da casa» na carta (sem secção dedicada).
-              </span>
-            </div>
-          </label>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3.5 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]/60">
-            <input
-              type="checkbox"
-              name="module_hours"
-              checked={hoursEnabled}
-              onChange={(e) => setHoursEnabled(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-            />
-            <div className="flex-1">
-              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-900">
-                <Clock className="h-4 w-4 text-[#8C3B2B]" aria-hidden="true" />
-                Horário Semanal
-              </span>
-              <span className="mt-0.5 block text-xs text-stone-500">
-                Configura horários de almoço/jantar e mostra estado Aberto/Fechado em tempo real
-                (Europe/Lisbon).
-              </span>
-            </div>
-          </label>
-        </div>
-      </section>
+      </Section>
 
       {hoursEnabled && (
-        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <input type="hidden" name="hours_submitted" value="true" />
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="font-serif text-xl font-semibold text-stone-900">
-                Horário Semanal de Funcionamento
-              </h2>
-              <p className="mt-1 text-sm text-stone-600">
-                Fuso horário de Portugal Continental (<code className="text-xs">Europe/Lisbon</code>
-                ). Suporta 1 ou 2 turnos por dia (ex.: almoço e jantar).
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 divide-y divide-stone-100 rounded-xl border border-stone-200">
-            {daysState.map((dayRow) => {
-              const dayName = WEEKDAY_LABELS.pt[dayRow.dayOfWeek] ?? '';
-              return (
-                <div
-                  key={dayRow.dayOfWeek}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-center justify-between gap-4 sm:w-52">
-                    <span className="text-sm font-semibold text-stone-900">{dayName}</span>
-                    <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-stone-600">
-                      <input
-                        type="checkbox"
-                        name={`day_${dayRow.dayOfWeek}_closed`}
-                        checked={dayRow.closed}
-                        onChange={(e) =>
-                          updateDayRow(dayRow.dayOfWeek, { closed: e.target.checked })
-                        }
-                        className="h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
-                      />
-                      Encerrado
-                    </label>
-                  </div>
-
-                  {dayRow.closed ? (
-                    <p className="text-xs italic text-stone-400">Descanso semanal / encerrado</p>
-                  ) : (
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="time"
-                          aria-label={`${dayName} abertura 1.º turno`}
-                          name={`day_${dayRow.dayOfWeek}_slot1_open`}
-                          value={dayRow.slot1Open}
-                          onChange={(e) =>
-                            updateDayRow(dayRow.dayOfWeek, { slot1Open: e.target.value })
-                          }
-                          className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
-                        />
-                        <span className="text-xs text-stone-400">às</span>
-                        <input
-                          type="time"
-                          aria-label={`${dayName} fecho 1.º turno`}
-                          name={`day_${dayRow.dayOfWeek}_slot1_close`}
-                          value={dayRow.slot1Close}
-                          onChange={(e) =>
-                            updateDayRow(dayRow.dayOfWeek, { slot1Close: e.target.value })
-                          }
-                          className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
-                        />
-                      </div>
-
-                      {dayRow.hasSlot2 ? (
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="hidden"
-                            name={`day_${dayRow.dayOfWeek}_slot2_enabled`}
-                            value="true"
-                          />
-                          <span className="text-xs text-stone-400">+</span>
-                          <input
-                            type="time"
-                            aria-label={`${dayName} abertura 2.º turno`}
-                            name={`day_${dayRow.dayOfWeek}_slot2_open`}
-                            value={dayRow.slot2Open}
-                            onChange={(e) =>
-                              updateDayRow(dayRow.dayOfWeek, { slot2Open: e.target.value })
-                            }
-                            className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
-                          />
-                          <span className="text-xs text-stone-400">às</span>
-                          <input
-                            type="time"
-                            aria-label={`${dayName} fecho 2.º turno`}
-                            name={`day_${dayRow.dayOfWeek}_slot2_close`}
-                            value={dayRow.slot2Close}
-                            onChange={(e) =>
-                              updateDayRow(dayRow.dayOfWeek, { slot2Close: e.target.value })
-                            }
-                            className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => updateDayRow(dayRow.dayOfWeek, { hasSlot2: false })}
-                            className="ml-1 text-xs font-medium text-red-600 hover:underline"
-                          >
-                            Remover 2.º
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => updateDayRow(dayRow.dayOfWeek, { hasSlot2: true })}
-                          className="rounded-lg border border-dashed border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-600 transition hover:border-[#8C3B2B] hover:text-[#8C3B2B]"
-                        >
-                          + 2.º turno (jantar)
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        <Section
+          title="Horário"
+          description="Liga os dias em que abres. Podes ter até dois turnos por dia (ex.: almoço e jantar)."
+        >
+          <HoursEditor initialSchedule={initialSchedule} />
+        </Section>
       )}
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isBusy}
-          className="rounded-xl bg-[#8C3B2B] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isPreparingPhoto
-            ? 'A otimizar fotografia…'
-            : isPending
-              ? 'A guardar alterações...'
-              : 'Guardar definições'}
-        </button>
+      <details className="group rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 sm:p-6">
+          <span>
+            <span className="block text-lg font-semibold text-stone-900">Avançado</span>
+            <span className="mt-0.5 block text-sm text-stone-600">Endereço da carta.</span>
+          </span>
+          <ChevronDown
+            className="h-5 w-5 text-stone-500 transition group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </summary>
+        <div className="border-t border-stone-100 p-5 sm:p-6">
+          <label htmlFor="slug" className="block text-sm font-medium text-stone-800">
+            Endereço da carta
+          </label>
+          <div
+            className={`mt-1.5 flex items-center rounded-xl border border-stone-300 ${
+              isOwner
+                ? 'bg-white focus-within:border-[#8C3B2B] focus-within:ring-2 focus-within:ring-[#8C3B2B]/20'
+                : 'bg-stone-100 opacity-75'
+            }`}
+          >
+            <span className="select-none pl-3.5 pr-1 text-sm text-stone-400">/r/</span>
+            <input
+              id="slug"
+              name="slug"
+              type="text"
+              required
+              disabled={!isOwner}
+              defaultValue={restaurant.slug}
+              className="block w-full rounded-r-xl border-0 bg-transparent py-2.5 pr-3.5 text-sm text-stone-900 focus:outline-none disabled:cursor-not-allowed"
+            />
+          </div>
+          <p className="mt-1.5 break-all text-xs text-stone-500">
+            Agora: <span className="font-medium text-stone-700">{publicMenuUrl}</span>
+          </p>
+          <p className="mt-1 text-xs text-amber-700">
+            Atenção: se mudares o endereço, os códigos QR já impressos deixam de funcionar.
+          </p>
+          {!isOwner && (
+            <p className="mt-1 text-xs text-stone-500">Só o dono pode mudar o endereço.</p>
+          )}
+          {state.fieldErrors?.slug?.[0] && (
+            <p className="mt-1 text-xs text-red-600">{state.fieldErrors.slug[0]}</p>
+          )}
+        </div>
+      </details>
+
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <div className="flex items-center justify-between gap-3">
+          <p aria-live="polite" className="min-w-0 text-sm">
+            {state.status === 'success' && state.message && !isBusy ? (
+              <span className="text-emerald-700">Guardado.</span>
+            ) : state.status === 'error' && !isBusy ? (
+              <span className="text-red-700">Não foi guardado.</span>
+            ) : (
+              <span className="text-stone-500">
+                {isPreparingPhoto ? 'A otimizar a imagem…' : isPending ? 'A guardar…' : ''}
+              </span>
+            )}
+          </p>
+          <button
+            type="submit"
+            disabled={isBusy}
+            className="shrink-0 rounded-xl bg-[#8C3B2B] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isBusy ? 'A guardar…' : 'Guardar'}
+          </button>
+        </div>
       </div>
     </form>
   );
