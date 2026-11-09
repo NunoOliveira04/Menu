@@ -4,8 +4,8 @@ import { headers } from 'next/headers';
 import './globals.css';
 
 const fontSans = Inter({
+  // Fonte variável: um só ficheiro cobre todos os pesos (400–700) e o build faz menos pedidos.
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
   display: 'swap',
 });
