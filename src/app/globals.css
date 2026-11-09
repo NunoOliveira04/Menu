@@ -78,6 +78,30 @@
   color: var(--header-fg);
 }
 
+/* Com textura de fundo, o topo esbate-se para a textura em vez de acabar numa linha. */
+.menu-theme:not([data-background='nenhum']) .menu-header {
+  background: transparent;
+}
+
+.menu-theme:not([data-background='nenhum']) .menu-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--header-bg);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
+}
+
+.menu-theme:not([data-background='nenhum']) .menu-header-inner {
+  position: relative;
+  padding-bottom: 76px;
+}
+
+.menu-theme:not([data-background='nenhum']) .menu-nav {
+  border-bottom-color: transparent;
+  background: color-mix(in srgb, var(--color-bg) 38%, transparent);
+}
+
 .menu-header-inner {
   display: flex;
   max-width: 40rem;

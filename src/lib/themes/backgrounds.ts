@@ -30,7 +30,10 @@ function svgUrl(body: string, width = 600, height = 600): string {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
-/** Madeira: ruído esticado na horizontal (veios) combinado com riscas finas e colorido. */
+/**
+ * Madeira: ruído esticado na horizontal (veios largos e suaves) com riscas finas discretas.
+ * Contraste baixo para a textura se notar sem competir com os pratos.
+ */
 function woodTexture(
   [r, g, b]: [number, number, number],
   [dr, dg, db]: [number, number, number],
@@ -38,11 +41,13 @@ function woodTexture(
 ): string {
   return svgUrl(
     `<filter id='w' x='0' y='0' width='100%' height='100%'>` +
-      `<feTurbulence type='fractalNoise' baseFrequency='0.0035 0.11' numOctaves='5' seed='${seed}' result='base'/>` +
-      `<feTurbulence type='fractalNoise' baseFrequency='0.002 0.75' numOctaves='2' seed='${seed + 9}' result='fine'/>` +
-      `<feComposite in='base' in2='fine' operator='arithmetic' k1='0' k2='0.8' k3='0.35' k4='-0.08'/>` +
+      `<feTurbulence type='fractalNoise' baseFrequency='0.0025 0.075' numOctaves='4' seed='${seed}' result='base'/>` +
+      `<feTurbulence type='fractalNoise' baseFrequency='0.0015 0.6' numOctaves='2' seed='${seed + 9}' result='fine'/>` +
+      `<feComposite in='base' in2='fine' operator='arithmetic' k1='0' k2='0.75' k3='0.2' k4='0'/>` +
       `<feColorMatrix type='matrix' values='0 0 0 ${dr} ${r}  0 0 0 ${dg} ${g}  0 0 0 ${db} ${b}  0 0 0 0 1'/>` +
       `</filter><rect width='100%' height='100%' filter='url(#w)'/>`,
+    900,
+    900,
   );
 }
 
@@ -62,8 +67,19 @@ const STONE = svgUrl(
     `<rect width='100%' height='100%' filter='url(#p)'/>`,
 );
 
-const LIGHT_WOOD = woodTexture([0.52, 0.35, 0.21], [0.42, 0.3, 0.2], 7);
-const DARK_WOOD = woodTexture([0.13, 0.075, 0.04], [0.3, 0.19, 0.11], 3);
+const LIGHT_WOOD = woodTexture([0.6, 0.43, 0.28], [0.3, 0.22, 0.15], 7);
+const DARK_WOOD = woodTexture([0.2, 0.125, 0.07], [0.22, 0.14, 0.08], 3);
+
+/**
+ * Luz por cima da textura: mais clara em cima ao centro e cantos ligeiramente mais escuros,
+ * para a madeira ter profundidade e as transições serem suaves.
+ */
+function softLight(top: string, edges: string): string {
+  return (
+    `radial-gradient(130% 55% at 50% 0%, ${top} 0%, transparent 70%), ` +
+    `linear-gradient(90deg, ${edges} 0%, transparent 22%, transparent 78%, ${edges} 100%)`
+  );
+}
 
 export const MENU_BACKGROUNDS: Record<MenuBackgroundId, MenuBackground> = {
   nenhum: {
@@ -77,18 +93,18 @@ export const MENU_BACKGROUNDS: Record<MenuBackgroundId, MenuBackground> = {
   'madeira-clara': {
     id: 'madeira-clara',
     label: 'Madeira clara',
-    css: `${LIGHT_WOOD} center top / 600px 600px, #D6B08A`,
+    css: `${softLight('rgba(255, 244, 228, 0.35)', 'rgba(70, 40, 15, 0.14)')}, ${LIGHT_WOOD} center top / 900px 900px, #D9B791`,
     sectionFg: '#2B1A12',
     sectionMuted: '#3D2A1E',
-    preview: `${LIGHT_WOOD} center / 300px 300px`,
+    preview: `${LIGHT_WOOD} center / 450px 450px`,
   },
   'madeira-escura': {
     id: 'madeira-escura',
     label: 'Madeira escura',
-    css: `${DARK_WOOD} center top / 600px 600px, #4A3523`,
+    css: `${softLight('rgba(255, 210, 160, 0.16)', 'rgba(0, 0, 0, 0.28)')}, ${DARK_WOOD} center top / 900px 900px, #4E3725`,
     sectionFg: '#FFF7EE',
     sectionMuted: 'rgba(255, 247, 238, 0.86)',
-    preview: `${DARK_WOOD} center / 300px 300px`,
+    preview: `${DARK_WOOD} center / 450px 450px`,
   },
   linho: {
     id: 'linho',
