@@ -53,17 +53,21 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveSafeAdminNextPath(null)).toBe('/admin');
   });
 
-  it('o cabeçalho usa a capa e o logotipo do dono (não um prato) e funciona sem eles', () => {
+  it('o cabeçalho é simples: logotipo (ou iniciais), nome e descrição — sem capa nem etiquetas', () => {
     const view = readFileSync(
       resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
       'utf8',
     );
+    const header = view.slice(view.indexOf('<header'), view.indexOf('</header>'));
+    expect(header).toContain('logoUrl');
+    expect(header).toContain('menu-logo-initials');
+    expect(header).toContain('menu-header-title');
+    // Sem foto de capa, sem localização e sem «Aberto/Encerrado» no topo.
+    expect(view).not.toContain('coverPhotoUrl');
+    expect(header).not.toContain('restaurant.location');
+    expect(header).not.toContain('openNowBadge');
+    expect(header).not.toContain('closedNowBadge');
     expect(view).not.toContain('selectMenuHero');
-    expect(view).toContain('coverPhotoUrl');
-    expect(view).toContain('logoUrl');
-    expect(view).toContain('menu-logo-initials');
-    // A foto de capa já não leva texto por cima (sem gradiente escuro).
-    expect(view).not.toContain('menu-hero-scrim');
 
     expect(restaurantInitials('Menu Restaurante')).toBe('MR');
     expect(restaurantInitials('  tasca  ')).toBe('T');
@@ -103,12 +107,15 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveMenuTheme('moderno').id).toBe('moderno');
     expect(resolveMenuTheme('escuro').id).toBe('escuro');
 
+    // Com um só estilo disponível, o admin já não mostra a escolha de tema nem «Publicar».
     const form = readFileSync(
       resolve(process.cwd(), 'src/components/dashboard/restaurant-settings-form.tsx'),
       'utf8',
     );
-    expect(form).toContain('SELECTABLE_STYLES.map');
+    expect(form).toContain('name="style" value="classico"');
     expect(form).not.toMatch(/\['classico',\s*'moderno',\s*'escuro'\]/);
+    expect(form).not.toContain('name="published"');
+    expect(form).not.toContain('coverPhoto');
   });
 
   it('o menu público não tem secção Em Destaque e a seed só usa fotos de comida', () => {

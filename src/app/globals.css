@@ -70,25 +70,11 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Cabeçalho estilo perfil: banner opcional (foto de capa do dono), logotipo
- * redondo a sobrepor-se ao banner, nome e descrição por baixo em fundo claro.
- * Sem capa: só logotipo e nome. Sem logotipo: iniciais do nome.
+ * Cabeçalho simples: logotipo redondo (ou iniciais do nome), nome e descrição.
  * ------------------------------------------------------------------------- */
 .menu-header {
   position: relative;
   background: var(--color-bg);
-}
-
-.menu-banner {
-  position: relative;
-  height: clamp(130px, 24vh, 210px);
-  overflow: hidden;
-  background: #1f3a5f;
-}
-
-.menu-banner-img {
-  object-fit: cover;
-  object-position: center 45%;
 }
 
 .menu-header-inner {
@@ -97,12 +83,8 @@
   flex-direction: column;
   align-items: center;
   margin: 0 auto;
-  padding: 28px 20px 18px;
+  padding: 36px 20px 18px;
   text-align: center;
-}
-
-.menu-header-with-banner .menu-header-inner {
-  padding-top: 0;
 }
 
 .menu-logo {
@@ -119,10 +101,6 @@
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 6px 20px rgba(16, 16, 20, 0.12);
-}
-
-.menu-header-with-banner .menu-logo {
-  margin-top: -48px;
 }
 
 .menu-logo-img {
@@ -154,40 +132,6 @@
   color: var(--color-muted);
   font-size: 15px;
   line-height: 1.45;
-}
-
-.menu-header-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 6px 0;
-  margin: 10px 0 0;
-  color: var(--color-muted);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.menu-header-dot {
-  padding: 0 0.5rem;
-  opacity: 0.6;
-}
-
-.menu-open-pill {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--color-text) 7%, transparent);
-  padding: 0 10px;
-  color: var(--color-text);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.menu-open-pill.is-open {
-  background: #e7f6ec;
-  color: #0f5132;
 }
 
 .menu-lang {
