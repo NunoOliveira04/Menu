@@ -113,12 +113,14 @@ export async function updateRestaurantAction(
       ? rawSlugEntry
       : currentRestaurant.slug;
 
-  const submittedPublished =
-    role === 'owner'
-      ? formData.get('published') === 'on' || formData.get('published') === 'true'
-      : rawPublishedPresent
-        ? formData.get('published') === 'on' || formData.get('published') === 'true'
-        : currentRestaurant.published;
+  // A carta está sempre pública: o formulário já não tem a opção «Publicar».
+  // Se o campo vier no pedido (clientes antigos), respeita-o; senão o owner publica sempre
+  // e os outros membros mantêm o estado atual.
+  const submittedPublished = rawPublishedPresent
+    ? formData.get('published') === 'on' || formData.get('published') === 'true'
+    : role === 'owner'
+      ? true
+      : currentRestaurant.published;
 
   const languagesEnabled = formData.get('module_languages') === 'on';
   const hoursEnabled = formData.get('module_hours') === 'on';

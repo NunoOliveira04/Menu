@@ -598,6 +598,18 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       return fd;
     }
 
+    it('guardar sem a opção «Publicar» mantém a carta pública', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.delete('published');
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      expect(update.mock.calls[0]?.[0]).toMatchObject({ published: true });
+    });
+
     it('não toca em cover_photo_path quando a capa não muda', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);
