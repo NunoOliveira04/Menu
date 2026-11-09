@@ -43,6 +43,13 @@ export function normalizeMistypedAdminPath(pathname: string): string | null {
  * /registar e /onboarding deixam de redirecionar (404) para não revelar o admin.
  */
 export function resolveLegacyAdminRedirect(pathname: string): string | null {
+  // Atalho a partir do link da carta: /r/<slug>/admin[/...] -> /admin[/...]
+  const fromMenu = pathname.match(/^\/r\/[^/]+(\/admin(?:\/.*)?)$/i);
+  if (fromMenu?.[1]) {
+    const target = fromMenu[1];
+    return normalizeMistypedAdminPath(target) ?? target;
+  }
+
   const normalizedAdmin = normalizeMistypedAdminPath(pathname);
   if (normalizedAdmin) {
     return normalizedAdmin;

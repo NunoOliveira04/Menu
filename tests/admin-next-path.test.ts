@@ -107,3 +107,21 @@ describe('Endereços do admin mal escritos (maiúsculas, espaço ou ponto no fim
     expect(normalizeMistypedAdminPath(input)).toBeNull();
   });
 });
+
+describe('Atalho /r/<slug>/admin', () => {
+  it.each([
+    ['/r/menu-restaurante/admin', '/admin'],
+    ['/r/menu-restaurante/admin/', '/admin'],
+    ['/r/menu-restaurante/Admin', '/admin'],
+    ['/r/menu-restaurante/admin/restaurante', '/admin/restaurante'],
+  ])('%s redireciona para %s', (input, expected) => {
+    expect(resolveLegacyAdminRedirect(input)).toBe(expected);
+  });
+
+  it.each(['/r/menu-restaurante', '/r/menu-restaurante/administrador', '/r/admin'])(
+    'não mexe em %s',
+    (input) => {
+      expect(resolveLegacyAdminRedirect(input)).toBeNull();
+    },
+  );
+});
