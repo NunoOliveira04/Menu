@@ -12,6 +12,26 @@ import { updateRestaurantSchema, weeklyHoursUpdateSchema } from '@/lib/validatio
 import type { Json, TimeSlot } from '@/types/database';
 import type { ActionState } from './types';
 
+/** Imagens do restaurante guardadas no bucket dish-photos (capa e logotipo). */
+const RESTAURANT_IMAGE_SLOTS = [
+  {
+    field: 'coverPhoto',
+    removeField: 'removeCoverPhoto',
+    column: 'cover_photo_path',
+    prefix: 'cover-',
+    label: 'a foto de capa',
+  },
+  {
+    field: 'logoPhoto',
+    removeField: 'removeLogo',
+    column: 'logo_path',
+    prefix: 'logo-',
+    label: 'o logotipo',
+  },
+] as const;
+
+type RestaurantImageColumn = (typeof RESTAURANT_IMAGE_SLOTS)[number]['column'];
+
 function formatZodErrors(error: z.ZodError): Record<string, string[]> {
   const flattened = z.flattenError(error);
   return flattened.fieldErrors as Record<string, string[]>;
@@ -174,46 +194,64 @@ export async function updateRestaurantAction(
     }));
   }
 
-  // Foto de capa: só se lê/escreve cover_photo_path quando o dono a altera ou remove.
-  const coverEntry = formData.get('coverPhoto');
-  const hasNewCover = coverEntry instanceof File && coverEntry.size > 0;
-  const removeCover =
-    formData.get('removeCoverPhoto') === 'on' || formData.get('removeCoverPhoto') === 'true';
-  const wantsCoverChange = hasNewCover || removeCover;
+  // Capa e logotipo: só se lê/escreve a coluna quando o dono altera ou remove a imagem.
+  const imagePayload: Partial<Record<RestaurantImageColumn, string | null>> = {};
+  const uploadedImagePaths: string[] = [];
+  const previousImagePaths: string[] = [];
 
-  let previousCoverPath: string | null = null;
-  let uploadedCoverPath: string | null = null;
+  const removeUploadedImages = async () => {
+    if (uploadedImagePaths.length > 0) {
+      await supabase.storage.from(DISH_PHOTOS_BUCKET).remove(uploadedImagePaths);
+    }
+  };
 
-  if (wantsCoverChange) {
-    const { data: coverRow, error: coverReadError } = await supabase
+  for (const slot of RESTAURANT_IMAGE_SLOTS) {
+    const entry = formData.get(slot.field);
+    const hasNewImage = entry instanceof File && entry.size > 0;
+    const removeImage =
+      formData.get(slot.removeField) === 'on' || formData.get(slot.removeField) === 'true';
+    if (!hasNewImage && !removeImage) {
+      continue;
+    }
+
+    const { data: imageRow, error: imageReadError } = await supabase
       .from('restaurants')
-      .select('cover_photo_path')
+      .select(slot.column)
       .eq('id', parsed.data.restaurantId)
       .maybeSingle();
 
-    if (coverReadError) {
+    if (imageReadError) {
+      await removeUploadedImages();
       return {
         status: 'error',
-        message: 'Não foi possível atualizar a foto de capa. Tenta novamente.',
+        message: `Não foi possível atualizar ${slot.label}. Tenta novamente.`,
       };
     }
-    previousCoverPath = coverRow?.cover_photo_path ?? null;
 
-    if (hasNewCover) {
-      const coverUpload = await uploadValidatedPhoto(
-        parsed.data.restaurantId,
-        coverEntry,
-        'cover-',
-      );
-      if (!coverUpload.ok) {
+    const previousPath = resolveDishPhotoObjectPath(
+      (imageRow as Record<string, string | null> | null)?.[slot.column] ?? null,
+    );
+    if (previousPath) {
+      previousImagePaths.push(previousPath);
+    }
+
+    let nextPath: string | null = null;
+    if (hasNewImage) {
+      const upload = await uploadValidatedPhoto(parsed.data.restaurantId, entry, slot.prefix);
+      if (!upload.ok) {
+        await removeUploadedImages();
         return {
           status: 'error',
-          message: coverUpload.error,
-          fieldErrors: { coverPhoto: [coverUpload.error] },
+          message: upload.error,
+          fieldErrors: { [slot.field]: [upload.error] },
         };
       }
-      uploadedCoverPath = coverUpload.objectPath;
+      nextPath = upload.objectPath;
+      if (nextPath) {
+        uploadedImagePaths.push(nextPath);
+      }
     }
+    imagePayload[slot.column] = nextPath;
   }
 
   const settingsPayload: Json = {
@@ -242,12 +280,12 @@ export async function updateRestaurantAction(
       published: parsed.data.published,
       settings: settingsPayload,
       translations: nextTranslations,
-      ...(wantsCoverChange ? { cover_photo_path: uploadedCoverPath } : {}),
+      ...imagePayload,
     })
     .eq('id', parsed.data.restaurantId);
 
-  if (error && uploadedCoverPath) {
-    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([uploadedCoverPath]);
+  if (error) {
+    await removeUploadedImages();
   }
 
   if (error) {
@@ -275,9 +313,9 @@ export async function updateRestaurantAction(
     };
   }
 
-  const oldCoverObjectPath = resolveDishPhotoObjectPath(previousCoverPath);
-  if (wantsCoverChange && oldCoverObjectPath && oldCoverObjectPath !== uploadedCoverPath) {
-    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([oldCoverObjectPath]);
+  const stalePaths = previousImagePaths.filter((path) => !uploadedImagePaths.includes(path));
+  if (stalePaths.length > 0) {
+    await supabase.storage.from(DISH_PHOTOS_BUCKET).remove(stalePaths);
   }
 
   if (validatedHoursPayload) {

@@ -649,6 +649,25 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       expect(mockStorageRemove).toHaveBeenCalledWith([OLD_COVER]);
     });
 
+    it('carrega o logotipo na pasta do restaurante sem mexer na capa', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+      mockStorageUpload.mockResolvedValue({ data: {}, error: null });
+      mockStorageRemove.mockResolvedValue({ data: [], error: null });
+
+      const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+      const fd = baseRestaurantForm();
+      fd.set('logoPhoto', new File([pngBytes], 'logo.png', { type: 'image/png' }));
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      const uploadedPath = mockStorageUpload.mock.calls[0]?.[0] as string;
+      expect(uploadedPath).toMatch(new RegExp(`^${RESTAURANT_ID}/logo-\\d+-[0-9a-f-]+\\.png$`));
+      const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(payload).toMatchObject({ logo_path: uploadedPath });
+      expect(payload).not.toHaveProperty('cover_photo_path');
+    });
+
     it('rejeita uma capa cujo conteúdo não é imagem, sem chamar o Storage', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);

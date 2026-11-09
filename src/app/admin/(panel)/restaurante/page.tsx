@@ -46,6 +46,7 @@ export default async function AdminRestaurantSettingsPage() {
           context.restaurant.cover_photo_path,
           getSupabaseEnv().url,
         )}
+        logoUrl={resolvePhotoDisplayUrl(context.restaurant.logo_path, getSupabaseEnv().url)}
       />
     </div>
   );

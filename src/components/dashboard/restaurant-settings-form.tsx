@@ -6,6 +6,8 @@ import { Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
+import { LOGO_COMPRESS_OPTIONS } from '@/lib/images/compress-photo';
+import { restaurantInitials } from '@/lib/menu/hero';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { WEEKDAY_LABELS, type DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
@@ -18,9 +20,106 @@ interface RestaurantSettingsFormProps {
   initialSchedule: DaySchedule[];
   /** URL público da foto de capa atual, ou null. */
   coverPhotoUrl: string | null;
+  /** URL público do logotipo atual, ou null. */
+  logoUrl: string | null;
 }
 
-const COVER_PHOTO_FIELDS = ['coverPhoto'] as const;
+const IMAGE_FIELDS = ['logoPhoto', 'coverPhoto'] as const;
+const IMAGE_FIELD_OPTIONS = { logoPhoto: LOGO_COMPRESS_OPTIONS } as const;
+
+interface RestaurantImageFieldProps {
+  field: string;
+  removeField: string;
+  label: string;
+  help: string;
+  currentUrl: string | null;
+  shape: 'circle' | 'banner';
+  placeholder: string;
+  removeLabel: string;
+  disabled: boolean;
+  isPreparing: boolean;
+  error: string | null | undefined;
+}
+
+function RestaurantImageField({
+  field,
+  removeField,
+  label,
+  help,
+  currentUrl,
+  shape,
+  placeholder,
+  removeLabel,
+  disabled,
+  isPreparing,
+  error,
+}: RestaurantImageFieldProps) {
+  const frame =
+    shape === 'circle'
+      ? 'relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-white'
+      : 'relative h-20 w-36 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100';
+
+  return (
+    <div>
+      <label htmlFor={field} className="block text-sm font-medium text-stone-800">
+        {label}
+      </label>
+      <p className="mt-0.5 text-xs text-stone-500">{help}</p>
+      <div className="mt-2 flex flex-wrap items-start gap-4">
+        {currentUrl ? (
+          <div className={frame}>
+            <Image
+              src={currentUrl}
+              alt={`${label} atual`}
+              fill
+              sizes={shape === 'circle' ? '80px' : '144px'}
+              className={shape === 'circle' ? 'object-contain p-1' : 'object-cover'}
+            />
+          </div>
+        ) : (
+          <div
+            aria-hidden="true"
+            className={`${frame} flex items-center justify-center text-lg font-semibold text-stone-400`}
+          >
+            {placeholder}
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1 space-y-2">
+          <input
+            id={field}
+            name={field}
+            type="file"
+            accept="image/*"
+            disabled={disabled}
+            aria-describedby={`${field}-help`}
+            className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
+          />
+          <p id={`${field}-help`} aria-live="polite" className="text-xs text-stone-500">
+            {isPreparing
+              ? 'A otimizar a imagem…'
+              : 'A imagem é reduzida automaticamente antes de ser enviada.'}
+          </p>
+          {currentUrl && (
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-red-700">
+              <input
+                type="checkbox"
+                name={removeField}
+                className="h-4 w-4 rounded border-stone-300 text-red-600 focus:ring-red-600"
+              />
+              {removeLabel}
+            </label>
+          )}
+          {error && (
+            <p role="alert" className="text-xs text-red-600">
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface EditableDayRow {
   dayOfWeek: number;
@@ -54,13 +153,20 @@ export function RestaurantSettingsForm({
   role,
   initialSchedule,
   coverPhotoUrl,
+  logoUrl,
 }: RestaurantSettingsFormProps) {
   const [state, formAction, isActionPending] = useActionState(
     updateRestaurantAction,
     INITIAL_ACTION_STATE,
   );
-  const { handleSubmit, clearPhotoFields, isPreparingPhoto, isSubmitting, photoError } =
-    useCompressedPhotoSubmit(formAction, COVER_PHOTO_FIELDS);
+  const {
+    handleSubmit,
+    clearPhotoFields,
+    isPreparingPhoto,
+    isSubmitting,
+    photoError,
+    photoErrorField,
+  } = useCompressedPhotoSubmit(formAction, IMAGE_FIELDS, IMAGE_FIELD_OPTIONS);
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -70,7 +176,6 @@ export function RestaurantSettingsForm({
   }, [state]);
   const isPending = isActionPending || isSubmitting;
   const isBusy = isPending || isPreparingPhoto;
-  const coverFieldError = photoError ?? state.fieldErrors?.coverPhoto?.[0];
   const initialSettings = parseRestaurantSettings(restaurant.settings);
   const existingTranslations = parseTranslationsJson(restaurant.translations);
 
@@ -201,68 +306,37 @@ export function RestaurantSettingsForm({
             />
           </div>
 
-          <div className="sm:col-span-2">
-            <label htmlFor="coverPhoto" className="block text-sm font-medium text-stone-800">
-              Foto de capa da carta
-            </label>
-            <p className="mt-0.5 text-xs text-stone-500">
-              Aparece no topo da carta, por trás do nome. Sem foto, a carta mostra só o nome sobre
-              fundo azul.
-            </p>
-            <div className="mt-2 flex flex-wrap items-start gap-4">
-              {coverPhotoUrl ? (
-                <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
-                  <Image
-                    src={coverPhotoUrl}
-                    alt="Foto de capa atual"
-                    fill
-                    sizes="144px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div
-                  aria-hidden="true"
-                  className="flex h-20 w-36 shrink-0 items-end rounded-xl bg-[#1F3A5F] p-2.5"
-                >
-                  <span className="truncate font-serif text-sm font-semibold text-[#F7F3EC]">
-                    {restaurant.name}
-                  </span>
-                </div>
-              )}
-
-              <div className="min-w-0 flex-1 space-y-2">
-                <input
-                  id="coverPhoto"
-                  name="coverPhoto"
-                  type="file"
-                  accept="image/*"
-                  disabled={isBusy}
-                  aria-describedby="coverPhoto-help"
-                  className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
-                />
-                <p id="coverPhoto-help" aria-live="polite" className="text-xs text-stone-500">
-                  {isPreparingPhoto
-                    ? 'A otimizar a fotografia…'
-                    : 'A foto é reduzida automaticamente antes de ser enviada.'}
-                </p>
-                {coverPhotoUrl && (
-                  <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-red-700">
-                    <input
-                      type="checkbox"
-                      name="removeCoverPhoto"
-                      className="h-4 w-4 rounded border-stone-300 text-red-600 focus:ring-red-600"
-                    />
-                    Remover foto de capa
-                  </label>
-                )}
-                {coverFieldError && (
-                  <p role="alert" className="text-xs text-red-600">
-                    {coverFieldError}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="sm:col-span-2 grid gap-5">
+            <RestaurantImageField
+              field="logoPhoto"
+              removeField="removeLogo"
+              label="Logotipo"
+              help="Aparece redondo no topo da carta. Usa uma imagem quadrada; PNG com fundo transparente fica melhor."
+              currentUrl={logoUrl}
+              shape="circle"
+              placeholder={restaurantInitials(restaurant.name)}
+              removeLabel="Remover logotipo"
+              disabled={isBusy}
+              isPreparing={isPreparingPhoto}
+              error={
+                photoErrorField === 'logoPhoto' ? photoError : state.fieldErrors?.logoPhoto?.[0]
+              }
+            />
+            <RestaurantImageField
+              field="coverPhoto"
+              removeField="removeCoverPhoto"
+              label="Foto de capa"
+              help="Faixa de imagem no topo da carta, por cima do logotipo. É opcional."
+              currentUrl={coverPhotoUrl}
+              shape="banner"
+              placeholder=""
+              removeLabel="Remover foto de capa"
+              disabled={isBusy}
+              isPreparing={isPreparingPhoto}
+              error={
+                photoErrorField === 'coverPhoto' ? photoError : state.fieldErrors?.coverPhoto?.[0]
+              }
+            />
           </div>
 
           {languagesEnabled && (

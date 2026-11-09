@@ -103,7 +103,7 @@ export async function encodeWithinBudget(
 
 /** Nome final do ficheiro com a extensão do formato de saída. */
 export function buildCompressedFileName(originalName: string, mimeType: string): string {
-  const extension = mimeType === 'image/webp' ? 'webp' : 'jpg';
+  const extension = mimeType === 'image/webp' ? 'webp' : mimeType === 'image/png' ? 'png' : 'jpg';
   const base = originalName.replace(/\.[^./\\]+$/, '').trim() || 'fotografia';
   return `${base}.${extension}`;
 }
@@ -163,7 +163,24 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) 
   });
 }
 
-async function renderAndEncode(image: DecodedImage, maxDimension: number): Promise<Blob | null> {
+export interface CompressPhotoOptions {
+  /** Lado maior em píxeis (por omissão 1200). */
+  maxDimension?: number;
+  /** Mantém a transparência (logotipos): sem fundo branco; WebP ou, em alternativa, PNG. */
+  keepTransparency?: boolean;
+}
+
+/** Opções para logotipos: 512 px chegam e a transparência mantém-se. */
+export const LOGO_COMPRESS_OPTIONS: CompressPhotoOptions = {
+  maxDimension: 512,
+  keepTransparency: true,
+};
+
+async function renderAndEncode(
+  image: DecodedImage,
+  maxDimension: number,
+  keepTransparency = false,
+): Promise<Blob | null> {
   const { width, height } = computeResizedDimensions(image.width, image.height, maxDimension);
   if (width === 0 || height === 0) {
     throw new PhotoPreparationError(PHOTO_ERROR_DECODE);
@@ -178,15 +195,18 @@ async function renderAndEncode(image: DecodedImage, maxDimension: number): Promi
   }
 
   // Fundo branco: PNG transparentes não ficam pretos ao passar para JPEG.
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, width, height);
+  if (!keepTransparency) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+  }
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(image.source, 0, 0, width, height);
 
   // WebP quando o browser o sabe codificar (o Safari antigo devolve PNG); senão JPEG.
   const probe = await canvasToBlob(canvas, 'image/webp', PHOTO_QUALITY_STEPS[0]);
-  const outputType = probe?.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+  const fallbackType = keepTransparency ? 'image/png' : 'image/jpeg';
+  const outputType = probe?.type === 'image/webp' ? 'image/webp' : fallbackType;
 
   return encodeWithinBudget((quality) => {
     if (outputType === 'image/webp' && quality === PHOTO_QUALITY_STEPS[0] && probe) {
@@ -200,16 +220,25 @@ async function renderAndEncode(image: DecodedImage, maxDimension: number): Promi
  * Prepara uma fotografia para envio: corrige a orientação, reduz o lado maior para ~1200 px
  * e comprime para WebP/JPEG. Lança `PhotoPreparationError` com uma mensagem em português.
  */
-export async function compressPhotoForUpload(file: File): Promise<File> {
+export async function compressPhotoForUpload(
+  file: File,
+  options: CompressPhotoOptions = {},
+): Promise<File> {
+  const maxDimension = options.maxDimension ?? PHOTO_MAX_DIMENSION;
+  const keepTransparency = options.keepTransparency ?? false;
   if (!looksLikeImageFile(file)) {
     throw new PhotoPreparationError(PHOTO_ERROR_NOT_IMAGE);
   }
 
   const image = await decodeImage(file);
   try {
-    let blob = await renderAndEncode(image, PHOTO_MAX_DIMENSION);
+    let blob = await renderAndEncode(image, maxDimension, keepTransparency);
     if (blob && blob.size > PHOTO_UPLOAD_HARD_LIMIT_BYTES) {
-      blob = await renderAndEncode(image, PHOTO_FALLBACK_DIMENSION);
+      blob = await renderAndEncode(
+        image,
+        Math.min(maxDimension, PHOTO_FALLBACK_DIMENSION),
+        keepTransparency,
+      );
     }
 
     if (!blob) {
@@ -237,6 +266,7 @@ export type PreparePhotoResult = { ok: true } | { ok: false; error: string };
 export async function preparePhotoField(
   formData: FormData,
   fieldName: string,
+  options: CompressPhotoOptions = {},
 ): Promise<PreparePhotoResult> {
   const entry = formData.get(fieldName);
   if (!(entry instanceof File) || entry.size === 0) {
@@ -244,7 +274,7 @@ export async function preparePhotoField(
   }
 
   try {
-    const compressed = await compressPhotoForUpload(entry);
+    const compressed = await compressPhotoForUpload(entry, options);
     formData.set(fieldName, compressed, compressed.name);
     return { ok: true };
   } catch (error) {
