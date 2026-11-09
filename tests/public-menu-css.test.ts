@@ -51,7 +51,7 @@ describe('Carta pública — alinhamento (ponto 4)', () => {
       resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
       'utf8',
     );
-    const thumbIdx = view.indexOf('className="menu-thumb"');
+    const thumbIdx = view.indexOf('<DishPhoto');
     const copyIdx = view.indexOf('className="menu-dish-copy"');
     expect(thumbIdx).toBeGreaterThan(-1);
     expect(copyIdx).toBeGreaterThan(-1);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useDragToDismiss } from '@/components/menu/use-drag-to-dismiss';
 
 export interface AllergenSheetItem {
   code: string;
@@ -31,6 +32,7 @@ export function AllergenSheetButton({
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const drag = useDragToDismiss(() => setOpen(false));
 
   useEffect(() => {
     if (!open) {
@@ -120,9 +122,13 @@ export function AllergenSheetButton({
             aria-modal="true"
             aria-labelledby={titleId}
             className="menu-sheet-panel"
+            style={drag.style}
           >
-            <div className="menu-sheet-handle" aria-hidden="true" />
-            <div className="menu-sheet-header">
+            {/* Zona de arrasto: puxar para baixo fecha a ficha. */}
+            <div className="menu-sheet-drag" {...drag.bind}>
+              <div className="menu-sheet-handle" aria-hidden="true" />
+            </div>
+            <div className="menu-sheet-header menu-sheet-drag" {...drag.bind}>
               <div>
                 <p className="menu-sheet-kicker">{dishName}</p>
                 <h2 id={titleId} className="menu-sheet-title">

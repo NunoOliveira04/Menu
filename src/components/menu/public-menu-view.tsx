@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AllergenSheetButton } from '@/components/menu/allergen-sheet';
 import { CategoryNav } from '@/components/menu/category-nav';
 import { CategorySeparator } from '@/components/menu/category-separator';
+import { DishPhoto } from '@/components/menu/dish-photo';
 import { getAllergenDefinition } from '@/lib/modules/allergens';
 import {
   formatDaySlots,
@@ -12,7 +13,8 @@ import {
   type DaySchedule,
 } from '@/lib/modules/hours';
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
-import { showsHouseBadge } from '@/lib/menu/hero';
+import { buildCategoryAnchors } from '@/lib/menu/anchors';
+import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -29,6 +31,8 @@ interface PublicMenuViewProps {
   dishes: DishRow[];
   /** URL público da foto de capa escolhida pelo dono; null = cabeçalho tipográfico. */
   coverPhotoUrl?: string | null;
+  /** URL público do logotipo; null = iniciais do nome. */
+  logoUrl?: string | null;
   modules: RestaurantModules;
   locale: MenuLocale;
   weeklySchedule: DaySchedule[];
@@ -41,6 +45,7 @@ export function PublicMenuView({
   categories,
   dishes,
   coverPhotoUrl = null,
+  logoUrl = null,
   modules,
   locale,
   weeklySchedule,
@@ -78,6 +83,13 @@ export function PublicMenuView({
     }))
     .filter((group) => group.items.length > 0);
 
+  const categoryAnchors = buildCategoryAnchors(
+    categoriesWithDishes.map(({ category, localizedName }) => ({
+      id: category.id,
+      name: localizedName,
+    })),
+  );
+
   const openStatus = modules.hours ? evaluateLisbonOpenStatus(weeklySchedule, now) : null;
   const todaySchedule = openStatus
     ? weeklySchedule.find((day) => day.dayOfWeek === openStatus.currentDayOfWeek)
@@ -101,27 +113,18 @@ export function PublicMenuView({
         </div>
       )}
 
-      <header
-        className={[
-          'menu-hero',
-          coverPhotoUrl ? 'menu-hero-photo' : 'menu-hero-plain',
-          modules.languages ? 'menu-hero-with-lang' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-      >
+      <header className={coverPhotoUrl ? 'menu-header menu-header-with-banner' : 'menu-header'}>
         {coverPhotoUrl && (
-          <>
+          <div className="menu-banner">
             <Image
               src={coverPhotoUrl}
               alt=""
               fill
               priority
-              sizes="100vw"
-              className="menu-hero-img"
+              sizes="(min-width: 640px) 640px, 100vw"
+              className="menu-banner-img"
             />
-            <div className="menu-hero-scrim" aria-hidden="true" />
-          </>
+          </div>
         )}
 
         {modules.languages && (
@@ -145,27 +148,47 @@ export function PublicMenuView({
           </nav>
         )}
 
-        <div className="menu-hero-content">
-          <h1 className="menu-hero-title">{restaurant.name}</h1>
+        <div className="menu-header-inner">
+          <div className="menu-logo">
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={`${restaurant.name} — ${ui.logoAltSuffix}`}
+                width={96}
+                height={96}
+                sizes="96px"
+                priority
+                className="menu-logo-img"
+              />
+            ) : (
+              <span className="menu-logo-initials" aria-hidden="true">
+                {restaurantInitials(restaurant.name)}
+              </span>
+            )}
+          </div>
+          <h1 className="menu-header-title">{restaurant.name}</h1>
           {localizedRestaurantDescription && (
-            <p className="menu-hero-description">{localizedRestaurantDescription}</p>
+            <p className="menu-header-description">{localizedRestaurantDescription}</p>
           )}
           {(restaurant.location || openStatus) && (
-            <p className="menu-hero-meta">
+            <p className="menu-header-meta">
               {restaurant.location && <span>{restaurant.location}</span>}
               {restaurant.location && openStatus && (
-                <span className="menu-hero-dot" aria-hidden="true">
+                <span className="menu-header-dot" aria-hidden="true">
                   ·
                 </span>
               )}
               {openStatus && (
-                <a href="#horario-funcionamento" className="menu-hero-meta-link">
+                <a
+                  href="#horario-funcionamento"
+                  className={openStatus.isOpen ? 'menu-open-pill is-open' : 'menu-open-pill'}
+                >
                   {openStatus.isOpen ? ui.openNowBadge : ui.closedNowBadge}
                 </a>
               )}
               {todayHours && (
                 <>
-                  <span className="menu-hero-dot" aria-hidden="true">
+                  <span className="menu-header-dot" aria-hidden="true">
                     ·
                   </span>
                   <span>{todayHours}</span>
@@ -179,7 +202,7 @@ export function PublicMenuView({
       <CategoryNav
         label={ui.categoriesNavLabel}
         items={categoriesWithDishes.map(({ category, localizedName }) => ({
-          id: category.id,
+          anchor: categoryAnchors.get(category.id) ?? category.id,
           name: localizedName,
         }))}
       />
@@ -194,7 +217,7 @@ export function PublicMenuView({
           categoriesWithDishes.map(({ category, localizedName, localizedDescription, items }) => (
             <section
               key={category.id}
-              id={`cat-${category.id}`}
+              id={categoryAnchors.get(category.id) ?? category.id}
               aria-labelledby={`heading-${category.id}`}
               className="menu-section"
             >
@@ -242,16 +265,13 @@ export function PublicMenuView({
                           className={`menu-dish${dish.available ? '' : ' menu-dish-unavailable'}`}
                         >
                           {dish.photo_url && (
-                            <div className="menu-thumb">
-                              <Image
-                                src={dish.photo_url}
-                                alt={`${ui.photoAltPrefix} ${dishName}`}
-                                width={72}
-                                height={72}
-                                sizes="72px"
-                                className="menu-thumb-img"
-                              />
-                            </div>
+                            <DishPhoto
+                              src={dish.photo_url}
+                              alt={`${ui.photoAltPrefix} ${dishName}`}
+                              dishName={dishName}
+                              openLabel={ui.photoOpenLabel}
+                              closeLabel={ui.allergensClose}
+                            />
                           )}
 
                           <div className="menu-dish-copy">

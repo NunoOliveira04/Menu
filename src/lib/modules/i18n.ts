@@ -118,6 +118,8 @@ export interface MenuUiDictionary {
   priceAriaPrefix: string;
   unavailableBadge: string;
   photoAltPrefix: string;
+  photoOpenLabel: string;
+  logoAltSuffix: string;
   allergensButton: string;
   allergensClose: string;
   allergensLegendTitle: string;
@@ -143,6 +145,8 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
     priceAriaPrefix: 'Preço',
     unavailableBadge: 'Temporariamente indisponível',
     photoAltPrefix: 'Fotografia de',
+    photoOpenLabel: 'Ver fotografia',
+    logoAltSuffix: 'logotipo',
     allergensButton: 'Alergénios',
     allergensClose: 'Fechar',
     houseBadge: 'Da casa',
@@ -167,6 +171,8 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
     priceAriaPrefix: 'Price',
     unavailableBadge: 'Temporarily unavailable',
     photoAltPrefix: 'Photo of',
+    photoOpenLabel: 'View photo',
+    logoAltSuffix: 'logo',
     allergensButton: 'Allergens',
     allergensClose: 'Close',
     houseBadge: 'House',
