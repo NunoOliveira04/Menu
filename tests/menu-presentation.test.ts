@@ -9,7 +9,6 @@ import {
   resolveLegacyAdminRedirect,
   resolveSafeAdminNextPath,
 } from '@/lib/routing/admin-paths';
-import { MENU_THEMES, SELECTABLE_STYLES, resolveMenuTheme } from '@/lib/themes/registry';
 
 describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => {
   it('mapeia rotas legadas para /admin e protege tudo excepto login', () => {
@@ -81,41 +80,7 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(showsHouseBadge('featured', false)).toBe(false);
   });
 
-  it('há três paletas («Cores») com nomes simples e todos os tokens usados pelo CSS', () => {
-    expect(SELECTABLE_STYLES).toEqual(['classico', 'moderno', 'escuro']);
-    expect(MENU_THEMES.classico.label).toBe('Areia');
-    expect(MENU_THEMES.moderno.label).toBe('Claro');
-    expect(MENU_THEMES.escuro.label).toBe('Noite');
-    expect(resolveMenuTheme('desconhecido').id).toBe('classico');
-
-    const requiredTokens = [
-      '--color-bg',
-      '--color-card',
-      '--color-text',
-      '--color-muted',
-      '--color-accent',
-      '--color-border',
-      '--color-border-strong',
-      '--color-accent-text',
-      '--nav-bg',
-      '--pill-fg',
-      '--pill-active-bg',
-      '--pill-active-fg',
-      '--section-fg',
-      '--section-muted',
-      '--price-bg',
-      '--price-fg',
-      '--card-shadow',
-    ] as const;
-    for (const theme of Object.values(MENU_THEMES)) {
-      expect(theme.ornament).toBe('none');
-      for (const token of requiredTokens) {
-        expect(theme.cssVars[token], `${theme.id} ${token}`).toBeTruthy();
-      }
-    }
-  });
-
-  it('o admin deixa escolher cores e fundo, sem «Publicar» nem foto de capa', () => {
+  it('o admin deixa escolher fundo, cor e disposição, sem «Publicar» nem foto de capa', () => {
     const form = readFileSync(
       resolve(process.cwd(), 'src/components/dashboard/restaurant-settings-form.tsx'),
       'utf8',
@@ -125,7 +90,7 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
       'utf8',
     );
     expect(form).toContain('<AppearancePicker');
-    expect(picker).toContain('name="style"');
+    expect(picker).toContain('name="accent"');
     expect(picker).toContain('name="background"');
     expect(picker).toContain('name="layout"');
     expect(form).not.toContain('name="published"');

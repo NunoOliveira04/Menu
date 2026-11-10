@@ -1,10 +1,14 @@
 /**
- * Fundos da carta, escolhidos pelo dono nas definições («Fundo»).
- * As texturas são SVG gerados (sem imagens externas): leves e sem pedidos extra.
- * Cada fundo define também a cor dos títulos das secções para se lerem bem por cima.
+ * Aspeto da carta, escolhido pelo dono em Definições → Aspeto:
+ * - Fundo: a página e os cartões (claro, areia, escuro ou texturas). É o único que muda o fundo.
+ * - Cor: só os destaques (preços, títulos das secções, categoria ativa, traços).
+ * - Disposição: lista, grelha (2 colunas) ou foto grande.
+ * As texturas são SVG gerados (sem imagens externas). O texto normal adapta-se ao fundo.
  */
 export const MENU_BACKGROUND_IDS = [
-  'nenhum',
+  'claro',
+  'areia',
+  'escuro',
   'madeira-clara',
   'madeira-escura',
   'linho',
@@ -16,13 +20,26 @@ export type MenuBackgroundId = (typeof MENU_BACKGROUND_IDS)[number];
 export interface MenuBackground {
   id: MenuBackgroundId;
   label: string;
-  /** Valor CSS `background` da página; null = cor de fundo da paleta. */
-  css: string | null;
-  /** Cores dos títulos/descrições das secções sobre este fundo (null = as da paleta). */
-  sectionFg: string | null;
-  sectionMuted: string | null;
+  /** Valor CSS `background` da página. */
+  css: string;
   /** Amostra para o painel. */
   preview: string;
+  /** Cor base (barra de categorias translúcida, cor do browser). */
+  baseColor: string;
+  /** A página é escura (texto claro por cima). */
+  pageDark: boolean;
+  /** Os cartões dos pratos são escuros. */
+  cardDark: boolean;
+  /** Títulos/descrições sobre a página. */
+  sectionFg: string;
+  sectionMuted: string;
+  /** Cartões dos pratos. */
+  card: string;
+  text: string;
+  muted: string;
+  border: string;
+  borderStrong: string;
+  cardShadow: string;
 }
 
 function svgUrl(body: string, width = 600, height = 600): string {
@@ -81,84 +98,196 @@ function softLight(top: string, edges: string): string {
   );
 }
 
+/** Superfícies comuns: página clara com cartões claros. */
+const LIGHT_SURFACE = {
+  card: '#FFFCF8',
+  text: '#1E1611',
+  muted: '#6B5D52',
+  border: 'rgba(30, 22, 17, 0.08)',
+  borderStrong: 'rgba(30, 22, 17, 0.18)',
+  cardShadow: '0 1px 2px rgba(60, 35, 15, 0.06), 0 10px 28px rgba(60, 35, 15, 0.1)',
+} as const;
+
 export const MENU_BACKGROUNDS: Record<MenuBackgroundId, MenuBackground> = {
-  nenhum: {
-    id: 'nenhum',
-    label: 'Liso',
-    css: null,
-    sectionFg: null,
-    sectionMuted: null,
-    preview: 'var(--swatch-bg)',
+  claro: {
+    id: 'claro',
+    label: 'Claro',
+    css: '#F4F1EC',
+    preview: '#F4F1EC',
+    baseColor: '#F4F1EC',
+    pageDark: false,
+    cardDark: false,
+    sectionFg: '#1A1714',
+    sectionMuted: '#5F574F',
+    ...LIGHT_SURFACE,
+  },
+  areia: {
+    id: 'areia',
+    label: 'Areia',
+    css: '#F3E6D6',
+    preview: '#F3E6D6',
+    baseColor: '#F3E6D6',
+    pageDark: false,
+    cardDark: false,
+    sectionFg: '#1E1611',
+    sectionMuted: '#5E5146',
+    ...LIGHT_SURFACE,
+  },
+  escuro: {
+    id: 'escuro',
+    label: 'Escuro',
+    css: 'radial-gradient(80% 35% at 50% 0%, rgba(255, 230, 190, 0.08) 0%, transparent 70%), #0F0E0C',
+    preview: '#0F0E0C',
+    baseColor: '#0F0E0C',
+    pageDark: true,
+    cardDark: true,
+    sectionFg: '#F2ECE3',
+    sectionMuted: '#A89F93',
+    card: '#191714',
+    text: '#F2ECE3',
+    muted: '#A89F93',
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderStrong: 'rgba(255, 255, 255, 0.22)',
+    cardShadow: 'none',
   },
   'madeira-clara': {
     id: 'madeira-clara',
     label: 'Madeira clara',
     css: `${softLight('rgba(255, 244, 228, 0.35)', 'rgba(70, 40, 15, 0.14)')}, ${LIGHT_WOOD} center top / 900px 900px, #D9B791`,
-    sectionFg: '#2B1A12',
-    sectionMuted: '#3D2A1E',
     preview: `${LIGHT_WOOD} center / 450px 450px`,
+    baseColor: '#D9B791',
+    pageDark: false,
+    cardDark: false,
+    sectionFg: '#24170E',
+    sectionMuted: '#3D2A1E',
+    ...LIGHT_SURFACE,
   },
   'madeira-escura': {
     id: 'madeira-escura',
     label: 'Madeira escura',
     css: `${softLight('rgba(255, 210, 160, 0.16)', 'rgba(0, 0, 0, 0.28)')}, ${DARK_WOOD} center top / 900px 900px, #4E3725`,
+    preview: `${DARK_WOOD} center / 450px 450px`,
+    baseColor: '#4E3725',
+    pageDark: true,
+    cardDark: false,
     sectionFg: '#FFF7EE',
     sectionMuted: 'rgba(255, 247, 238, 0.86)',
-    preview: `${DARK_WOOD} center / 450px 450px`,
+    ...LIGHT_SURFACE,
   },
   linho: {
     id: 'linho',
     label: 'Linho',
     css: `${LINEN} 0 0 / 300px 300px, #EFE6D8`,
-    sectionFg: '#2B1A12',
-    sectionMuted: '#5A4636',
     preview: `${LINEN} 0 0 / 150px 150px`,
+    baseColor: '#EFE6D8',
+    pageDark: false,
+    cardDark: false,
+    sectionFg: '#24170E',
+    sectionMuted: '#5A4636',
+    ...LIGHT_SURFACE,
   },
   pedra: {
     id: 'pedra',
     label: 'Pedra',
     css: `${STONE} center top / 600px 600px, #D9D8D5`,
+    preview: `${STONE} center / 300px 300px`,
+    baseColor: '#D9D8D5',
+    pageDark: false,
+    cardDark: false,
     sectionFg: '#1F1F1F',
     sectionMuted: '#454545',
-    preview: `${STONE} center / 300px 300px`,
+    ...LIGHT_SURFACE,
   },
 };
 
-export function resolveMenuBackground(id: string | null | undefined): MenuBackground {
-  if (id && (MENU_BACKGROUND_IDS as readonly string[]).includes(id)) {
+export function resolveMenuBackground(id: unknown): MenuBackground {
+  if (typeof id === 'string' && (MENU_BACKGROUND_IDS as readonly string[]).includes(id)) {
     return MENU_BACKGROUNDS[id as MenuBackgroundId];
   }
-  return MENU_BACKGROUNDS.nenhum;
+  return MENU_BACKGROUNDS.areia;
 }
 
-/** Variáveis CSS a juntar às da paleta quando há um fundo escolhido. */
-export function backgroundCssVars(background: MenuBackground): Record<string, string> {
-  const vars: Record<string, string> = {};
-  if (background.css) {
-    vars['--page-bg'] = background.css;
-  }
-  if (background.sectionFg) {
-    vars['--section-fg'] = background.sectionFg;
-  }
-  if (background.sectionMuted) {
-    vars['--section-muted'] = background.sectionMuted;
-  }
-  return vars;
+// ---------------------------------------------------------------------------
+// Cor (só os destaques: preços, títulos das secções, categoria ativa, traços)
+// ---------------------------------------------------------------------------
+
+export const MENU_ACCENT_IDS = ['terracota', 'dourado', 'verde', 'azul', 'grafite'] as const;
+
+export type MenuAccentId = (typeof MENU_ACCENT_IDS)[number];
+
+interface AccentShade {
+  /** Texto de destaque (preços, títulos) com contraste AA sobre esta superfície. */
+  text: string;
+  /** Categoria ativa. */
+  pillBg: string;
+  pillFg: string;
 }
 
-/** Lê `settings.appearance.background` (JSON do restaurante) com fallback para «Liso». */
-export function parseMenuBackgroundId(settings: unknown): MenuBackgroundId {
-  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    return 'nenhum';
-  }
-  const appearance = (settings as Record<string, unknown>).appearance;
-  if (!appearance || typeof appearance !== 'object' || Array.isArray(appearance)) {
-    return 'nenhum';
-  }
-  return resolveMenuBackground((appearance as Record<string, unknown>).background as string).id;
+export interface MenuAccent {
+  id: MenuAccentId;
+  label: string;
+  /** Cor da amostra no painel. */
+  swatch: string;
+  /** Traço sob os títulos. */
+  line: string;
+  onLight: AccentShade;
+  onDark: AccentShade;
 }
 
-/** Disposição dos pratos na carta («Disposição» nas definições). */
+export const MENU_ACCENTS: Record<MenuAccentId, MenuAccent> = {
+  terracota: {
+    id: 'terracota',
+    label: 'Terracota',
+    swatch: '#B9461F',
+    line: '#C2532B',
+    onLight: { text: '#A63C18', pillBg: '#B9461F', pillFg: '#FFFFFF' },
+    onDark: { text: '#F0956C', pillBg: '#C2532B', pillFg: '#FFFFFF' },
+  },
+  dourado: {
+    id: 'dourado',
+    label: 'Dourado',
+    swatch: '#C9973F',
+    line: '#C9973F',
+    onLight: { text: '#765210', pillBg: '#7E5C14', pillFg: '#FFFFFF' },
+    onDark: { text: '#E5B76B', pillBg: '#D9A65A', pillFg: '#14100A' },
+  },
+  verde: {
+    id: 'verde',
+    label: 'Verde',
+    swatch: '#2F6B4F',
+    line: '#3C8462',
+    onLight: { text: '#2A6248', pillBg: '#2F6B4F', pillFg: '#FFFFFF' },
+    onDark: { text: '#86CDA8', pillBg: '#33765A', pillFg: '#FFFFFF' },
+  },
+  azul: {
+    id: 'azul',
+    label: 'Azul',
+    swatch: '#1F4E7A',
+    line: '#2C6496',
+    onLight: { text: '#1F4E7A', pillBg: '#1F3A5F', pillFg: '#FFFFFF' },
+    onDark: { text: '#93BDE6', pillBg: '#2C6496', pillFg: '#FFFFFF' },
+  },
+  grafite: {
+    id: 'grafite',
+    label: 'Grafite',
+    swatch: '#1A1714',
+    line: '#3A342E',
+    onLight: { text: '#1A1714', pillBg: '#1A1714', pillFg: '#FFFFFF' },
+    onDark: { text: '#F2ECE3', pillBg: '#F2ECE3', pillFg: '#0F0E0C' },
+  },
+};
+
+export function resolveMenuAccent(id: unknown): MenuAccent {
+  if (typeof id === 'string' && (MENU_ACCENT_IDS as readonly string[]).includes(id)) {
+    return MENU_ACCENTS[id as MenuAccentId];
+  }
+  return MENU_ACCENTS.terracota;
+}
+
+// ---------------------------------------------------------------------------
+// Disposição dos pratos
+// ---------------------------------------------------------------------------
+
 export const MENU_LAYOUT_IDS = ['lista', 'grelha', 'foto'] as const;
 
 export type MenuLayoutId = (typeof MENU_LAYOUT_IDS)[number];
@@ -175,21 +304,110 @@ export function resolveMenuLayout(id: unknown): MenuLayoutId {
     : 'lista';
 }
 
-/**
- * Lê `settings.appearance.layout`. Compatível com a opção antiga `columns: true` (→ grelha).
- * Por omissão: lista.
- */
-export function parseMenuLayout(settings: unknown): MenuLayoutId {
+// ---------------------------------------------------------------------------
+// Leitura das definições (com compatibilidade com escolhas antigas)
+// ---------------------------------------------------------------------------
+
+export interface MenuAppearance {
+  background: MenuBackgroundId;
+  accent: MenuAccentId;
+  layout: MenuLayoutId;
+}
+
+/** Fundo e cor por omissão a partir do estilo antigo guardado em restaurants.style. */
+const LEGACY_BY_STYLE: Record<string, { background: MenuBackgroundId; accent: MenuAccentId }> = {
+  classico: { background: 'areia', accent: 'terracota' },
+  moderno: { background: 'claro', accent: 'grafite' },
+  escuro: { background: 'escuro', accent: 'dourado' },
+};
+
+function appearanceRecord(settings: unknown): Record<string, unknown> {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    return 'lista';
+    return {};
   }
   const appearance = (settings as Record<string, unknown>).appearance;
   if (!appearance || typeof appearance !== 'object' || Array.isArray(appearance)) {
-    return 'lista';
+    return {};
   }
-  const record = appearance as Record<string, unknown>;
-  if (typeof record.layout === 'string') {
-    return resolveMenuLayout(record.layout);
-  }
-  return record.columns === true ? 'grelha' : 'lista';
+  return appearance as Record<string, unknown>;
+}
+
+/**
+ * Lê `settings.appearance` ({ background, accent, layout }).
+ * - Fundo «nenhum» (antigo «Liso») ou em falta → fundo liso do estilo antigo.
+ * - Cor em falta → cor do estilo antigo.
+ * - `columns: true` (opção antiga) → disposição «grelha».
+ */
+export function parseMenuAppearance(
+  settings: unknown,
+  legacyStyle?: string | null,
+): MenuAppearance {
+  const record = appearanceRecord(settings);
+  const legacy = LEGACY_BY_STYLE[legacyStyle ?? ''] ?? LEGACY_BY_STYLE.classico!;
+
+  const rawBackground = record.background;
+  const background =
+    typeof rawBackground === 'string' &&
+    (MENU_BACKGROUND_IDS as readonly string[]).includes(rawBackground)
+      ? (rawBackground as MenuBackgroundId)
+      : legacy.background;
+
+  const rawAccent = record.accent;
+  const accent =
+    typeof rawAccent === 'string' && (MENU_ACCENT_IDS as readonly string[]).includes(rawAccent)
+      ? (rawAccent as MenuAccentId)
+      : legacy.accent;
+
+  const layout =
+    typeof record.layout === 'string'
+      ? resolveMenuLayout(record.layout)
+      : record.columns === true
+        ? 'grelha'
+        : 'lista';
+
+  return { background, accent, layout };
+}
+
+const SERIF = 'var(--font-serif), Georgia, serif';
+const SANS = 'var(--font-sans), system-ui, sans-serif';
+
+/** Variáveis CSS da carta para um fundo e uma cor. */
+export function menuCssVars(backgroundId: MenuBackgroundId, accentId: MenuAccentId) {
+  const bg = MENU_BACKGROUNDS[backgroundId];
+  const accent = MENU_ACCENTS[accentId];
+  const onPage = bg.pageDark ? accent.onDark : accent.onLight;
+  const onCard = bg.cardDark ? accent.onDark : accent.onLight;
+
+  return {
+    '--page-bg': bg.css,
+    '--color-bg': bg.baseColor,
+    '--color-card': bg.card,
+    '--color-text': bg.text,
+    '--color-muted': bg.muted,
+    '--color-border': bg.border,
+    '--color-border-strong': bg.borderStrong,
+    '--color-line': bg.borderStrong,
+    '--color-azulejo': accent.line,
+    '--color-accent': accent.line,
+    '--color-on-accent': onPage.pillFg,
+    '--color-accent-text': onCard.text,
+    '--nav-bg': bg.pageDark
+      ? `color-mix(in srgb, ${bg.baseColor} 82%, transparent)`
+      : `color-mix(in srgb, ${bg.baseColor} 90%, transparent)`,
+    '--pill-bg': bg.pageDark ? 'transparent' : bg.card,
+    '--pill-fg': bg.sectionMuted,
+    '--pill-active-bg': onPage.pillBg,
+    '--pill-active-fg': onPage.pillFg,
+    '--section-fg': onPage.text,
+    '--section-muted': bg.sectionMuted,
+    '--header-fg': bg.sectionFg,
+    '--price-bg': 'transparent',
+    '--price-fg': onCard.text,
+    '--card-shadow': bg.cardShadow,
+    '--radius-card': '20px',
+    '--radius-pill': '999px',
+    '--radius-thumb': '14px',
+    '--font-display': SERIF,
+    '--font-body': SANS,
+  } as const;
 }

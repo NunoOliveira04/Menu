@@ -23,8 +23,8 @@
 }
 
 /*
- * Menu público. Tokens em .menu-theme definidos por paleta (lib/themes/registry.ts) e,
- * opcionalmente, por fundo (lib/themes/backgrounds.ts → --page-bg, --section-fg, --section-muted).
+ * Menu público. Tokens em .menu-theme definidos por menuCssVars (lib/themes/backgrounds.ts):
+ * o Fundo define a página e os cartões; a Cor só os destaques.
  */
 .menu-theme {
   min-height: 100vh;
@@ -76,10 +76,12 @@
 .menu-header {
   position: relative;
   background: transparent;
-  color: var(--section-fg);
+  color: var(--header-fg);
 }
 
-.menu-theme:not([data-background='nenhum']) .menu-nav {
+.menu-theme[data-background^='madeira'] .menu-nav,
+.menu-theme[data-background='linho'] .menu-nav,
+.menu-theme[data-background='pedra'] .menu-nav {
   border-bottom-color: transparent;
   background: color-mix(in srgb, var(--color-bg) 38%, transparent);
 }
@@ -130,7 +132,7 @@
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--section-fg);
+  color: var(--header-fg);
 }
 
 .menu-header-description {
@@ -541,7 +543,7 @@
 
 /* ===========================================================================
  * Topo e títulos iguais em todas as cartas (estilo «Noite»): logotipo, nome em
- * letra elegante e subtítulo em itálico, centrados. Muda só a cor (data-theme)
+ * letra elegante e subtítulo em itálico, centrados. Muda só a cor de destaque (data-accent), o fundo (data-background)
  * e a disposição dos pratos (data-layout).
  * ======================================================================== */
 .menu-theme .menu-header-inner {
@@ -585,7 +587,7 @@
   margin: 12px auto 0;
 }
 
-.menu-theme[data-theme='escuro'] .menu-lang a[aria-current='page'] {
+.menu-theme[data-page='dark'] .menu-lang a[aria-current='page'] {
   background: #f2ece3;
   color: #0f0e0c;
 }
@@ -703,7 +705,7 @@
 }
 
 /* Na cor «Noite», os pratos não levam cartão: só uma linha fina a separar. */
-.menu-theme[data-theme='escuro'][data-layout='foto'] .menu-dish {
+.menu-theme[data-cards='dark'][data-layout='foto'] .menu-dish {
   border-radius: 0;
   border-bottom: 1px solid var(--color-border);
   background: transparent;
@@ -711,11 +713,11 @@
   box-shadow: none;
 }
 
-.menu-theme[data-theme='escuro'][data-layout='foto'] .menu-thumb {
+.menu-theme[data-cards='dark'][data-layout='foto'] .menu-thumb {
   border-radius: 6px;
 }
 
-.menu-theme[data-theme='escuro'][data-layout='foto'] .menu-dish-copy {
+.menu-theme[data-cards='dark'][data-layout='foto'] .menu-dish-copy {
   padding: 14px 2px 10px;
 }
 
