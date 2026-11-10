@@ -103,9 +103,7 @@ export function AllergenSheetButton({
         onClick={() => setOpen(true)}
       >
         <span>{buttonLabel}</span>
-        <span className="menu-allergen-nums" aria-hidden="true">
-          {allergens.map((allergen) => allergen.number).join(' · ')}
-        </span>
+        <span className="menu-allergen-count">({allergens.length})</span>
       </button>
 
       {open && (

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
+import { dishBadge, restaurantInitials } from '@/lib/menu/hero';
 import {
   isProtectedAdminPath,
   isPublicAdminAuthPath,
@@ -74,10 +74,23 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(restaurantInitials('')).toBe('?');
   });
 
-  it('só mostra «Da casa» no selo featured', () => {
-    expect(showsHouseBadge('featured', true)).toBe(true);
-    expect(showsHouseBadge('recommended', true)).toBe(false);
-    expect(showsHouseBadge('featured', false)).toBe(false);
+  it('mostra os três selos (Da casa, Recomendado, Novo) só com o módulo ligado', () => {
+    expect(dishBadge('featured', true)).toBe('featured');
+    expect(dishBadge('recommended', true)).toBe('recommended');
+    expect(dishBadge('new', true)).toBe('new');
+    expect(dishBadge('featured', false)).toBeNull();
+    expect(dishBadge('outro', true)).toBeNull();
+    expect(dishBadge(null, true)).toBeNull();
+  });
+
+  it('o botão dos alergénios mostra a contagem e a ficha não fala do regulamento', () => {
+    const sheet = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/allergen-sheet.tsx'),
+      'utf8',
+    );
+    expect(sheet).toContain('({allergens.length})');
+    const i18n = readFileSync(resolve(process.cwd(), 'src/lib/modules/i18n.ts'), 'utf8');
+    expect(i18n).not.toMatch(/Regulamento|Regulation|1169/);
   });
 
   it('o admin deixa escolher fundo, cor e disposição, sem «Publicar» nem foto de capa', () => {
