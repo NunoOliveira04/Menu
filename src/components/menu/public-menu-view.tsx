@@ -18,6 +18,7 @@ import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
 import {
   backgroundCssVars,
   parseMenuBackgroundId,
+  parseMenuColumns,
   resolveMenuBackground,
 } from '@/lib/themes/backgrounds';
 import { resolveMenuTheme } from '@/lib/themes/registry';
@@ -103,6 +104,7 @@ export function PublicMenuView({
       style={themeStyle}
       data-theme={theme.id}
       data-background={background.id}
+      data-columns={parseMenuColumns(restaurant.settings) ? 'true' : 'false'}
     >
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}

@@ -11,14 +11,17 @@ import { MENU_THEMES, SELECTABLE_STYLES } from '@/lib/themes/registry';
 import type { RestaurantStyle } from '@/types/database';
 
 /**
- * Escolha de «Cores» (paleta) e «Fundo» da carta. Envia `style` e `background` no formulário.
+ * Escolha de «Estilo», «2 colunas» e «Fundo» da carta.
+ * Envia `style`, `columns` e `background` no formulário.
  */
 export function AppearancePicker({
   initialStyle,
   initialBackground,
+  initialColumns,
 }: {
   initialStyle: RestaurantStyle;
   initialBackground: MenuBackgroundId;
+  initialColumns: boolean;
 }) {
   const [style, setStyle] = useState<RestaurantStyle>(
     SELECTABLE_STYLES.includes(initialStyle) ? initialStyle : 'classico',
@@ -29,7 +32,7 @@ export function AppearancePicker({
   return (
     <div className="space-y-6">
       <fieldset>
-        <legend className="text-sm font-medium text-stone-800">Cores</legend>
+        <legend className="text-sm font-medium text-stone-800">Estilo</legend>
         <div className="mt-2 grid grid-cols-3 gap-3">
           {SELECTABLE_STYLES.map((id) => {
             const option = MENU_THEMES[id];
@@ -79,6 +82,26 @@ export function AppearancePicker({
         </div>
         <p className="mt-1.5 text-xs text-stone-500">{theme.description}</p>
       </fieldset>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3.5">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-stone-900">Pratos em 2 colunas</span>
+          <span className="mt-0.5 block text-xs text-stone-500">
+            Mostra dois pratos por linha, em grelha. Funciona com qualquer estilo.
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          name="columns"
+          defaultChecked={initialColumns}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden="true"
+          className="relative mt-1 h-6 w-11 shrink-0 rounded-full bg-stone-300 transition peer-checked:bg-[#8C3B2B] peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
+        />
+      </label>
 
       <fieldset>
         <legend className="text-sm font-medium text-stone-800">Fundo</legend>

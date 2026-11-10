@@ -617,12 +617,15 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       const fd = baseRestaurantForm();
       fd.set('style', 'escuro');
       fd.set('background', 'madeira-escura');
+      fd.set('columns', 'on');
       const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
 
       expect(result.status).toBe('success');
       const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(payload.style).toBe('escuro');
-      expect(payload.settings).toMatchObject({ appearance: { background: 'madeira-escura' } });
+      expect(payload.settings).toMatchObject({
+        appearance: { background: 'madeira-escura', columns: true },
+      });
     });
 
     it('ignora um fundo inválido e usa «Liso»', async () => {

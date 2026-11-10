@@ -539,6 +539,285 @@
   text-align: center;
 }
 
+/* ===========================================================================
+ * Estilos de carta (data-theme) e opção «2 colunas» (data-columns).
+ * A base acima é o cartão com foto grande; cada estilo ajusta o layout.
+ * ======================================================================== */
+
+/* ---- Estilo «Lista» (classico): linhas com texto à esquerda e foto à direita. ---- */
+.menu-theme[data-theme='classico'] .menu-header-inner {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 18px 16px;
+  text-align: left;
+}
+
+.menu-theme[data-theme='classico'] .menu-header:has(.menu-lang) .menu-header-inner {
+  padding-right: 104px;
+}
+
+.menu-theme[data-theme='classico'] .menu-logo {
+  width: 64px;
+  height: 64px;
+  border-width: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.menu-theme[data-theme='classico'] .menu-header-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.menu-theme[data-theme='classico'] .menu-header-description {
+  flex-basis: 100%;
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+.menu-theme[data-theme='classico'] .menu-lang {
+  top: 26px;
+}
+
+.menu-theme[data-theme='classico'] .menu-section-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.menu-theme[data-theme='classico'] .menu-sheet {
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  padding: 0 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.menu-theme[data-theme='classico'] .menu-dish-list {
+  gap: 0;
+}
+
+.menu-theme[data-theme='classico'] .menu-dish {
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 14px;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 0;
+  box-shadow: none;
+}
+
+.menu-theme[data-theme='classico'] .menu-dish-list > li + li .menu-dish {
+  border-top: 1px solid var(--color-border);
+}
+
+.menu-theme[data-theme='classico'] .menu-thumb {
+  width: 108px;
+  height: 108px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-thumb);
+}
+
+.menu-theme[data-theme='classico'] .menu-dish-copy {
+  flex: 1;
+  padding: 0;
+}
+
+.menu-theme[data-theme='classico'] .menu-dish-line {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-theme[data-theme='classico'] .menu-price {
+  padding: 0;
+}
+
+.menu-theme[data-theme='classico'] .menu-desc {
+  font-size: 14px;
+}
+
+/* ---- Estilo «Fotos» (moderno): nome e preço escritos em cima da foto. ---- */
+.menu-theme[data-theme='moderno'] .menu-header-inner {
+  padding: 30px 20px 14px;
+}
+
+.menu-theme[data-theme='moderno'] .menu-logo {
+  width: 80px;
+  height: 80px;
+}
+
+.menu-theme[data-theme='moderno'] .menu-dish {
+  position: relative;
+}
+
+.menu-theme[data-theme='moderno'] .menu-thumb {
+  aspect-ratio: 4 / 3;
+}
+
+.menu-theme[data-theme='moderno'] .menu-dish:has(.menu-thumb) .menu-dish-line {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  aspect-ratio: 4 / 3;
+  align-items: flex-end;
+  padding: 16px 18px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.72) 0%,
+    rgba(0, 0, 0, 0.18) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.menu-theme[data-theme='moderno'] .menu-dish:has(.menu-thumb) .menu-dish-name {
+  color: #ffffff;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.menu-theme[data-theme='moderno'] .menu-price {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.menu-theme[data-theme='moderno'] .menu-dish:has(.menu-thumb) .menu-desc {
+  margin-top: 0;
+}
+
+/* ---- Estilo «Noite» (escuro): editorial, centrado, sem cartões. ---- */
+.menu-theme[data-theme='escuro'] .menu-logo {
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-theme[data-theme='escuro'] .menu-header-description {
+  font-style: italic;
+}
+
+.menu-theme[data-theme='escuro'] .menu-section-title,
+.menu-theme[data-theme='escuro'] .menu-section-desc {
+  text-align: center;
+}
+
+.menu-theme[data-theme='escuro'] .menu-section-title::after {
+  width: 40px;
+  height: 1px;
+  margin: 12px auto 0;
+}
+
+.menu-theme[data-theme='escuro'] .menu-dish {
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  padding-bottom: 6px;
+  box-shadow: none;
+}
+
+.menu-theme[data-theme='escuro'] .menu-thumb {
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-thumb);
+}
+
+.menu-theme[data-theme='escuro'] .menu-dish-copy {
+  padding: 14px 2px 10px;
+}
+
+.menu-theme[data-theme='escuro'] .menu-dish-name {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.25rem;
+}
+
+.menu-theme[data-theme='escuro'] .menu-price {
+  padding: 0;
+}
+
+.menu-theme[data-theme='escuro'] .menu-lang a[aria-current='page'] {
+  background: #f2ece3;
+  color: #0f0e0c;
+}
+
+/* ---- Opção «2 colunas»: grelha de pratos, com qualquer estilo. ---- */
+.menu-theme[data-columns='true'] .menu-sheet {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.menu-theme[data-columns='true'] .menu-dish-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+.menu-theme[data-columns='true'] .menu-dish {
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  background: var(--color-card);
+  padding: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.menu-theme[data-columns='true'] .menu-dish-list > li + li .menu-dish {
+  border-top: 0;
+}
+
+.menu-theme[data-columns='true'] .menu-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 0;
+}
+
+.menu-theme[data-columns='true'] .menu-dish-copy {
+  padding: 10px 12px 12px;
+}
+
+.menu-theme[data-columns='true'] .menu-dish .menu-dish-line {
+  position: static;
+  flex-direction: column;
+  gap: 2px;
+  aspect-ratio: auto;
+  padding: 0;
+  background: none;
+}
+
+.menu-theme[data-columns='true'] .menu-dish .menu-dish-name {
+  color: var(--color-text);
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  text-shadow: none;
+}
+
+.menu-theme[data-columns='true'] .menu-price {
+  background: transparent;
+  padding: 0;
+  color: var(--color-accent-text);
+  font-size: 0.95rem;
+  box-shadow: none;
+}
+
+.menu-theme[data-columns='true'] .menu-desc {
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.menu-theme[data-columns='true'] .menu-allergen-btn {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
 .menu-empty,
 .menu-info {
   margin-top: 28px;

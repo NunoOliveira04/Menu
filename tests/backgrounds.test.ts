@@ -4,6 +4,7 @@ import {
   MENU_BACKGROUNDS,
   backgroundCssVars,
   parseMenuBackgroundId,
+  parseMenuColumns,
   resolveMenuBackground,
 } from '@/lib/themes/backgrounds';
 
@@ -47,5 +48,12 @@ describe('Fundos da carta («Fundo» nas definições)', () => {
     expect(parseMenuBackgroundId(null)).toBe('nenhum');
     expect(parseMenuBackgroundId([])).toBe('nenhum');
     expect(resolveMenuBackground(undefined).id).toBe('nenhum');
+  });
+
+  it('lê a opção «2 colunas» e por omissão mostra uma coluna', () => {
+    expect(parseMenuColumns({ appearance: { columns: true } })).toBe(true);
+    expect(parseMenuColumns({ appearance: { columns: 'sim' } })).toBe(false);
+    expect(parseMenuColumns({ appearance: {} })).toBe(false);
+    expect(parseMenuColumns(null)).toBe(false);
   });
 });

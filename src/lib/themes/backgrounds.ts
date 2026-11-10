@@ -157,3 +157,15 @@ export function parseMenuBackgroundId(settings: unknown): MenuBackgroundId {
   }
   return resolveMenuBackground((appearance as Record<string, unknown>).background as string).id;
 }
+
+/** Lê `settings.appearance.columns` (pratos em 2 colunas). Por omissão: false. */
+export function parseMenuColumns(settings: unknown): boolean {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    return false;
+  }
+  const appearance = (settings as Record<string, unknown>).appearance;
+  if (!appearance || typeof appearance !== 'object' || Array.isArray(appearance)) {
+    return false;
+  }
+  return (appearance as Record<string, unknown>).columns === true;
+}

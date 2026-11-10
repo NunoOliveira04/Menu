@@ -83,8 +83,8 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
 
   it('há três paletas («Cores») com nomes simples e todos os tokens usados pelo CSS', () => {
     expect(SELECTABLE_STYLES).toEqual(['classico', 'moderno', 'escuro']);
-    expect(MENU_THEMES.classico.label).toBe('Quente');
-    expect(MENU_THEMES.moderno.label).toBe('Viva');
+    expect(MENU_THEMES.classico.label).toBe('Lista');
+    expect(MENU_THEMES.moderno.label).toBe('Fotos');
     expect(MENU_THEMES.escuro.label).toBe('Noite');
     expect(resolveMenuTheme('desconhecido').id).toBe('classico');
 
@@ -127,6 +127,7 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(form).toContain('<AppearancePicker');
     expect(picker).toContain('name="style"');
     expect(picker).toContain('name="background"');
+    expect(picker).toContain('name="columns"');
     expect(form).not.toContain('name="published"');
     expect(form).not.toContain('coverPhoto');
   });
