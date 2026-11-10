@@ -53,17 +53,21 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(resolveSafeAdminNextPath(null)).toBe('/admin');
   });
 
-  it('o cabeçalho usa a capa e o logotipo do dono (não um prato) e funciona sem eles', () => {
+  it('o cabeçalho é simples: logotipo (ou iniciais), nome e descrição — sem capa nem etiquetas', () => {
     const view = readFileSync(
       resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
       'utf8',
     );
+    const header = view.slice(view.indexOf('<header'), view.indexOf('</header>'));
+    expect(header).toContain('logoUrl');
+    expect(header).toContain('menu-logo-initials');
+    expect(header).toContain('menu-header-title');
+    // Sem foto de capa, sem localização e sem «Aberto/Encerrado» no topo.
+    expect(view).not.toContain('coverPhotoUrl');
+    expect(header).not.toContain('restaurant.location');
+    expect(header).not.toContain('openNowBadge');
+    expect(header).not.toContain('closedNowBadge');
     expect(view).not.toContain('selectMenuHero');
-    expect(view).toContain('coverPhotoUrl');
-    expect(view).toContain('logoUrl');
-    expect(view).toContain('menu-logo-initials');
-    // A foto de capa já não leva texto por cima (sem gradiente escuro).
-    expect(view).not.toContain('menu-hero-scrim');
 
     expect(restaurantInitials('Menu Restaurante')).toBe('MR');
     expect(restaurantInitials('  tasca  ')).toBe('T');
@@ -77,38 +81,55 @@ describe('Grupo 3 — rotas /admin, hero e carta sem bloco de destaques', () => 
     expect(showsHouseBadge('featured', false)).toBe(false);
   });
 
-  it('o tema do piloto (id classico) tem o visual moderno e limpo', () => {
-    const theme = resolveMenuTheme('classico');
-    expect(theme.label).toBe('Essencial');
-    expect(theme.ornament).toBe('none');
-    expect(theme.cssVars['--color-bg']).toBe('#F6F6F3');
-    expect(theme.cssVars['--color-text']).toBe('#18181B');
-    expect(theme.cssVars['--color-card']).toBe('#FFFFFF');
-    expect(theme.cssVars['--color-muted']).toBe('#5F5F67');
-    expect(theme.cssVars['--font-display']).toContain('--font-sans');
-    // Todos os temas definem os tokens novos usados pelo CSS
-    for (const t of Object.values(MENU_THEMES)) {
-      expect(t.cssVars['--color-border']).toBeTruthy();
-      expect(t.cssVars['--color-border-strong']).toBeTruthy();
-      expect(t.cssVars['--color-accent-text']).toBeTruthy();
-    }
-    expect(MENU_THEMES.moderno.ornament).toBe('rule');
-    expect(MENU_THEMES.escuro.ornament).toBe('rule');
+  it('há três paletas («Cores») com nomes simples e todos os tokens usados pelo CSS', () => {
+    expect(SELECTABLE_STYLES).toEqual(['classico', 'moderno', 'escuro']);
+    expect(MENU_THEMES.classico.label).toBe('Areia');
+    expect(MENU_THEMES.moderno.label).toBe('Claro');
+    expect(MENU_THEMES.escuro.label).toBe('Noite');
     expect(resolveMenuTheme('desconhecido').id).toBe('classico');
+
+    const requiredTokens = [
+      '--color-bg',
+      '--color-card',
+      '--color-text',
+      '--color-muted',
+      '--color-accent',
+      '--color-border',
+      '--color-border-strong',
+      '--color-accent-text',
+      '--nav-bg',
+      '--pill-fg',
+      '--pill-active-bg',
+      '--pill-active-fg',
+      '--section-fg',
+      '--section-muted',
+      '--price-bg',
+      '--price-fg',
+      '--card-shadow',
+    ] as const;
+    for (const theme of Object.values(MENU_THEMES)) {
+      expect(theme.ornament).toBe('none');
+      for (const token of requiredTokens) {
+        expect(theme.cssVars[token], `${theme.id} ${token}`).toBeTruthy();
+      }
+    }
   });
 
-  it('no piloto o dono só vê o estilo clássico, sem apagar os outros temas (ponto 8)', () => {
-    expect(SELECTABLE_STYLES).toEqual(['classico']);
-    // O código dos outros temas mantém-se e a carta continua a sabê-los mostrar.
-    expect(resolveMenuTheme('moderno').id).toBe('moderno');
-    expect(resolveMenuTheme('escuro').id).toBe('escuro');
-
+  it('o admin deixa escolher cores e fundo, sem «Publicar» nem foto de capa', () => {
     const form = readFileSync(
       resolve(process.cwd(), 'src/components/dashboard/restaurant-settings-form.tsx'),
       'utf8',
     );
-    expect(form).toContain('SELECTABLE_STYLES.map');
-    expect(form).not.toMatch(/\['classico',\s*'moderno',\s*'escuro'\]/);
+    const picker = readFileSync(
+      resolve(process.cwd(), 'src/components/dashboard/appearance-picker.tsx'),
+      'utf8',
+    );
+    expect(form).toContain('<AppearancePicker');
+    expect(picker).toContain('name="style"');
+    expect(picker).toContain('name="background"');
+    expect(picker).toContain('name="layout"');
+    expect(form).not.toContain('name="published"');
+    expect(form).not.toContain('coverPhoto');
   });
 
   it('o menu público não tem secção Em Destaque e a seed só usa fotos de comida', () => {

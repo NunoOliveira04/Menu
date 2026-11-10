@@ -598,6 +598,48 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       return fd;
     }
 
+    it('guardar sem a opção «Publicar» mantém a carta pública', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.delete('published');
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      expect(update.mock.calls[0]?.[0]).toMatchObject({ published: true });
+    });
+
+    it('guarda a cor, a disposição e o fundo escolhidos nas definições', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.set('style', 'escuro');
+      fd.set('background', 'madeira-escura');
+      fd.set('layout', 'foto');
+      const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      expect(result.status).toBe('success');
+      const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(payload.style).toBe('escuro');
+      expect(payload.settings).toMatchObject({
+        appearance: { background: 'madeira-escura', layout: 'foto' },
+      });
+    });
+
+    it('ignora um fundo inválido e usa «Liso»', async () => {
+      const update = vi.fn();
+      mockOwnerRestaurant(update);
+
+      const fd = baseRestaurantForm();
+      fd.set('background', 'http://evil.example/fundo.png');
+      await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
+
+      const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(payload.settings).toMatchObject({ appearance: { background: 'nenhum' } });
+    });
+
     it('não toca em cover_photo_path quando a capa não muda', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);

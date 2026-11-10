@@ -15,6 +15,12 @@ import {
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
 import { buildCategoryAnchors } from '@/lib/menu/anchors';
 import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
+import {
+  backgroundCssVars,
+  parseMenuBackgroundId,
+  parseMenuLayout,
+  resolveMenuBackground,
+} from '@/lib/themes/backgrounds';
 import { resolveMenuTheme } from '@/lib/themes/registry';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -29,8 +35,6 @@ interface PublicMenuViewProps {
   restaurant: RestaurantRow;
   categories: CategoryRow[];
   dishes: DishRow[];
-  /** URL público da foto de capa escolhida pelo dono; null = cabeçalho tipográfico. */
-  coverPhotoUrl?: string | null;
   /** URL público do logotipo; null = iniciais do nome. */
   logoUrl?: string | null;
   modules: RestaurantModules;
@@ -44,7 +48,6 @@ export function PublicMenuView({
   restaurant,
   categories,
   dishes,
-  coverPhotoUrl = null,
   logoUrl = null,
   modules,
   locale,
@@ -55,6 +58,8 @@ export function PublicMenuView({
   const effectiveLocale: MenuLocale = modules.languages ? locale : 'pt';
   const ui = MENU_UI_STRINGS[effectiveLocale];
   const theme = resolveMenuTheme(restaurant.style);
+  const background = resolveMenuBackground(parseMenuBackgroundId(restaurant.settings));
+  const themeStyle = { ...theme.cssVars, ...backgroundCssVars(background) } as CSSProperties;
 
   const localizedRestaurantDescription = resolveLocalizedField(
     restaurant.description,
@@ -91,17 +96,15 @@ export function PublicMenuView({
   );
 
   const openStatus = modules.hours ? evaluateLisbonOpenStatus(weeklySchedule, now) : null;
-  const todaySchedule = openStatus
-    ? weeklySchedule.find((day) => day.dayOfWeek === openStatus.currentDayOfWeek)
-    : undefined;
-  const todayHours = todaySchedule ? formatDaySlots(todaySchedule, ui.closedDayLabel) : null;
 
   return (
     <div
       lang={localeToHtmlLang(effectiveLocale)}
       className="menu-theme"
-      style={theme.cssVars as CSSProperties}
+      style={themeStyle}
       data-theme={theme.id}
+      data-background={background.id}
+      data-layout={parseMenuLayout(restaurant.settings)}
     >
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}
@@ -113,20 +116,7 @@ export function PublicMenuView({
         </div>
       )}
 
-      <header className={coverPhotoUrl ? 'menu-header menu-header-with-banner' : 'menu-header'}>
-        {coverPhotoUrl && (
-          <div className="menu-banner">
-            <Image
-              src={coverPhotoUrl}
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 640px) 640px, 100vw"
-              className="menu-banner-img"
-            />
-          </div>
-        )}
-
+      <header className="menu-header">
         {modules.languages && (
           <nav aria-label={ui.languageSelectorLabel} className="menu-lang">
             <Link
@@ -169,32 +159,6 @@ export function PublicMenuView({
           <h1 className="menu-header-title">{restaurant.name}</h1>
           {localizedRestaurantDescription && (
             <p className="menu-header-description">{localizedRestaurantDescription}</p>
-          )}
-          {(restaurant.location || openStatus) && (
-            <p className="menu-header-meta">
-              {restaurant.location && <span>{restaurant.location}</span>}
-              {restaurant.location && openStatus && (
-                <span className="menu-header-dot" aria-hidden="true">
-                  ·
-                </span>
-              )}
-              {openStatus && (
-                <a
-                  href="#horario-funcionamento"
-                  className={openStatus.isOpen ? 'menu-open-pill is-open' : 'menu-open-pill'}
-                >
-                  {openStatus.isOpen ? ui.openNowBadge : ui.closedNowBadge}
-                </a>
-              )}
-              {todayHours && (
-                <>
-                  <span className="menu-header-dot" aria-hidden="true">
-                    ·
-                  </span>
-                  <span>{todayHours}</span>
-                </>
-              )}
-            </p>
           )}
         </div>
       </header>

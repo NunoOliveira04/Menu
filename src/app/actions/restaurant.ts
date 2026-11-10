@@ -8,6 +8,12 @@ import { buildEnglishTranslationsJson } from '@/lib/modules/i18n';
 import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/dish-photos';
 import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
+import {
+  parseMenuBackgroundId,
+  parseMenuLayout,
+  resolveMenuBackground,
+  resolveMenuLayout,
+} from '@/lib/themes/backgrounds';
 import { updateRestaurantSchema, weeklyHoursUpdateSchema } from '@/lib/validations/schemas';
 import type { Json, TimeSlot } from '@/types/database';
 import type { ActionState } from './types';
@@ -94,7 +100,7 @@ export async function updateRestaurantAction(
 
   const { data: currentRestaurant, error: currentError } = await supabase
     .from('restaurants')
-    .select('id, slug, published, translations')
+    .select('id, slug, published, translations, settings')
     .eq('id', restaurantIdInput)
     .maybeSingle();
 
@@ -113,12 +119,14 @@ export async function updateRestaurantAction(
       ? rawSlugEntry
       : currentRestaurant.slug;
 
-  const submittedPublished =
-    role === 'owner'
-      ? formData.get('published') === 'on' || formData.get('published') === 'true'
-      : rawPublishedPresent
-        ? formData.get('published') === 'on' || formData.get('published') === 'true'
-        : currentRestaurant.published;
+  // A carta está sempre pública: o formulário já não tem a opção «Publicar».
+  // Se o campo vier no pedido (clientes antigos), respeita-o; senão o owner publica sempre
+  // e os outros membros mantêm o estado atual.
+  const submittedPublished = rawPublishedPresent
+    ? formData.get('published') === 'on' || formData.get('published') === 'true'
+    : role === 'owner'
+      ? true
+      : currentRestaurant.published;
 
   const languagesEnabled = formData.get('module_languages') === 'on';
   const hoursEnabled = formData.get('module_hours') === 'on';
@@ -254,12 +262,27 @@ export async function updateRestaurantAction(
     imagePayload[slot.column] = nextPath;
   }
 
+  // Fundo da carta («Fundo» nas definições). Sem o campo, mantém o fundo atual.
+  const rawBackground = formData.get('background');
+  const background =
+    typeof rawBackground === 'string'
+      ? resolveMenuBackground(rawBackground).id
+      : parseMenuBackgroundId(currentRestaurant.settings);
+
   const settingsPayload: Json = {
     modules: {
       languages: parsed.data.modules.languages,
       allergens: parsed.data.modules.allergens,
       highlights: parsed.data.modules.highlights,
       hours: parsed.data.modules.hours,
+    },
+    appearance: {
+      background,
+      // Sem o campo no pedido (clientes antigos), mantém a disposição atual.
+      layout:
+        typeof formData.get('layout') === 'string'
+          ? resolveMenuLayout(formData.get('layout'))
+          : parseMenuLayout(currentRestaurant.settings),
     },
   };
 

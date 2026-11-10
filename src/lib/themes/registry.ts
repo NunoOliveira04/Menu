@@ -1,16 +1,9 @@
 import type { RestaurantStyle } from '@/types/database';
 
-export interface MenuThemePreviewPalette {
-  surfaceBg: string;
-  cardBg: string;
-  cardBorder: string;
-  headingText: string;
-  bodyText: string;
-  accentBg: string;
-  accentText: string;
-  fontClass: 'font-serif' | 'font-sans';
-}
-
+/**
+ * Tokens CSS de cada paleta (aplicados em `.menu-theme`). Os ids mantêm os valores aceites
+ * pela BD (`classico`, `moderno`, `escuro`); o nome mostrado ao dono é o `label`.
+ */
 export interface MenuThemeCssVars {
   '--color-bg': string;
   '--color-text': string;
@@ -20,12 +13,25 @@ export interface MenuThemeCssVars {
   '--color-card': string;
   '--color-muted': string;
   '--color-line': string;
-  /** Separadores e contornos subtis (listas, cartões, barra de categorias). */
+  /** Separadores e contornos subtis. */
   '--color-border': string;
   /** Contornos de botões secundários (alergénios, fechar). */
   '--color-border-strong': string;
-  /** Texto na cor do acento sobre fundo claro (contraste AA). */
+  /** Texto na cor do acento sobre o cartão (contraste AA). */
   '--color-accent-text': string;
+  /** Barra de categorias. */
+  '--nav-bg': string;
+  '--pill-bg': string;
+  '--pill-fg': string;
+  '--pill-active-bg': string;
+  '--pill-active-fg': string;
+  /** Títulos e descrições das secções (sobre o fundo da página). */
+  '--section-fg': string;
+  '--section-muted': string;
+  /** Preço em etiqueta. */
+  '--price-bg': string;
+  '--price-fg': string;
+  '--card-shadow': string;
   '--radius-card': string;
   '--radius-pill': string;
   '--radius-thumb': string;
@@ -38,128 +44,131 @@ export interface MenuThemeTokens {
   label: string;
   description: string;
   availableInMvp: boolean;
-  /** Ornamento entre o título da categoria e os pratos (`none` no visual moderno). */
+  /** Ornamento entre o título da categoria e os pratos (`none` no visual atual). */
   ornament: 'azulejo' | 'rule' | 'none';
+  /** Cores para a amostra no painel (topo, fundo, acento). */
+  swatch: { header: string; background: string; accent: string };
   cssVars: MenuThemeCssVars;
-  preview: MenuThemePreviewPalette;
 }
 
-const DISPLAY = 'var(--font-serif), Georgia, serif';
-const BODY = 'var(--font-sans), system-ui, sans-serif';
+const SERIF = 'var(--font-serif), Georgia, serif';
+const SANS = 'var(--font-sans), system-ui, sans-serif';
 
 export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
-  // O id mantém-se `classico` (valor por omissão na BD); o visual é o moderno e limpo do piloto.
+  // «Areia»: fundo areia quente com detalhes em terracota.
   classico: {
     id: 'classico',
-    label: 'Essencial',
-    description:
-      'Moderno e limpo: fundo claro, tipografia Inter, fotografias em destaque e categorias numa só linha.',
+    label: 'Areia',
+    description: 'Areia quente com detalhes em terracota.',
     availableInMvp: true,
     ornament: 'none',
+    swatch: { header: '#B9461F', background: '#F3E6D6', accent: '#B9461F' },
     cssVars: {
-      '--color-bg': '#F6F6F3',
-      '--color-text': '#18181B',
+      '--color-bg': '#F3E6D6',
+      '--color-text': '#1E1611',
       '--color-azulejo': '#1F3A5F',
-      '--color-accent': '#B5452B',
+      '--color-accent': '#B9461F',
       '--color-on-accent': '#FFFFFF',
-      '--color-card': '#FFFFFF',
-      '--color-muted': '#5F5F67',
-      '--color-line': 'rgba(24, 24, 27, 0.3)',
-      '--color-border': 'rgba(24, 24, 27, 0.08)',
-      '--color-border-strong': 'rgba(24, 24, 27, 0.18)',
-      '--color-accent-text': '#9E3A24',
-      '--radius-card': '16px',
+      '--color-card': '#FFFCF8',
+      '--color-muted': '#6B5D52',
+      '--color-line': 'rgba(30, 22, 17, 0.3)',
+      '--color-border': 'rgba(30, 22, 17, 0.08)',
+      '--color-border-strong': 'rgba(185, 70, 31, 0.32)',
+      '--color-accent-text': '#A63C18',
+      '--nav-bg': 'rgba(243, 230, 214, 0.94)',
+      '--pill-bg': '#FFFCF8',
+      '--pill-fg': '#3A2A20',
+      '--pill-active-bg': '#B9461F',
+      '--pill-active-fg': '#FFFFFF',
+      '--section-fg': '#1E1611',
+      '--section-muted': '#6B5D52',
+      '--price-bg': 'transparent',
+      '--price-fg': '#A63C18',
+      '--card-shadow': '0 1px 2px rgba(120, 60, 25, 0.06), 0 10px 28px rgba(120, 60, 25, 0.1)',
+      '--radius-card': '20px',
       '--radius-pill': '999px',
-      '--radius-thumb': '12px',
-      '--font-display': BODY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#F6F6F3]',
-      cardBg: 'bg-white',
-      cardBorder: 'border-[#E7E7E4]',
-      headingText: 'text-[#18181B]',
-      bodyText: 'text-[#5F5F67]',
-      accentBg: 'bg-[#18181B]',
-      accentText: 'text-[#18181B]',
-      fontClass: 'font-sans',
+      '--radius-thumb': '14px',
+      '--font-display': SERIF,
+      '--font-body': SANS,
     },
   },
+  // «Claro»: creme claro com detalhes escuros.
   moderno: {
     id: 'moderno',
-    label: 'Minimal Café',
-    description: 'Papel quente, tipografia sóbria e muito ar. Sem ornamento, só um filete.',
-    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
-    availableInMvp: false,
-    ornament: 'rule',
+    label: 'Claro',
+    description: 'Creme claro, limpo e elegante.',
+    availableInMvp: true,
+    ornament: 'none',
+    swatch: { header: '#1A1714', background: '#F4F1EC', accent: '#1A1714' },
     cssVars: {
-      '--color-bg': '#F6F4F1',
-      '--color-text': '#1C1C1C',
-      '--color-azulejo': '#1C1C1C',
-      '--color-accent': '#1C1C1C',
+      '--color-bg': '#F4F1EC',
+      '--color-text': '#1A1714',
+      '--color-azulejo': '#1A1714',
+      '--color-accent': '#B9461F',
       '--color-on-accent': '#FFFFFF',
       '--color-card': '#FFFFFF',
-      '--color-muted': '#5E5E5E',
-      '--color-line': 'rgba(28, 28, 28, 0.32)',
-      '--color-border': 'rgba(28, 28, 28, 0.08)',
-      '--color-border-strong': 'rgba(28, 28, 28, 0.18)',
-      '--color-accent-text': '#1C1C1C',
-      '--radius-card': '12px',
+      '--color-muted': '#6E655C',
+      '--color-line': 'rgba(26, 23, 20, 0.3)',
+      '--color-border': 'rgba(26, 23, 20, 0.07)',
+      '--color-border-strong': 'rgba(26, 23, 20, 0.18)',
+      '--color-accent-text': '#A63C18',
+      '--nav-bg': 'rgba(244, 241, 236, 0.94)',
+      '--pill-bg': 'transparent',
+      '--pill-fg': '#5E564E',
+      '--pill-active-bg': '#1A1714',
+      '--pill-active-fg': '#FFFFFF',
+      '--section-fg': '#1A1714',
+      '--section-muted': '#6E655C',
+      '--price-bg': 'transparent',
+      '--price-fg': '#A63C18',
+      '--card-shadow': '0 14px 34px rgba(26, 23, 20, 0.12)',
+      '--radius-card': '24px',
       '--radius-pill': '999px',
-      '--radius-thumb': '8px',
-      '--font-display': BODY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#F6F4F1]',
-      cardBg: 'bg-white',
-      cardBorder: 'border-[#E6E2DC]',
-      headingText: 'text-[#1C1C1C]',
-      bodyText: 'text-[#5E5E5E]',
-      accentBg: 'bg-[#1C1C1C]',
-      accentText: 'text-[#1C1C1C]',
-      fontClass: 'font-sans',
+      '--radius-thumb': '0px',
+      '--font-display': SERIF,
+      '--font-body': SANS,
     },
   },
+  // «Noite»: fundo escuro com detalhes dourados.
   escuro: {
     id: 'escuro',
-    label: 'Noir Gastronómico',
-    description: 'Carvão profundo, Fraunces e um acento dourado quente com contraste AA.',
-    // Escondido do dono durante o piloto (só «Clássico»). O código fica para mais tarde.
-    availableInMvp: false,
-    ornament: 'rule',
+    label: 'Noite',
+    description: 'Fundo escuro com detalhes dourados.',
+    availableInMvp: true,
+    ornament: 'none',
+    swatch: { header: '#0F0E0C', background: '#0F0E0C', accent: '#D9A65A' },
     cssVars: {
-      '--color-bg': '#0E0D0C',
-      '--color-text': '#F4EFE8',
-      '--color-azulejo': '#C6A57A',
-      '--color-accent': '#C6A57A',
-      '--color-on-accent': '#1A120C',
-      '--color-card': '#1A1816',
-      '--color-muted': '#CDBFB0',
-      '--color-line': 'rgba(244, 239, 232, 0.4)',
-      '--color-border': 'rgba(244, 239, 232, 0.12)',
-      '--color-border-strong': 'rgba(244, 239, 232, 0.28)',
-      '--color-accent-text': '#C6A57A',
-      '--radius-card': '16px',
+      '--color-bg': '#0F0E0C',
+      '--color-text': '#F2ECE3',
+      '--color-azulejo': '#D9A65A',
+      '--color-accent': '#D9A65A',
+      '--color-on-accent': '#0F0E0C',
+      '--color-card': '#191714',
+      '--color-muted': '#A89F93',
+      '--color-line': 'rgba(242, 236, 227, 0.35)',
+      '--color-border': 'rgba(255, 255, 255, 0.08)',
+      '--color-border-strong': 'rgba(255, 255, 255, 0.22)',
+      '--color-accent-text': '#E5B76B',
+      '--nav-bg': 'rgba(15, 14, 12, 0.92)',
+      '--pill-bg': 'transparent',
+      '--pill-fg': '#A89F93',
+      '--pill-active-bg': '#F2ECE3',
+      '--pill-active-fg': '#0F0E0C',
+      '--section-fg': '#F2ECE3',
+      '--section-muted': '#A89F93',
+      '--price-bg': 'transparent',
+      '--price-fg': '#E5B76B',
+      '--card-shadow': 'none',
+      '--radius-card': '6px',
       '--radius-pill': '999px',
-      '--radius-thumb': '12px',
-      '--font-display': DISPLAY,
-      '--font-body': BODY,
-    },
-    preview: {
-      surfaceBg: 'bg-[#0E0D0C]',
-      cardBg: 'bg-[#1A1816]',
-      cardBorder: 'border-[#3A342C]',
-      headingText: 'text-[#F4EFE8]',
-      bodyText: 'text-[#CDBFB0]',
-      accentBg: 'bg-[#C6A57A]',
-      accentText: 'text-[#C6A57A]',
-      fontClass: 'font-serif',
+      '--radius-thumb': '6px',
+      '--font-display': SERIF,
+      '--font-body': SANS,
     },
   },
 };
 
-/** Estilos que o dono pode escolher no admin (no piloto, só «classico»). */
+/** Cores que o dono pode escolher no painel («Cor»). */
 export const SELECTABLE_STYLES: readonly RestaurantStyle[] = (
   Object.values(MENU_THEMES) as MenuThemeTokens[]
 )

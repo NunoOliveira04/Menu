@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { PublicMenuView } from '@/components/menu/public-menu-view';
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { normalizeWeeklySchedule } from '@/lib/modules/hours';
@@ -8,6 +9,16 @@ import { resolvePhotoDisplayUrl, withPublicDishPhotoUrls } from '@/lib/storage/d
 import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
+
+/**
+ * Uma só consulta ao restaurante por pedido (partilhada por generateMetadata e pela página).
+ * RLS garante que anónimos só leem restaurantes com published = true;
+ * membros autenticados conseguem ler mesmo em modo rascunho.
+ */
+const getRestaurantBySlug = cache(async (slug: string) => {
+  const supabase = await createClient();
+  return supabase.from('restaurants').select('*').eq('slug', slug).maybeSingle();
+});
 
 interface PublicMenuPageProps {
   params: Promise<{ slug: string }>;
@@ -20,13 +31,7 @@ export async function generateMetadata({
 }: PublicMenuPageProps): Promise<Metadata> {
   const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const normalizedSlug = slug.trim().toLowerCase();
-  const supabase = await createClient();
-
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('name, slug, description, published, settings, translations')
-    .eq('slug', normalizedSlug)
-    .maybeSingle();
+  const { data: restaurant } = await getRestaurantBySlug(normalizedSlug);
 
   if (!restaurant) {
     return {
@@ -75,15 +80,10 @@ export async function generateMetadata({
 export default async function PublicMenuPage({ params, searchParams }: PublicMenuPageProps) {
   const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const normalizedSlug = slug.trim().toLowerCase();
-  const supabase = await createClient();
-
-  // RLS garante que anónimos só leem restaurantes com published = true;
-  // membros autenticados conseguem ler mesmo em modo rascunho.
-  const { data: restaurant, error } = await supabase
-    .from('restaurants')
-    .select('*')
-    .eq('slug', normalizedSlug)
-    .maybeSingle();
+  const [supabase, { data: restaurant, error }] = await Promise.all([
+    createClient(),
+    getRestaurantBySlug(normalizedSlug),
+  ]);
 
   if (error || !restaurant) {
     notFound();
@@ -123,7 +123,6 @@ export default async function PublicMenuPage({ params, searchParams }: PublicMen
       restaurant={restaurant}
       categories={categories ?? []}
       dishes={dishes}
-      coverPhotoUrl={resolvePhotoDisplayUrl(restaurant.cover_photo_path, supabaseUrl)}
       logoUrl={resolvePhotoDisplayUrl(restaurant.logo_path, supabaseUrl)}
       modules={settings.modules}
       locale={locale}
