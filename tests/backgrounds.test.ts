@@ -4,7 +4,8 @@ import {
   MENU_BACKGROUNDS,
   backgroundCssVars,
   parseMenuBackgroundId,
-  parseMenuColumns,
+  MENU_LAYOUT_IDS,
+  parseMenuLayout,
   resolveMenuBackground,
 } from '@/lib/themes/backgrounds';
 
@@ -50,10 +51,13 @@ describe('Fundos da carta («Fundo» nas definições)', () => {
     expect(resolveMenuBackground(undefined).id).toBe('nenhum');
   });
 
-  it('lê a opção «2 colunas» e por omissão mostra uma coluna', () => {
-    expect(parseMenuColumns({ appearance: { columns: true } })).toBe(true);
-    expect(parseMenuColumns({ appearance: { columns: 'sim' } })).toBe(false);
-    expect(parseMenuColumns({ appearance: {} })).toBe(false);
-    expect(parseMenuColumns(null)).toBe(false);
+  it('tem três disposições e lê a escolhida (compatível com a opção antiga de colunas)', () => {
+    expect(MENU_LAYOUT_IDS).toEqual(['lista', 'grelha', 'foto']);
+    expect(parseMenuLayout({ appearance: { layout: 'foto' } })).toBe('foto');
+    expect(parseMenuLayout({ appearance: { layout: 'grelha' } })).toBe('grelha');
+    expect(parseMenuLayout({ appearance: { layout: 'carrossel' } })).toBe('lista');
+    expect(parseMenuLayout({ appearance: { columns: true } })).toBe('grelha');
+    expect(parseMenuLayout({ appearance: {} })).toBe('lista');
+    expect(parseMenuLayout(null)).toBe('lista');
   });
 });

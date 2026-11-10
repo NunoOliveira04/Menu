@@ -610,21 +610,21 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       expect(update.mock.calls[0]?.[0]).toMatchObject({ published: true });
     });
 
-    it('guarda as cores e o fundo escolhidos nas definições', async () => {
+    it('guarda a cor, a disposição e o fundo escolhidos nas definições', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);
 
       const fd = baseRestaurantForm();
       fd.set('style', 'escuro');
       fd.set('background', 'madeira-escura');
-      fd.set('columns', 'on');
+      fd.set('layout', 'foto');
       const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
 
       expect(result.status).toBe('success');
       const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(payload.style).toBe('escuro');
       expect(payload.settings).toMatchObject({
-        appearance: { background: 'madeira-escura', columns: true },
+        appearance: { background: 'madeira-escura', layout: 'foto' },
       });
     });
 

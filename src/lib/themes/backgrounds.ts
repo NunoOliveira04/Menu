@@ -158,14 +158,38 @@ export function parseMenuBackgroundId(settings: unknown): MenuBackgroundId {
   return resolveMenuBackground((appearance as Record<string, unknown>).background as string).id;
 }
 
-/** Lê `settings.appearance.columns` (pratos em 2 colunas). Por omissão: false. */
-export function parseMenuColumns(settings: unknown): boolean {
+/** Disposição dos pratos na carta («Disposição» nas definições). */
+export const MENU_LAYOUT_IDS = ['lista', 'grelha', 'foto'] as const;
+
+export type MenuLayoutId = (typeof MENU_LAYOUT_IDS)[number];
+
+export const MENU_LAYOUTS: Record<MenuLayoutId, { label: string; description: string }> = {
+  lista: { label: 'Lista', description: 'Uma linha por prato, com a foto ao lado.' },
+  grelha: { label: 'Grelha', description: 'Dois pratos por linha, em colunas.' },
+  foto: { label: 'Foto grande', description: 'Um prato por linha, com a foto em destaque.' },
+};
+
+export function resolveMenuLayout(id: unknown): MenuLayoutId {
+  return typeof id === 'string' && (MENU_LAYOUT_IDS as readonly string[]).includes(id)
+    ? (id as MenuLayoutId)
+    : 'lista';
+}
+
+/**
+ * Lê `settings.appearance.layout`. Compatível com a opção antiga `columns: true` (→ grelha).
+ * Por omissão: lista.
+ */
+export function parseMenuLayout(settings: unknown): MenuLayoutId {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    return false;
+    return 'lista';
   }
   const appearance = (settings as Record<string, unknown>).appearance;
   if (!appearance || typeof appearance !== 'object' || Array.isArray(appearance)) {
-    return false;
+    return 'lista';
   }
-  return (appearance as Record<string, unknown>).columns === true;
+  const record = appearance as Record<string, unknown>;
+  if (typeof record.layout === 'string') {
+    return resolveMenuLayout(record.layout);
+  }
+  return record.columns === true ? 'grelha' : 'lista';
 }

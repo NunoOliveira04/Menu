@@ -10,8 +10,9 @@ import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
 import {
   parseMenuBackgroundId,
-  parseMenuColumns,
+  parseMenuLayout,
   resolveMenuBackground,
+  resolveMenuLayout,
 } from '@/lib/themes/backgrounds';
 import { updateRestaurantSchema, weeklyHoursUpdateSchema } from '@/lib/validations/schemas';
 import type { Json, TimeSlot } from '@/types/database';
@@ -277,11 +278,11 @@ export async function updateRestaurantAction(
     },
     appearance: {
       background,
-      // Sem o campo «background» no pedido (clientes antigos), mantém a opção atual.
-      columns:
-        typeof rawBackground === 'string'
-          ? formData.get('columns') === 'on' || formData.get('columns') === 'true'
-          : parseMenuColumns(currentRestaurant.settings),
+      // Sem o campo no pedido (clientes antigos), mantém a disposição atual.
+      layout:
+        typeof formData.get('layout') === 'string'
+          ? resolveMenuLayout(formData.get('layout'))
+          : parseMenuLayout(currentRestaurant.settings),
     },
   };
 

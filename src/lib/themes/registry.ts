@@ -55,11 +55,11 @@ const SERIF = 'var(--font-serif), Georgia, serif';
 const SANS = 'var(--font-sans), system-ui, sans-serif';
 
 export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
-  // «Lista»: pratos em linhas (texto à esquerda, foto à direita), fundo areia e terracota.
+  // «Areia»: fundo areia quente com detalhes em terracota.
   classico: {
     id: 'classico',
-    label: 'Lista',
-    description: 'Pratos em lista com a foto ao lado. Areia quente e terracota.',
+    label: 'Areia',
+    description: 'Areia quente com detalhes em terracota.',
     availableInMvp: true,
     ornament: 'none',
     swatch: { header: '#B9461F', background: '#F3E6D6', accent: '#B9461F' },
@@ -88,15 +88,15 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--radius-card': '20px',
       '--radius-pill': '999px',
       '--radius-thumb': '14px',
-      '--font-display': SANS,
+      '--font-display': SERIF,
       '--font-body': SANS,
     },
   },
-  // «Fotos»: cartões com a foto grande e o nome escrito em cima da foto.
+  // «Claro»: creme claro com detalhes escuros.
   moderno: {
     id: 'moderno',
-    label: 'Fotos',
-    description: 'Fotos grandes com o nome e o preço por cima. O mais visual.',
+    label: 'Claro',
+    description: 'Creme claro, limpo e elegante.',
     availableInMvp: true,
     ornament: 'none',
     swatch: { header: '#1A1714', background: '#F4F1EC', accent: '#1A1714' },
@@ -119,8 +119,8 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--pill-active-fg': '#FFFFFF',
       '--section-fg': '#1A1714',
       '--section-muted': '#6E655C',
-      '--price-bg': '#FFFFFF',
-      '--price-fg': '#1A1714',
+      '--price-bg': 'transparent',
+      '--price-fg': '#A63C18',
       '--card-shadow': '0 14px 34px rgba(26, 23, 20, 0.12)',
       '--radius-card': '24px',
       '--radius-pill': '999px',
@@ -129,11 +129,11 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--font-body': SANS,
     },
   },
-  // «Noite»: fundo escuro, títulos elegantes e centrados, preços dourados.
+  // «Noite»: fundo escuro com detalhes dourados.
   escuro: {
     id: 'escuro',
     label: 'Noite',
-    description: 'Fundo escuro, títulos elegantes e preços dourados.',
+    description: 'Fundo escuro com detalhes dourados.',
     availableInMvp: true,
     ornament: 'none',
     swatch: { header: '#0F0E0C', background: '#0F0E0C', accent: '#D9A65A' },
@@ -168,7 +168,7 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
   },
 };
 
-/** Estilos que o dono pode escolher no painel («Estilo»). */
+/** Cores que o dono pode escolher no painel («Cor»). */
 export const SELECTABLE_STYLES: readonly RestaurantStyle[] = (
   Object.values(MENU_THEMES) as MenuThemeTokens[]
 )

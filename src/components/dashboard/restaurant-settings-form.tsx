@@ -11,7 +11,7 @@ import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { LOGO_COMPRESS_OPTIONS } from '@/lib/images/compress-photo';
 import { restaurantInitials } from '@/lib/menu/hero';
-import { parseMenuBackgroundId, parseMenuColumns } from '@/lib/themes/backgrounds';
+import { parseMenuBackgroundId, parseMenuLayout } from '@/lib/themes/backgrounds';
 import type { DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
 import type { RestaurantMemberRole, RestaurantRow } from '@/types/database';
@@ -253,11 +253,14 @@ export function RestaurantSettingsForm({
         </div>
       </Section>
 
-      <Section title="Aspeto" description="Escolhe o estilo da carta, as colunas e o fundo.">
+      <Section
+        title="Aspeto"
+        description="Escolhe a cor, a disposição dos pratos e o fundo da carta."
+      >
         <AppearancePicker
           initialStyle={restaurant.style}
           initialBackground={parseMenuBackgroundId(restaurant.settings)}
-          initialColumns={parseMenuColumns(restaurant.settings)}
+          initialLayout={parseMenuLayout(restaurant.settings)}
         />
       </Section>
 
