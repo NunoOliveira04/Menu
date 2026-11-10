@@ -19,10 +19,6 @@ export interface MenuThemeCssVars {
   '--color-border-strong': string;
   /** Texto na cor do acento sobre o cartão (contraste AA). */
   '--color-accent-text': string;
-  /** Topo da carta. */
-  '--header-bg': string;
-  '--header-fg': string;
-  '--header-muted': string;
   /** Barra de categorias. */
   '--nav-bg': string;
   '--pill-bg': string;
@@ -78,9 +74,6 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--color-border': 'rgba(43, 26, 18, 0.08)',
       '--color-border-strong': 'rgba(185, 70, 31, 0.35)',
       '--color-accent-text': '#A63C18',
-      '--header-bg': 'radial-gradient(120% 100% at 50% 0%, #D9663A 0%, #B9461F 55%, #8F3214 100%)',
-      '--header-fg': '#FFF6EE',
-      '--header-muted': 'rgba(255, 246, 238, 0.88)',
       '--nav-bg': 'rgba(246, 231, 215, 0.92)',
       '--pill-bg': 'transparent',
       '--pill-fg': '#6B4434',
@@ -117,9 +110,6 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--color-border': 'rgba(20, 35, 28, 0.07)',
       '--color-border-strong': 'rgba(20, 35, 28, 0.18)',
       '--color-accent-text': '#C2410C',
-      '--header-bg': 'radial-gradient(120% 100% at 50% 0%, #2E6B52 0%, #1E4D3A 60%, #153829 100%)',
-      '--header-fg': '#FFFFFF',
-      '--header-muted': 'rgba(255, 255, 255, 0.86)',
       '--nav-bg': 'rgba(255, 243, 234, 0.92)',
       '--pill-bg': '#FFFFFF',
       '--pill-fg': '#1E4D3A',
@@ -156,10 +146,6 @@ export const MENU_THEMES: Record<RestaurantStyle, MenuThemeTokens> = {
       '--color-border': 'rgba(255, 255, 255, 0.08)',
       '--color-border-strong': 'rgba(255, 255, 255, 0.22)',
       '--color-accent-text': '#E5B76B',
-      '--header-bg':
-        'radial-gradient(80% 90% at 50% 0%, rgba(217, 166, 90, 0.22) 0%, transparent 70%), #12100E',
-      '--header-fg': '#F4EEE6',
-      '--header-muted': '#B9AE9F',
       '--nav-bg': 'rgba(18, 16, 14, 0.88)',
       '--pill-bg': 'transparent',
       '--pill-fg': '#B9AE9F',

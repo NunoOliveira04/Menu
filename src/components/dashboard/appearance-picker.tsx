@@ -56,7 +56,7 @@ export function AppearancePicker({
                   className="block h-16 overflow-hidden rounded-lg"
                   style={{ background: option.swatch.background }}
                 >
-                  <span className="block h-7" style={{ background: option.swatch.header }} />
+                  <span className="mx-auto mt-2 block h-5 w-5 rounded-full bg-white shadow-sm" />
                   <span className="mx-2 mt-2 flex items-center justify-between rounded bg-white/90 px-1.5 py-1">
                     <span className="h-1.5 w-8 rounded-full bg-stone-300" />
                     <span

@@ -69,32 +69,14 @@
   font-size: 15px;
 }
 
-/* ---------------------------------------------------------------------------
- * Cabeçalho simples: logotipo redondo (ou iniciais do nome), nome e descrição.
- * ------------------------------------------------------------------------- */
+/*
+ * Topo simples: logotipo e nome diretamente sobre o fundo da carta (liso ou textura),
+ * sem faixa de cor. Compacto, para o menu aparecer logo no primeiro ecrã.
+ */
 .menu-header {
   position: relative;
-  background: var(--header-bg);
-  color: var(--header-fg);
-}
-
-/* Com textura de fundo, o topo esbate-se para a textura em vez de acabar numa linha. */
-.menu-theme:not([data-background='nenhum']) .menu-header {
   background: transparent;
-}
-
-.menu-theme:not([data-background='nenhum']) .menu-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--header-bg);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
-}
-
-.menu-theme:not([data-background='nenhum']) .menu-header-inner {
-  position: relative;
-  padding-bottom: 76px;
+  color: var(--section-fg);
 }
 
 .menu-theme:not([data-background='nenhum']) .menu-nav {
@@ -108,7 +90,7 @@
   flex-direction: column;
   align-items: center;
   margin: 0 auto;
-  padding: 52px 20px 30px;
+  padding: 34px 20px 18px;
   text-align: center;
 }
 
@@ -116,16 +98,16 @@
   position: relative;
   z-index: 1;
   display: flex;
-  width: 104px;
-  height: 104px;
+  width: 92px;
+  height: 92px;
   flex: none;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.92);
+  border: 3px solid #ffffff;
   border-radius: 999px;
   background: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 
 .menu-logo-img {
@@ -144,17 +126,17 @@
 .menu-header-title {
   margin: 14px 0 0;
   font-family: var(--font-display), Inter, system-ui, sans-serif;
-  font-size: clamp(2rem, 8.5vw, 2.6rem);
+  font-size: clamp(1.75rem, 7.5vw, 2.25rem);
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--header-fg);
+  color: var(--section-fg);
 }
 
 .menu-header-description {
   max-width: 42ch;
-  margin: 8px 0 0;
-  color: var(--header-muted);
+  margin: 6px 0 0;
+  color: var(--section-muted);
   font-size: 15px;
   line-height: 1.45;
 }
