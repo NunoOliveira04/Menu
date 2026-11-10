@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
+import { Sparkles, Star, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { AllergenSheetButton } from '@/components/menu/allergen-sheet';
 import { CategoryNav } from '@/components/menu/category-nav';
@@ -14,7 +15,7 @@ import {
 } from '@/lib/modules/hours';
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
 import { buildCategoryAnchors } from '@/lib/menu/anchors';
-import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
+import { dishBadge, restaurantInitials, type DishBadgeCode } from '@/lib/menu/hero';
 import { MENU_BACKGROUNDS, menuCssVars, parseMenuAppearance } from '@/lib/themes/backgrounds';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
@@ -36,6 +37,12 @@ interface PublicMenuViewProps {
   weeklySchedule: DaySchedule[];
   isDraftPreview?: boolean;
   now?: Date;
+}
+
+/** Ícone de cada selo. */
+function DishBadgeIcon({ code }: { code: DishBadgeCode }) {
+  const Icon = code === 'featured' ? Star : code === 'recommended' ? ThumbsUp : Sparkles;
+  return <Icon className="menu-badge-icon" aria-hidden="true" />;
 }
 
 export function PublicMenuView({
@@ -203,7 +210,21 @@ export function PublicMenuView({
                       'description',
                       effectiveLocale,
                     );
-                    const houseBadge = showsHouseBadge(dish.highlight, modules.highlights);
+                    const badge = dishBadge(dish.highlight, modules.highlights);
+                    const badgeLabel =
+                      badge === 'featured'
+                        ? ui.houseBadge
+                        : badge === 'recommended'
+                          ? ui.recommendedBadge
+                          : badge === 'new'
+                            ? ui.newBadge
+                            : null;
+                    const badgeNode = badge && badgeLabel && (
+                      <span className={`menu-badge menu-badge-${badge}`}>
+                        <DishBadgeIcon code={badge} />
+                        {badgeLabel}
+                      </span>
+                    );
                     const dishAllergens = modules.allergens
                       ? (dish.allergens ?? [])
                           .map((code) => getAllergenDefinition(code))
@@ -225,17 +246,20 @@ export function PublicMenuView({
                           className={`menu-dish${dish.available ? '' : ' menu-dish-unavailable'}`}
                         >
                           {dish.photo_url && (
-                            <DishPhoto
-                              src={dish.photo_url}
-                              alt={`${ui.photoAltPrefix} ${dishName}`}
-                              dishName={dishName}
-                              openLabel={ui.photoOpenLabel}
-                              closeLabel={ui.allergensClose}
-                            />
+                            <div className="menu-media">
+                              <DishPhoto
+                                src={dish.photo_url}
+                                alt={`${ui.photoAltPrefix} ${dishName}`}
+                                dishName={dishName}
+                                openLabel={ui.photoOpenLabel}
+                                closeLabel={ui.allergensClose}
+                              />
+                              {badgeNode}
+                            </div>
                           )}
 
                           <div className="menu-dish-copy">
-                            {houseBadge && <span className="menu-house">{ui.houseBadge}</span>}
+                            {!dish.photo_url && badgeNode}
                             <div className="menu-dish-line">
                               <h3 className="menu-dish-name">{dishName}</h3>
                               <p
