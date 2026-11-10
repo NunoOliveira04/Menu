@@ -610,34 +610,36 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       expect(update.mock.calls[0]?.[0]).toMatchObject({ published: true });
     });
 
-    it('guarda a cor, a disposição e o fundo escolhidos nas definições', async () => {
+    it('guarda o fundo, a cor e a disposição escolhidos nas definições', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);
 
       const fd = baseRestaurantForm();
-      fd.set('style', 'escuro');
       fd.set('background', 'madeira-escura');
+      fd.set('accent', 'verde');
       fd.set('layout', 'foto');
       const result = await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
 
       expect(result.status).toBe('success');
       const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(payload.style).toBe('escuro');
       expect(payload.settings).toMatchObject({
-        appearance: { background: 'madeira-escura', layout: 'foto' },
+        appearance: { background: 'madeira-escura', accent: 'verde', layout: 'foto' },
       });
     });
 
-    it('ignora um fundo inválido e usa «Liso»', async () => {
+    it('ignora fundo e cor inválidos e usa opções seguras', async () => {
       const update = vi.fn();
       mockOwnerRestaurant(update);
 
       const fd = baseRestaurantForm();
       fd.set('background', 'http://evil.example/fundo.png');
+      fd.set('accent', '<script>');
       await updateRestaurantAction(INITIAL_ACTION_STATE, fd);
 
       const payload = update.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(payload.settings).toMatchObject({ appearance: { background: 'nenhum' } });
+      expect(payload.settings).toMatchObject({
+        appearance: { background: 'areia', accent: 'terracota' },
+      });
     });
 
     it('não toca em cover_photo_path quando a capa não muda', async () => {

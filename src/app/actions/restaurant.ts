@@ -9,8 +9,8 @@ import { DISH_PHOTOS_BUCKET, resolveDishPhotoObjectPath } from '@/lib/storage/di
 import { uploadValidatedPhoto } from '@/lib/storage/upload-photo';
 import { createClient } from '@/lib/supabase/server';
 import {
-  parseMenuBackgroundId,
-  parseMenuLayout,
+  parseMenuAppearance,
+  resolveMenuAccent,
   resolveMenuBackground,
   resolveMenuLayout,
 } from '@/lib/themes/backgrounds';
@@ -100,7 +100,7 @@ export async function updateRestaurantAction(
 
   const { data: currentRestaurant, error: currentError } = await supabase
     .from('restaurants')
-    .select('id, slug, published, translations, settings')
+    .select('id, slug, published, translations, settings, style')
     .eq('id', restaurantIdInput)
     .maybeSingle();
 
@@ -262,12 +262,29 @@ export async function updateRestaurantAction(
     imagePayload[slot.column] = nextPath;
   }
 
-  // Fundo da carta («Fundo» nas definições). Sem o campo, mantém o fundo atual.
-  const rawBackground = formData.get('background');
-  const background =
-    typeof rawBackground === 'string'
-      ? resolveMenuBackground(rawBackground).id
-      : parseMenuBackgroundId(currentRestaurant.settings);
+  // Aspeto (Fundo, Cor, Disposição). Campos em falta no pedido mantêm o valor atual.
+  const currentAppearance = parseMenuAppearance(
+    currentRestaurant.settings,
+    currentRestaurant.style,
+  );
+  const formField = (name: string) => {
+    const value = formData.get(name);
+    return typeof value === 'string' ? value : null;
+  };
+  const appearance = {
+    background:
+      formField('background') !== null
+        ? resolveMenuBackground(formField('background')).id
+        : currentAppearance.background,
+    accent:
+      formField('accent') !== null
+        ? resolveMenuAccent(formField('accent')).id
+        : currentAppearance.accent,
+    layout:
+      formField('layout') !== null
+        ? resolveMenuLayout(formField('layout'))
+        : currentAppearance.layout,
+  };
 
   const settingsPayload: Json = {
     modules: {
@@ -276,14 +293,7 @@ export async function updateRestaurantAction(
       highlights: parsed.data.modules.highlights,
       hours: parsed.data.modules.hours,
     },
-    appearance: {
-      background,
-      // Sem o campo no pedido (clientes antigos), mantém a disposição atual.
-      layout:
-        typeof formData.get('layout') === 'string'
-          ? resolveMenuLayout(formData.get('layout'))
-          : parseMenuLayout(currentRestaurant.settings),
-    },
+    appearance,
   };
 
   const nextTranslations = languagesEnabled

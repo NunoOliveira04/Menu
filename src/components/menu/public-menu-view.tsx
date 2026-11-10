@@ -15,13 +15,7 @@ import {
 import { MENU_UI_STRINGS, localeToHtmlLang, resolveLocalizedField } from '@/lib/modules/i18n';
 import { buildCategoryAnchors } from '@/lib/menu/anchors';
 import { restaurantInitials, showsHouseBadge } from '@/lib/menu/hero';
-import {
-  backgroundCssVars,
-  parseMenuBackgroundId,
-  parseMenuLayout,
-  resolveMenuBackground,
-} from '@/lib/themes/backgrounds';
-import { resolveMenuTheme } from '@/lib/themes/registry';
+import { MENU_BACKGROUNDS, menuCssVars, parseMenuAppearance } from '@/lib/themes/backgrounds';
 import { formatPriceCents } from '@/lib/utils/price';
 import type {
   CategoryRow,
@@ -57,9 +51,9 @@ export function PublicMenuView({
 }: PublicMenuViewProps) {
   const effectiveLocale: MenuLocale = modules.languages ? locale : 'pt';
   const ui = MENU_UI_STRINGS[effectiveLocale];
-  const theme = resolveMenuTheme(restaurant.style);
-  const background = resolveMenuBackground(parseMenuBackgroundId(restaurant.settings));
-  const themeStyle = { ...theme.cssVars, ...backgroundCssVars(background) } as CSSProperties;
+  const appearance = parseMenuAppearance(restaurant.settings, restaurant.style);
+  const background = MENU_BACKGROUNDS[appearance.background];
+  const themeStyle = menuCssVars(appearance.background, appearance.accent) as CSSProperties;
 
   const localizedRestaurantDescription = resolveLocalizedField(
     restaurant.description,
@@ -102,9 +96,11 @@ export function PublicMenuView({
       lang={localeToHtmlLang(effectiveLocale)}
       className="menu-theme"
       style={themeStyle}
-      data-theme={theme.id}
       data-background={background.id}
-      data-layout={parseMenuLayout(restaurant.settings)}
+      data-accent={appearance.accent}
+      data-layout={appearance.layout}
+      data-page={background.pageDark ? 'dark' : 'light'}
+      data-cards={background.cardDark ? 'dark' : 'light'}
     >
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}
@@ -189,7 +185,7 @@ export function PublicMenuView({
                 {localizedName}
               </h2>
               {localizedDescription && <p className="menu-section-desc">{localizedDescription}</p>}
-              <CategorySeparator ornament={theme.ornament} />
+              <CategorySeparator ornament="none" />
 
               <div className="menu-sheet">
                 <ul className="menu-dish-list">

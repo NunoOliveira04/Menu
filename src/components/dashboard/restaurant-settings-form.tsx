@@ -11,7 +11,7 @@ import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-
 import { parseRestaurantSettings } from '@/lib/auth/access';
 import { LOGO_COMPRESS_OPTIONS } from '@/lib/images/compress-photo';
 import { restaurantInitials } from '@/lib/menu/hero';
-import { parseMenuBackgroundId, parseMenuLayout } from '@/lib/themes/backgrounds';
+import { parseMenuAppearance } from '@/lib/themes/backgrounds';
 import type { DaySchedule } from '@/lib/modules/hours';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
 import type { RestaurantMemberRole, RestaurantRow } from '@/types/database';
@@ -135,6 +135,7 @@ export function RestaurantSettingsForm({
     <form onSubmit={handleSubmit} className="space-y-5 pb-4" noValidate aria-busy={isBusy}>
       <input type="hidden" name="restaurantId" value={restaurant.id} />
       {/* Campos que já não aparecem no painel mantêm o valor atual. */}
+      <input type="hidden" name="style" value={restaurant.style} />
       <input type="hidden" name="location" value={restaurant.location ?? ''} />
 
       {state.status === 'error' && state.message && (
@@ -255,13 +256,9 @@ export function RestaurantSettingsForm({
 
       <Section
         title="Aspeto"
-        description="Escolhe a cor, a disposição dos pratos e o fundo da carta."
+        description="Escolhe o fundo, a cor dos destaques e a disposição dos pratos."
       >
-        <AppearancePicker
-          initialStyle={restaurant.style}
-          initialBackground={parseMenuBackgroundId(restaurant.settings)}
-          initialLayout={parseMenuLayout(restaurant.settings)}
-        />
+        <AppearancePicker initial={parseMenuAppearance(restaurant.settings, restaurant.style)} />
       </Section>
 
       <Section
