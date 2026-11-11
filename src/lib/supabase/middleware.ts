@@ -8,6 +8,7 @@ import {
   isPublicAdminAuthPath,
   resolveLegacyAdminRedirect,
 } from '@/lib/routing/admin-paths';
+import { resolveLegacyMenuRedirect } from '@/lib/routing/menu-paths';
 import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
 import type { Database } from '@/types/database';
 import { getSupabaseEnv } from './env';
@@ -120,6 +121,14 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     const legacyUrl = request.nextUrl.clone();
     legacyUrl.pathname = legacyTarget;
     return copyResponseMetadata(supabaseResponse, NextResponse.redirect(legacyUrl, 308));
+  }
+
+  // Links e QR codes antigos: /r/<slug> -> /<slug>, mantendo a query string.
+  const legacyMenuTarget = resolveLegacyMenuRedirect(pathname);
+  if (legacyMenuTarget) {
+    const menuUrl = request.nextUrl.clone();
+    menuUrl.pathname = legacyMenuTarget;
+    return copyResponseMetadata(supabaseResponse, NextResponse.redirect(menuUrl, 308));
   }
 
   if (rewritePath) {
