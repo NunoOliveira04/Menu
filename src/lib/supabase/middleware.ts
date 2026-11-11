@@ -8,22 +8,10 @@ import {
   isPublicAdminAuthPath,
   resolveLegacyAdminRedirect,
 } from '@/lib/routing/admin-paths';
-import { resolveLegacyMenuRedirect } from '@/lib/routing/menu-paths';
+import { extractMenuSlugFromPathname, resolveLegacyMenuRedirect } from '@/lib/routing/menu-paths';
 import { resolveSubdomainRewritePath } from '@/lib/routing/subdomain';
 import type { Database } from '@/types/database';
 import { getSupabaseEnv } from './env';
-
-function extractMenuSlugFromPathname(pathname: string): string | null {
-  if (!pathname.startsWith('/r/')) {
-    return null;
-  }
-  const rest = pathname.slice(3);
-  const [slug] = rest.split('/');
-  if (!slug) {
-    return null;
-  }
-  return decodeURIComponent(slug).trim().toLowerCase();
-}
 
 function copyResponseMetadata(source: NextResponse, target: NextResponse): NextResponse {
   source.cookies.getAll().forEach((cookie) => {
@@ -43,7 +31,7 @@ function copyResponseMetadata(source: NextResponse, target: NextResponse): NextR
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   const pathname = request.nextUrl.pathname;
 
-  // Subdomínio -> /r/[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
+  // Subdomínio -> /[slug] (apenas quando ENABLE_SUBDOMAIN_ROUTING === 'true')
   const rewritePath = resolveSubdomainRewritePath({
     hostHeader: request.headers.get('host'),
     pathname,

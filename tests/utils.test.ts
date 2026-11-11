@@ -59,7 +59,7 @@ describe('Utilitários de Preço, Reordenação, Temas e Subdomínios', () => {
         enableSubdomainRouting: true,
         rootDomain: 'menudigital.pt',
       }),
-    ).toBe('/r/menu-restaurante');
+    ).toBe('/menu-restaurante');
 
     expect(
       resolveSubdomainRewritePath({

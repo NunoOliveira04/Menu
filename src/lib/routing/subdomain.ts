@@ -9,7 +9,7 @@ export interface SubdomainRewriteInput {
 
 /**
  * Resolve o slug do subdomínio quando ENABLE_SUBDOMAIN_ROUTING está ativo.
- * Devolve o caminho interno (/r/<slug>...) ou null quando não deve reescrever.
+ * Devolve o caminho interno (/<slug>...) ou null quando não deve reescrever.
  */
 export function resolveSubdomainRewritePath({
   hostHeader,
@@ -48,5 +48,5 @@ export function resolveSubdomainRewritePath({
   }
 
   const cleanSuffix = pathname === '/' ? '' : pathname;
-  return `/r/${candidate}${cleanSuffix}`;
+  return `/${candidate}${cleanSuffix}`;
 }
