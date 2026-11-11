@@ -494,9 +494,25 @@
   pointer-events: none;
 }
 
-/* Prato sem foto: o selo aparece por cima do nome. */
-.menu-dish-copy > .menu-badge {
+/*
+ * Selo por cima do nome: sempre que o prato não tem foto e, na disposição «Lista»
+ * (foto pequena), também quando tem. Nos outros casos o selo fica no canto da foto.
+ */
+.menu-badge-row {
+  display: flex;
   margin-bottom: 8px;
+}
+
+.menu-badge-row-photo {
+  display: none;
+}
+
+.menu-theme[data-layout='lista'] .menu-badge-row-photo {
+  display: flex;
+}
+
+.menu-theme[data-layout='lista'] .menu-media .menu-badge {
+  display: none;
 }
 
 /* Miniatura do prato: é um botão que abre a fotografia em grande. */
@@ -664,13 +680,6 @@
 
 .menu-theme[data-layout='lista'] .menu-media {
   width: 108px;
-}
-
-.menu-theme[data-layout='lista'] .menu-media .menu-badge {
-  top: 6px;
-  left: 6px;
-  padding: 2px 7px 2px 6px;
-  font-size: 11px;
 }
 
 .menu-theme[data-layout='lista'] .menu-thumb {

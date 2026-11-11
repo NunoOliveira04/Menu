@@ -259,7 +259,17 @@ export function PublicMenuView({
                           )}
 
                           <div className="menu-dish-copy">
-                            {!dish.photo_url && badgeNode}
+                            {badgeNode && (
+                              <span
+                                className={
+                                  dish.photo_url
+                                    ? 'menu-badge-row menu-badge-row-photo'
+                                    : 'menu-badge-row'
+                                }
+                              >
+                                {badgeNode}
+                              </span>
+                            )}
                             <div className="menu-dish-line">
                               <h3 className="menu-dish-name">{dishName}</h3>
                               <p
