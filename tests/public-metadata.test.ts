@@ -39,7 +39,7 @@ describe('Metadados de /[slug] (ponto 7)', () => {
       searchParams: Promise.resolve({}),
     });
     expect(metadata.title).toEqual({ absolute: 'Tasca do Zé — Ementa' });
-    expect(JSON.stringify(metadata.title)).not.toContain('Ementa Digital');
+    expect(JSON.stringify(metadata.title)).not.toContain('O Seu Menu');
   });
 
   it('em inglês o título é "Nome — Menu"', async () => {
