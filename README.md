@@ -1,4 +1,4 @@
-# Ementa Digital — Menus Digitais Multi-Restaurante
+# O Seu Menu — Menus Digitais Multi-Restaurante
 
 Plataforma SaaS leve de menus digitais para restaurantes (Grupos 1, 2 e 3 do MVP), construída com **Next.js App Router**, **TypeScript (`strict`)**, **Tailwind CSS** e **Supabase (`@supabase/ssr`)**, preparada para alojamento gratuito em **Vercel** + **Supabase Free Tier**.
 

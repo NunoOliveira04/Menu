@@ -52,7 +52,7 @@ export async function generateMetadata({
   const enUrl = `${ptUrl}?lang=en`;
 
   return {
-    // `absolute` ignora o template do layout raiz ("%s · Ementa Digital").
+    // `absolute` ignora o template do layout raiz ("%s · O Seu Menu").
     title: {
       absolute: locale === 'en' ? `${restaurant.name} — Menu` : `${restaurant.name} — Ementa`,
     },

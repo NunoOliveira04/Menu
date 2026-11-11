@@ -19,8 +19,8 @@ const fontSerif = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Ementa Digital — Menus para Restaurantes',
-    template: '%s · Ementa Digital',
+    default: 'O Seu Menu — Menus para Restaurantes',
+    template: '%s · O Seu Menu',
   },
   description:
     'Plataforma de menus digitais para restaurantes. Rápida no telemóvel, simples de atualizar em segundos.',
