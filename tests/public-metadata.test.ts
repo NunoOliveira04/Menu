@@ -12,7 +12,7 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
-import { generateMetadata } from '@/app/r/[slug]/page';
+import { generateMetadata } from '@/app/[slug]/page';
 
 describe('Metadados de /r/[slug] (ponto 7)', () => {
   beforeEach(() => {
