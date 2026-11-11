@@ -141,6 +141,15 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   }
 
   if (isPublicAdminAuthPath(pathname) && isAuthenticated) {
+    // O token pode ser válido mas a sessão já não existir no Supabase (terminada noutro
+    // lado ou expirada). O painel confirma com getUser(); se aqui só confiássemos no token,
+    // login -> /admin -> login ficava em ciclo. Confirmamos e limpamos os cookies velhos.
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      await supabase.auth.signOut({ scope: 'local' });
+      return supabaseResponse;
+    }
+
     const adminUrl = request.nextUrl.clone();
     adminUrl.pathname = ADMIN_HOME_PATH;
     adminUrl.search = '';
