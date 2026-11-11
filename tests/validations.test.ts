@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { isReservedSlug } from '@/lib/utils/slug';
 import { detectImageSignature } from '@/lib/validations/image-signature';
 import {
   MAX_DISH_PHOTO_BYTES,
@@ -89,6 +90,39 @@ describe('Validações Zod — Restaurante e Slugs', () => {
     expect(slugFieldSchema.safeParse('menu--restaurante').success).toBe(false);
     expect(slugFieldSchema.safeParse('menu_restaurante').success).toBe(false);
     expect(slugFieldSchema.safeParse('a').success).toBe(false);
+  });
+
+  it('rejeita slugs iguais a rotas ou ficheiros da app (a carta vive em /<slug>)', () => {
+    for (const reserved of [
+      'admin',
+      'Admin',
+      'api',
+      'r',
+      'login',
+      '_next',
+      'favicon.ico',
+      'robots.txt',
+      'sitemap.xml',
+      'opengraph-image',
+      'privacidade',
+    ]) {
+      expect(isReservedSlug(reserved)).toBe(true);
+      expect(slugFieldSchema.safeParse(reserved).success).toBe(false);
+    }
+    expect(isReservedSlug('demo')).toBe(false);
+    expect(slugFieldSchema.safeParse('tasca-do-largo').success).toBe(true);
+  });
+
+  it('updateRestaurantSchema recusa um slug reservado', () => {
+    const parsed = updateRestaurantSchema.safeParse({
+      restaurantId: '11111111-1111-4111-8111-111111111111',
+      name: 'Menu Restaurante',
+      slug: 'admin',
+    });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.some((issue) => issue.path[0] === 'slug')).toBe(true);
+    }
   });
 
   it('valida atualização de restaurante incluindo módulos opcionais', () => {

@@ -123,7 +123,7 @@ export function PublicMenuView({
         {modules.languages && (
           <nav aria-label={ui.languageSelectorLabel} className="menu-lang">
             <Link
-              href={`/r/${restaurant.slug}`}
+              href={`/${restaurant.slug}`}
               hrefLang="pt-PT"
               lang="pt-PT"
               aria-current={effectiveLocale === 'pt' ? 'page' : undefined}
@@ -131,7 +131,7 @@ export function PublicMenuView({
               PT
             </Link>
             <Link
-              href={`/r/${restaurant.slug}?lang=en`}
+              href={`/${restaurant.slug}?lang=en`}
               hrefLang="en"
               lang="en"
               aria-current={effectiveLocale === 'en' ? 'page' : undefined}

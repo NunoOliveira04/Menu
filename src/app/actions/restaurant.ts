@@ -369,9 +369,9 @@ export async function updateRestaurantAction(
   revalidatePath('/admin');
   revalidatePath('/admin/restaurante');
   if (currentRestaurant.slug !== parsed.data.slug) {
-    revalidatePath(`/r/${currentRestaurant.slug}`);
+    revalidatePath(`/${currentRestaurant.slug}`);
   }
-  revalidatePath(`/r/${parsed.data.slug}`);
+  revalidatePath(`/${parsed.data.slug}`);
 
   return {
     status: 'success',

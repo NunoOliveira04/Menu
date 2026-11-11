@@ -7,5 +7,5 @@ export function getPublicAppOrigin(fallbackOrigin?: string): string {
 
 export function buildPublicMenuUrl(slug: string, fallbackOrigin?: string): string {
   const origin = getPublicAppOrigin(fallbackOrigin);
-  return `${origin}/r/${encodeURIComponent(slug)}`;
+  return `${origin}/${encodeURIComponent(slug)}`;
 }

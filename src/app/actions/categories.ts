@@ -30,7 +30,7 @@ async function revalidateRestaurantMenu(restaurantId: string) {
 
   revalidatePath('/admin');
   if (data?.slug) {
-    revalidatePath(`/r/${data.slug}`);
+    revalidatePath(`/${data.slug}`);
   }
 }
 

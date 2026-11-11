@@ -12,9 +12,9 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
-import { generateMetadata } from '@/app/r/[slug]/page';
+import { generateMetadata } from '@/app/[slug]/page';
 
-describe('Metadados de /r/[slug] (ponto 7)', () => {
+describe('Metadados de /[slug] (ponto 7)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://dummy-project.supabase.co';
@@ -49,5 +49,21 @@ describe('Metadados de /r/[slug] (ponto 7)', () => {
       searchParams: Promise.resolve({ lang: 'en' }),
     });
     expect(metadata.title).toEqual({ absolute: 'Tasca do Zé — Menu' });
+  });
+
+  it('canonical e hreflang apontam para /<slug>, sem /r/', async () => {
+    process.env.NEXT_PUBLIC_APP_URL = 'https://oseumenu.pt';
+    mockMaybeSingle.mockResolvedValue({ data: restaurant(true), error: null });
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: 'tasca-do-ze' }),
+      searchParams: Promise.resolve({}),
+    });
+    expect(metadata.alternates?.canonical).toBe('https://oseumenu.pt/tasca-do-ze');
+    expect(metadata.alternates?.languages).toEqual({
+      'pt-PT': 'https://oseumenu.pt/tasca-do-ze',
+      en: 'https://oseumenu.pt/tasca-do-ze?lang=en',
+      'x-default': 'https://oseumenu.pt/tasca-do-ze',
+    });
+    delete process.env.NEXT_PUBLIC_APP_URL;
   });
 });

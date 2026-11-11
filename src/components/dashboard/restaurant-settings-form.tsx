@@ -332,7 +332,7 @@ export function RestaurantSettingsForm({
                 : 'bg-stone-100 opacity-75'
             }`}
           >
-            <span className="select-none pl-3.5 pr-1 text-sm text-stone-400">/r/</span>
+            <span className="select-none pl-3.5 pr-1 text-sm text-stone-400">/</span>
             <input
               id="slug"
               name="slug"

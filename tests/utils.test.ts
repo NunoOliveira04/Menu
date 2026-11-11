@@ -59,7 +59,7 @@ describe('Utilitários de Preço, Reordenação, Temas e Subdomínios', () => {
         enableSubdomainRouting: true,
         rootDomain: 'menudigital.pt',
       }),
-    ).toBe('/r/menu-restaurante');
+    ).toBe('/menu-restaurante');
 
     expect(
       resolveSubdomainRewritePath({
@@ -82,7 +82,7 @@ describe('Utilitários de Preço, Reordenação, Temas e Subdomínios', () => {
 
   it('constrói URL público consistente', () => {
     expect(buildPublicMenuUrl('menu-restaurante', 'https://ementa.pt/')).toBe(
-      'https://ementa.pt/r/menu-restaurante',
+      'https://ementa.pt/menu-restaurante',
     );
   });
 });

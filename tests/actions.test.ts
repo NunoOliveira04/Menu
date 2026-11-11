@@ -464,7 +464,7 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       }),
     }));
 
-    const reqOff = new NextRequest('http://localhost:3000/r/menu-restaurante?lang=en');
+    const reqOff = new NextRequest('http://localhost:3000/menu-restaurante?lang=en');
     const resOff = await updateSession(reqOff);
     expect(resOff.headers.get('x-middleware-override-headers')).toContain('x-menu-html-lang');
     expect(resOff.headers.get('x-middleware-request-x-menu-html-lang')).toBe('pt-PT');
@@ -481,9 +481,20 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
       }),
     }));
 
-    const reqOn = new NextRequest('http://localhost:3000/r/menu-restaurante?lang=en');
+    const reqOn = new NextRequest('http://localhost:3000/menu-restaurante?lang=en');
     const resOn = await updateSession(reqOn);
     expect(resOn.headers.get('x-middleware-request-x-menu-html-lang')).toBe('en');
+  });
+
+  it('middleware redireciona /r/<slug> para /<slug> com 308, mantendo ?lang=en', async () => {
+    mockGetClaims.mockResolvedValue({ data: { claims: null } });
+    const res = await updateSession(new NextRequest('http://localhost:3000/r/menu-restaurante?lang=en'));
+    expect(res.status).toBe(308);
+    expect(res.headers.get('location')).toBe('http://localhost:3000/menu-restaurante?lang=en');
+
+    const resAdmin = await updateSession(new NextRequest('http://localhost:3000/r/menu-restaurante/admin'));
+    expect(resAdmin.status).toBe(308);
+    expect(resAdmin.headers.get('location')).toBe('http://localhost:3000/admin');
   });
 
   it('updateRestaurantAction recusa alteração de slug ou published quando o membro não é owner', async () => {

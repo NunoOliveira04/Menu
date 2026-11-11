@@ -104,7 +104,7 @@ export function QrCodeCard({
         </button>
 
         <a
-          href={`/r/${slug}`}
+          href={`/${slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-50"

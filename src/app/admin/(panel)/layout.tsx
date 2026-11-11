@@ -54,7 +54,7 @@ export default async function AdminPanelLayout({
 
             <div className="flex shrink-0 items-center gap-2">
               <Link
-                href={`/r/${restaurant.slug}`}
+                href={`/${restaurant.slug}`}
                 target="_blank"
                 className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-[#FAF6F0] px-3 py-2 text-xs font-semibold text-[#8C3B2B] transition hover:bg-[#F3ECE1]"
               >
