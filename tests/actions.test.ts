@@ -40,10 +40,15 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
+const mockMiddlewareGetUser = vi.fn();
+const mockMiddlewareSignOut = vi.fn();
+
 vi.mock('@supabase/ssr', () => ({
   createServerClient: vi.fn(() => ({
     auth: {
       getClaims: mockGetClaims,
+      getUser: mockMiddlewareGetUser,
+      signOut: mockMiddlewareSignOut,
     },
     from: mockFrom,
   })),
@@ -869,8 +874,25 @@ describe('Server Actions — Permissões Owner, Magic Bytes, Módulos Off e Reor
     expect(publicLogin.status).toBe(200);
 
     mockGetClaims.mockResolvedValue({ data: { claims: { sub: USER_ID } } });
+    mockMiddlewareGetUser.mockResolvedValue({ data: { user: { id: USER_ID } }, error: null });
     const authedLogin = await updateSession(new NextRequest('http://localhost:3000/admin/login'));
     expect(authedLogin.status).toBe(307);
     expect(authedLogin.headers.get('location')).toBe('http://localhost:3000/admin');
+  });
+
+  it('login com token válido mas sessão inexistente mostra o login e limpa a sessão (sem ciclo)', async () => {
+    mockGetClaims.mockResolvedValue({ data: { claims: { sub: USER_ID } } });
+    mockMiddlewareGetUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'Session not found', status: 403 },
+    });
+    mockMiddlewareSignOut.mockResolvedValue({ error: null });
+
+    const res = await updateSession(
+      new NextRequest('http://localhost:3000/admin/login?next=%2Fadmin'),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
+    expect(mockMiddlewareSignOut).toHaveBeenCalledWith({ scope: 'local' });
   });
 });
