@@ -186,10 +186,18 @@ describe('Página de apresentação (/)', () => {
     expect(html).not.toMatch(/€|\beuros?\b/i);
   });
 
+  it('no telemóvel, a linha dos passos liga só os círculos (não passa do último)', () => {
+    const html = render();
+    const connectors = html.match(/<span class="[^"]*border-dashed[^"]*md:hidden[^"]*"/g) ?? [];
+    expect(connectors).toHaveLength(2);
+  });
+
   it('o rodapé tem o nome, o ano e a ligação para /admin', () => {
     const html = render();
     expect(html).toContain('2026');
-    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>Área do restaurante<\/a>/);
+    expect(html).toMatch(
+      /<a[^>]*href="\/admin"[^>]*>(<svg[\s\S]*?<\/svg>)?Área do restaurante<\/a>/,
+    );
   });
 
   it('sem contactos configurados, os botões de WhatsApp e e-mail não aparecem', () => {
