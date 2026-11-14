@@ -1,16 +1,15 @@
 import {
   ArrowRight,
+  ArrowUpRight,
   Camera,
   Check,
-  ClipboardList,
   Info,
   Languages,
   Mail,
   MessageCircle,
   Palette,
-  QrCode,
+  Plus,
   RefreshCw,
-  Smartphone,
   Tag,
   ZoomIn,
   type LucideIcon,
@@ -27,7 +26,12 @@ import {
 /*
  * Página de apresentação de «O Seu Menu» (oseumenu.pt/).
  * Componente de servidor, sem JavaScript próprio no cliente: a página é gerada no build.
- * Cores: papel #F5EFE6, texto #2B2B2B, azul #1F3A5F, tijolo #B5452B (todas com contraste AA).
+ *
+ * Estilo «bistrô editorial»: tinta quente (#151210), creme (#F4ECDF), açafrão (#F0B23E)
+ * e verde-azeite (#2E4733). Títulos em Instrument Serif (variável --font-landing-display,
+ * carregada só nesta página) e texto em Inter. Combinações usadas, todas AA:
+ * creme sobre tinta ≈ 16:1, tinta sobre açafrão ≈ 9,6:1, creme sobre azeite ≈ 9:1,
+ * açafrão-escuro (#8A5A08) sobre creme ≈ 4,8:1.
  */
 
 export const LANDING_TAGLINE =
@@ -35,19 +39,19 @@ export const LANDING_TAGLINE =
 
 const HERO_POINTS = ['Sem instalar nada', 'Português e inglês', 'Muda em segundos'];
 
-const STEPS: { icon: LucideIcon; title: string; text: string }[] = [
+const STEPS: { label: string; title: string; text: string }[] = [
   {
-    icon: ClipboardList,
+    label: 'Entrada',
     title: 'Nós passamos a sua carta',
     text: 'Envie-nos a carta em papel, em PDF ou numa fotografia. Nós passamos os pratos, os preços, as fotos e os alergénios.',
   },
   {
-    icon: QrCode,
+    label: 'Prato principal',
     title: 'Pomos os QR codes nas mesas',
     text: 'Os clientes apontam a câmara do telemóvel e a carta abre logo.',
   },
   {
-    icon: Smartphone,
+    label: 'Sobremesa',
     title: 'Muda preços e pratos no seu telemóvel, quando quiser',
     text: 'Um preço novo ou um prato esgotado aparece na carta logo a seguir.',
   },
@@ -177,39 +181,40 @@ const FAQS: { question: string; answer: string }[] = [
 ];
 
 const FOCUS_RING =
-  'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1F3A5F]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F5EFE6]';
-const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-7 text-base font-semibold transition ${FOCUS_RING}`;
-const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#B5452B] text-white shadow-[0_10px_24px_-10px_rgba(181,69,43,0.7)] hover:bg-[#9C3A23]`;
-const BUTTON_SECONDARY = `${BUTTON_BASE} border-2 border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white`;
-const CARD = 'rounded-3xl border border-[#E6DCCD] bg-[#FFFDF9]';
+  'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#F0B23E]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#151210]';
+const BUTTON_BASE = `inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full px-7 text-base font-semibold transition ${FOCUS_RING}`;
+const BUTTON_SAFFRON = `${BUTTON_BASE} bg-[#F0B23E] text-[#151210] hover:bg-[#F6C25E]`;
+const BUTTON_GHOST_LIGHT = `${BUTTON_BASE} border border-[#F4ECDF]/40 text-[#F4ECDF] hover:border-[#F4ECDF] hover:bg-[#F4ECDF]/10`;
 
-function Kicker({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+function Tag2({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
   return (
     <p
-      className={`text-sm font-semibold uppercase tracking-[0.14em] ${
-        light ? 'text-[#F5EFE6]' : 'text-[#B5452B]'
+      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-[13px] font-semibold uppercase tracking-[0.16em] ${
+        dark
+          ? 'border-[#F4ECDF]/25 text-[#F0B23E]'
+          : 'border-[#151210]/15 bg-[#F4ECDF] text-[#8A5A08]'
       }`}
     >
+      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
       {children}
     </p>
   );
 }
 
-function SectionTitle({ id, children }: { id: string; children: React.ReactNode }) {
-  return (
-    <h2
-      id={id}
-      className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] text-[#1F3A5F] sm:text-[2.6rem]"
-    >
-      {children}
-    </h2>
-  );
-}
-
 /** Moldura de telemóvel (só CSS). */
-function PhoneFrame({ children, height }: { children: React.ReactNode; height: number }) {
+function PhoneFrame({
+  children,
+  height,
+  className = '',
+}: {
+  children: React.ReactNode;
+  height: number;
+  className?: string;
+}) {
   return (
-    <div className="relative mx-auto w-[280px] shrink-0 rounded-[46px] bg-[#1C1C1C] p-[10px] shadow-[0_40px_80px_-30px_rgba(31,58,95,0.55)] ring-1 ring-black/5">
+    <div
+      className={`relative mx-auto w-[280px] shrink-0 rounded-[46px] bg-[#0B0908] p-[10px] shadow-[0_50px_100px_-40px_rgba(0,0,0,0.75)] ring-1 ring-white/10 ${className}`}
+    >
       <div
         className="relative w-[260px] overflow-hidden rounded-[36px] bg-white"
         style={{ height }}
@@ -223,7 +228,7 @@ function PhoneFrame({ children, height }: { children: React.ReactNode; height: n
 /** A carta de exemplo (/demo), num iframe 390×844 reduzido para caber na moldura. */
 function MenuPreview() {
   return (
-    <PhoneFrame height={562}>
+    <PhoneFrame height={562} className="lg:rotate-[3deg]">
       <iframe
         src="/demo"
         title="Exemplo de carta no telemóvel"
@@ -241,11 +246,11 @@ export function ContactButtons({ contact }: { contact: MarketingContact }) {
     return null;
   }
   return (
-    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+    <div className="mt-10 flex flex-col gap-3 sm:flex-row">
       {whatsappUrl && (
         <a
           href={whatsappUrl}
-          className={`${BUTTON_BASE} bg-white text-[#1F3A5F] hover:bg-[#F5EFE6]`}
+          className={`${BUTTON_BASE} bg-[#151210] text-[#F4ECDF] hover:bg-[#2A221D]`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -256,7 +261,7 @@ export function ContactButtons({ contact }: { contact: MarketingContact }) {
       {emailUrl && (
         <a
           href={emailUrl}
-          className={`${BUTTON_BASE} border-2 border-white text-white hover:bg-white hover:text-[#1F3A5F]`}
+          className={`${BUTTON_BASE} border-2 border-[#151210] text-[#151210] hover:bg-[#151210] hover:text-[#F4ECDF]`}
         >
           <Mail className="h-5 w-5" aria-hidden="true" />
           Enviar e-mail
@@ -266,307 +271,353 @@ export function ContactButtons({ contact }: { contact: MarketingContact }) {
   );
 }
 
+function Marquee() {
+  const items = [...HERO_POINTS, ...HERO_POINTS, ...HERO_POINTS];
+  return (
+    <div
+      className="overflow-hidden border-y border-[#151210] bg-[#F0B23E] py-4 text-[#151210]"
+      aria-hidden="true"
+    >
+      <div className="osm-marquee">
+        {[0, 1].map((copy) => (
+          <div key={copy} className="flex shrink-0 items-center">
+            {items.map((point, index) => (
+              <span
+                key={`${copy}-${index}`}
+                className="osm-display flex items-center gap-8 px-4 text-[1.7rem] italic sm:text-3xl"
+              >
+                {point}
+                <span className="text-xl not-italic">✺</span>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function LandingPage({
   contact = MARKETING_CONTACT,
   year = new Date().getFullYear(),
+  fontClassName = '',
 }: {
   contact?: MarketingContact;
   year?: number;
+  fontClassName?: string;
 }) {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F5EFE6] font-sans text-[#2B2B2B] antialiased">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 pt-5">
-        <span className="font-serif text-xl font-semibold text-[#1F3A5F]">O Seu Menu</span>
-        <a
-          href="#contacto"
-          className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-semibold text-[#1F3A5F] hover:bg-[#1F3A5F]/5 ${FOCUS_RING}`}
-        >
-          Contacto
-        </a>
-      </header>
+    <div
+      className={`${fontClassName} min-h-screen overflow-x-hidden bg-[#F4ECDF] font-sans text-[#151210] antialiased`}
+    >
+      {/* 1. Topo (escuro) */}
+      <div className="osm-grain bg-[#151210] text-[#F4ECDF]">
+        <header className="mx-auto flex max-w-6xl items-center justify-between px-5 pt-5">
+          <span className="osm-display text-2xl">
+            O Seu <em className="text-[#F0B23E]">Menu</em>
+          </span>
+          <a
+            href="#contacto"
+            className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-4 text-sm font-semibold text-[#F4ECDF] hover:bg-[#F4ECDF]/10 ${FOCUS_RING}`}
+          >
+            Contacto
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </header>
 
-      <main>
-        {/* 1. Topo */}
-        <section className="relative">
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_85%_30%,rgba(181,69,43,0.14),transparent_70%),radial-gradient(50%_40%_at_10%_80%,rgba(31,58,95,0.10),transparent_70%)]"
-            aria-hidden="true"
-          />
-          <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-14 px-5 pb-20 pt-10 sm:pt-14 lg:flex-row lg:gap-10 lg:pb-28 lg:pt-16">
-            <div className="max-w-xl text-center lg:flex-1 lg:text-left">
-              <p className="inline-flex items-center gap-2 rounded-full bg-[#B5452B]/10 px-4 py-1.5 text-sm font-semibold text-[#8E3520]">
-                <span className="h-2 w-2 rounded-full bg-[#B5452B]" aria-hidden="true" />
-                Primeiro mês grátis e sem compromisso
-              </p>
-              <h1 className="mt-6 font-serif text-[3.4rem] font-semibold leading-[0.95] text-[#1F3A5F] sm:text-7xl">
-                O Seu Menu
-              </h1>
-              <p className="mt-6 text-xl leading-relaxed sm:text-[1.4rem]">{LANDING_TAGLINE}</p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                <Link href="/demo" prefetch={false} className={BUTTON_PRIMARY}>
-                  Ver exemplo
-                  <ArrowRight className="h-5 w-5" aria-hidden="true" />
-                </Link>
-                <a href="#contacto" className={BUTTON_SECONDARY}>
-                  Falar connosco
-                </a>
+        <main>
+          <section className="relative">
+            <div
+              className="pointer-events-none absolute right-[-10%] top-[10%] h-[520px] w-[520px] rounded-full bg-[#F0B23E]/20 blur-[120px]"
+              aria-hidden="true"
+            />
+            <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-16 px-5 pb-20 pt-12 sm:pt-16 lg:flex-row lg:items-center lg:gap-8 lg:pb-28 lg:pt-20">
+              <div className="max-w-2xl text-center lg:flex-[1.15] lg:text-left">
+                <Tag2 dark>Primeiro mês grátis e sem compromisso</Tag2>
+                <h1 className="osm-display mt-7 text-[4.6rem] leading-[0.88] sm:text-[6.5rem] lg:text-[7.5rem]">
+                  O Seu <em className="text-[#F0B23E]">Menu</em>
+                </h1>
+                <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-[#F4ECDF]/80 sm:text-xl lg:mx-0">
+                  {LANDING_TAGLINE}
+                </p>
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+                  <Link href="/demo" prefetch={false} className={BUTTON_SAFFRON}>
+                    Ver exemplo
+                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                  </Link>
+                  <a href="#contacto" className={BUTTON_GHOST_LIGHT}>
+                    Falar connosco
+                  </a>
+                </div>
               </div>
-              <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[15px] font-medium lg:justify-start">
-                {HERO_POINTS.map((point) => (
-                  <li key={point} className="inline-flex items-center gap-1.5">
-                    <Check className="h-4 w-4 text-[#B5452B]" aria-hidden="true" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            <div className="relative lg:flex-1">
-              <div
-                className="absolute left-1/2 top-1/2 h-[440px] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1F3A5F]/[0.07]"
-                aria-hidden="true"
-              />
-              <MenuPreview />
-              <div
-                className="absolute -left-10 top-24 hidden rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#1F3A5F] shadow-[0_16px_40px_-16px_rgba(31,58,95,0.45)] sm:block"
-                aria-hidden="true"
-              >
-                <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full bg-emerald-600" />
-                Preço atualizado
-              </div>
-              <div
-                className="absolute -right-8 bottom-28 hidden rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#1F3A5F] shadow-[0_16px_40px_-16px_rgba(31,58,95,0.45)] sm:block"
-                aria-hidden="true"
-              >
-                <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full bg-[#B5452B]" />
-                Marcado como esgotado
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. Como funciona */}
-        <section aria-labelledby="como-funciona" className="bg-[#FFFDF9] py-20 lg:py-24">
-          <div className="mx-auto max-w-6xl px-5">
-            <div className="mx-auto max-w-2xl text-center">
-              <Kicker>Em três passos</Kicker>
-              <SectionTitle id="como-funciona">Como funciona</SectionTitle>
-            </div>
-            <ol className="relative mt-12 grid gap-10 md:grid-cols-3 md:gap-6">
-              <span
-                className="absolute left-[17%] right-[17%] top-7 hidden h-px bg-[repeating-linear-gradient(90deg,#B5452B_0_6px,transparent_6px_12px)] md:block"
-                aria-hidden="true"
-              />
-              {STEPS.map((step, index) => (
-                <li key={step.title} className="relative text-center md:px-4">
-                  <span
-                    className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1F3A5F] text-white shadow-[0_12px_24px_-12px_rgba(31,58,95,0.8)]"
-                    aria-hidden="true"
-                  >
-                    <step.icon className="h-6 w-6" />
-                    <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#B5452B] font-serif text-sm font-semibold">
-                      {index + 1}
-                    </span>
-                  </span>
-                  <h3 className="mt-5 text-lg font-semibold leading-snug text-[#1F3A5F]">
-                    <span className="sr-only">Passo {index + 1}: </span>
-                    {step.title}
-                  </h3>
-                  <p className="mx-auto mt-2 max-w-xs leading-relaxed text-[#2B2B2B]/85">
-                    {step.text}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* 3. O painel: como é fácil gerir a carta */}
-        <section aria-labelledby="painel" className="py-20 lg:py-28">
-          <div className="mx-auto max-w-6xl px-5">
-            <div className="mx-auto max-w-2xl text-center">
-              <Kicker>O painel do restaurante</Kicker>
-              <SectionTitle id="painel">
-                Gerir a carta é tão fácil como enviar uma mensagem
-              </SectionTitle>
-              <p className="mt-5 text-lg leading-relaxed text-[#2B2B2B]/85">
-                Tudo se faz no telemóvel, no painel do seu restaurante. Sem chamar ninguém e sem
-                esperar.
-              </p>
-            </div>
-
-            <div className="mt-16 space-y-20 lg:space-y-28">
-              {SHOWCASE.map((item, index) => (
-                <article
-                  key={item.title}
-                  className={`flex flex-col items-center gap-10 lg:gap-20 ${
-                    index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'
-                  }`}
+              <div className="relative lg:flex-1">
+                <MenuPreview />
+                <div
+                  className="absolute -left-8 top-16 hidden h-28 w-28 -rotate-12 flex-col items-center justify-center rounded-full bg-[#F0B23E] text-center text-[#151210] shadow-xl sm:flex"
+                  aria-hidden="true"
                 >
-                  <div className="relative lg:flex-1">
-                    <div
-                      className="absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#B5452B]/[0.08]"
-                      aria-hidden="true"
-                    />
-                    <PhoneFrame
-                      height={Math.min(
-                        520,
-                        Math.round((260 * item.image.height) / item.image.width),
-                      )}
-                    >
-                      <Image
-                        src={item.image.src}
-                        alt={item.image.alt}
-                        width={item.image.width}
-                        height={item.image.height}
-                        sizes="260px"
-                        loading="lazy"
-                        className="h-full w-full object-cover object-top"
-                      />
-                    </PhoneFrame>
-                  </div>
-                  <div className="max-w-lg lg:flex-1">
-                    <Kicker>{item.kicker}</Kicker>
-                    <h3 className="mt-3 font-serif text-[1.75rem] font-semibold leading-tight text-[#1F3A5F] sm:text-[2.1rem]">
-                      {item.title}
-                    </h3>
-                    <p className="mt-4 text-lg leading-relaxed text-[#2B2B2B]/85">{item.text}</p>
-                    <ul className="mt-6 space-y-3">
-                      {item.points.map((point) => (
-                        <li key={point} className="flex items-start gap-3">
-                          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1F3A5F] text-white">
-                            <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                          </span>
-                          <span className="leading-relaxed">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </article>
-              ))}
+                  <span className="osm-display text-3xl leading-none">1.º mês</span>
+                  <span className="mt-1 text-xs font-bold uppercase tracking-widest">grátis</span>
+                </div>
+                <div
+                  className="absolute -right-6 bottom-24 hidden items-center gap-2 rounded-2xl bg-[#F4ECDF] px-4 py-3 text-sm font-semibold text-[#151210] shadow-xl sm:flex"
+                  aria-hidden="true"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2E4733] text-[#F4ECDF]">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                  Preço atualizado
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <Marquee />
+
+      {/* 2. Como funciona */}
+      <section aria-labelledby="como-funciona" className="py-24 lg:py-32">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <Tag2>Em três passos</Tag2>
+              <h2
+                id="como-funciona"
+                className="osm-display mt-5 text-[3.2rem] leading-[0.95] sm:text-[4.5rem]"
+              >
+                Como <em>funciona</em>
+              </h2>
             </div>
           </div>
-        </section>
-
-        {/* 4. Vantagens */}
-        <section aria-labelledby="vantagens" className="bg-[#FFFDF9] py-20 lg:py-24">
-          <div className="mx-auto max-w-6xl px-5">
-            <div className="mx-auto max-w-2xl text-center">
-              <Kicker>Para os seus clientes</Kicker>
-              <SectionTitle id="vantagens">Uma carta que dá gosto usar</SectionTitle>
-            </div>
-            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {BENEFITS.map((benefit) => (
-                <li key={benefit.title} className={`${CARD} p-6`}>
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#B5452B]/10">
-                    <benefit.icon className="h-5 w-5 text-[#B5452B]" aria-hidden="true" />
+          <ol className="mt-14 grid border-t border-[#151210] md:grid-cols-3">
+            {STEPS.map((step, index) => (
+              <li
+                key={step.title}
+                className="border-b border-[#151210]/20 py-8 md:border-b-0 md:border-r md:px-8 md:py-10 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
+              >
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="osm-display text-7xl leading-none text-[#151210]/90">
+                    {String(index + 1).padStart(2, '0')}
                   </span>
-                  <h3 className="mt-4 text-[1.05rem] font-semibold text-[#1F3A5F]">
-                    {benefit.title}
-                  </h3>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-[#2B2B2B]/85">
-                    {benefit.text}
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A5A08]">
+                    {step.label}
+                  </span>
+                </div>
+                <h3 className="mt-6 text-xl font-semibold leading-snug">
+                  <span className="sr-only">Passo {index + 1}: </span>
+                  {step.title}
+                </h3>
+                <p className="mt-3 leading-relaxed text-[#151210]/75">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* 3. O painel: como é fácil gerir a carta */}
+      <section aria-labelledby="painel" className="bg-[#EADFCB] py-24 lg:py-32">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="max-w-3xl">
+            <Tag2>O painel do restaurante</Tag2>
+            <h2
+              id="painel"
+              className="osm-display mt-5 text-[2.9rem] leading-[0.98] sm:text-[4.2rem]"
+            >
+              Gerir a carta é tão fácil como <em className="text-[#2E4733]">enviar uma mensagem</em>
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#151210]/75">
+              Tudo se faz no telemóvel, no painel do seu restaurante. Sem chamar ninguém e sem
+              esperar.
+            </p>
+          </div>
+
+          <div className="mt-20 space-y-24 lg:space-y-32">
+            {SHOWCASE.map((item, index) => (
+              <article
+                key={item.title}
+                className={`flex flex-col items-center gap-12 lg:gap-24 ${
+                  index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'
+                }`}
+              >
+                <div className="relative lg:flex-1">
+                  <div
+                    className={`absolute inset-x-4 inset-y-10 rounded-[3rem] sm:inset-x-0 ${
+                      index % 2 === 1 ? 'bg-[#2E4733]' : 'bg-[#F0B23E]'
+                    } ${index % 2 === 1 ? '-rotate-3' : 'rotate-3'}`}
+                    aria-hidden="true"
+                  />
+                  <PhoneFrame
+                    height={Math.min(520, Math.round((260 * item.image.height) / item.image.width))}
+                  >
+                    <Image
+                      src={item.image.src}
+                      alt={item.image.alt}
+                      width={item.image.width}
+                      height={item.image.height}
+                      sizes="260px"
+                      loading="lazy"
+                      className="h-full w-full object-cover object-top"
+                    />
+                  </PhoneFrame>
+                </div>
+                <div className="max-w-lg lg:flex-1">
+                  <p className="osm-display text-2xl italic text-[#8A5A08]">
+                    {String(index + 1).padStart(2, '0')} — {item.kicker}
                   </p>
+                  <h3 className="osm-display mt-3 text-[2.4rem] leading-[1.02] sm:text-[3rem]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-5 text-lg leading-relaxed text-[#151210]/75">{item.text}</p>
+                  <ul className="mt-7 space-y-3">
+                    {item.points.map((point) => (
+                      <li key={point} className="flex items-start gap-3">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#151210] text-[#F0B23E]">
+                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                        </span>
+                        <span className="leading-relaxed">{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Vantagens, como uma carta de restaurante */}
+      <section aria-labelledby="vantagens" className="py-24 lg:py-32">
+        <div className="mx-auto max-w-5xl px-5">
+          <div className="osm-grain overflow-hidden rounded-[2.5rem] bg-[#151210] px-6 py-14 text-[#F4ECDF] sm:px-14 sm:py-16">
+            <div className="text-center">
+              <Tag2 dark>Para os seus clientes</Tag2>
+              <h2
+                id="vantagens"
+                className="osm-display mt-5 text-[2.8rem] leading-none sm:text-[4rem]"
+              >
+                Uma carta que <em className="text-[#F0B23E]">dá gosto</em> usar
+              </h2>
+              <div
+                className="mx-auto mt-6 flex items-center justify-center gap-3 text-[#F0B23E]"
+                aria-hidden="true"
+              >
+                <span className="h-px w-16 bg-current opacity-50" />✺
+                <span className="h-px w-16 bg-current opacity-50" />
+              </div>
+            </div>
+            <ul className="mt-12 grid gap-x-14 gap-y-8 md:grid-cols-2">
+              {BENEFITS.map((benefit) => (
+                <li key={benefit.title}>
+                  <div className="flex items-end gap-3">
+                    <h3 className="osm-display text-[1.65rem] leading-tight">{benefit.title}</h3>
+                    <span className="osm-leader" aria-hidden="true" />
+                    <benefit.icon className="h-5 w-5 shrink-0 text-[#F0B23E]" aria-hidden="true" />
+                  </div>
+                  <p className="mt-1.5 leading-relaxed text-[#F4ECDF]/70">{benefit.text}</p>
                 </li>
               ))}
             </ul>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 5. Domínio */}
-        <section aria-labelledby="dominio" className="bg-[#1F3A5F] py-20 text-white lg:py-24">
-          <div className="mx-auto max-w-3xl px-5 text-center">
-            <Kicker light>O seu endereço</Kicker>
+      {/* 5. Domínio */}
+      <section aria-labelledby="dominio" className="osm-grain bg-[#2E4733] py-24 text-[#F4ECDF]">
+        <div className="mx-auto max-w-4xl px-5 text-center">
+          <Tag2 dark>O seu endereço</Tag2>
+          <h2 id="dominio" className="osm-display mt-5 text-[2.8rem] leading-none sm:text-[4rem]">
+            O endereço da sua carta
+          </h2>
+          <p
+            className="osm-display mx-auto mt-10 break-words text-[2rem] italic leading-tight text-[#F0B23E] sm:text-[3.2rem]"
+            aria-hidden="true"
+          >
+            oseumenu.pt/
+            <span className="underline decoration-2 underline-offset-8">o-seu-restaurante</span>
+          </p>
+          <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed">
+            Fica em oseumenu.pt/o-seu-restaurante, ou no domínio do seu restaurante, se já tiver um.
+          </p>
+        </div>
+      </section>
+
+      {/* 6. Perguntas frequentes */}
+      <section aria-labelledby="perguntas" className="py-24 lg:py-32">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[1fr_1.6fr]">
+          <div>
+            <Tag2>Dúvidas</Tag2>
             <h2
-              id="dominio"
-              className="mt-3 font-serif text-[2rem] font-semibold leading-tight sm:text-[2.6rem]"
+              id="perguntas"
+              className="osm-display mt-5 text-[3.2rem] leading-[0.95] sm:text-[4.5rem]"
             >
-              O endereço da sua carta
+              Perguntas <em>frequentes</em>
             </h2>
-            <div
-              className="mx-auto mt-8 flex max-w-md items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left text-[#2B2B2B] shadow-[0_20px_50px_-25px_rgba(0,0,0,0.6)]"
-              aria-hidden="true"
-            >
-              <span className="flex gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#B5452B]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#E0B44C]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
-              </span>
-              <span className="truncate font-semibold">oseumenu.pt/o-seu-restaurante</span>
-            </div>
-            <p className="mt-8 text-lg leading-relaxed text-white">
-              Fica em oseumenu.pt/o-seu-restaurante, ou no domínio do seu restaurante, se já tiver
-              um.
-            </p>
           </div>
-        </section>
-
-        {/* 6. Perguntas frequentes */}
-        <section aria-labelledby="perguntas" className="py-20 lg:py-24">
-          <div className="mx-auto max-w-3xl px-5">
-            <div className="text-center">
-              <Kicker>Dúvidas</Kicker>
-              <SectionTitle id="perguntas">Perguntas frequentes</SectionTitle>
-            </div>
-            <div className="mt-10 space-y-3">
-              {FAQS.map((faq) => (
-                <details key={faq.question} className={`group ${CARD}`}>
-                  <summary
-                    className={`flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-4 rounded-3xl px-6 py-4 text-lg font-semibold text-[#1F3A5F] [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
-                  >
+          <div className="border-t border-[#151210]">
+            {FAQS.map((faq) => (
+              <details key={faq.question} className="group border-b border-[#151210]/20">
+                <summary
+                  className={`flex min-h-[72px] cursor-pointer list-none items-center justify-between gap-6 py-5 [&::-webkit-details-marker]:hidden ${FOCUS_RING} focus-visible:ring-offset-[#F4ECDF]`}
+                >
+                  <span className="osm-display text-[1.6rem] leading-tight sm:text-[1.9rem]">
                     {faq.question}
-                    <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#B5452B]/10 text-xl leading-none text-[#B5452B] transition group-open:rotate-45"
-                      aria-hidden="true"
-                    >
-                      +
-                    </span>
-                  </summary>
-                  <p className="px-6 pb-6 leading-relaxed text-[#2B2B2B]/85">{faq.answer}</p>
-                </details>
-              ))}
-            </div>
+                  </span>
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#151210] transition group-open:rotate-45 group-open:bg-[#151210] group-open:text-[#F0B23E]"
+                    aria-hidden="true"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </span>
+                </summary>
+                <p className="max-w-2xl pb-6 text-lg leading-relaxed text-[#151210]/75">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 7. Contacto */}
-        <section id="contacto" aria-labelledby="contacto-titulo" className="scroll-mt-4 px-5 pb-20">
-          <div className="relative mx-auto max-w-4xl overflow-hidden rounded-[2.5rem] bg-[#B5452B] px-6 py-14 text-center text-white sm:px-12 sm:py-16">
-            <div
-              className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-black/10"
-              aria-hidden="true"
-            />
-            <div className="relative">
-              <h2
-                id="contacto-titulo"
-                className="font-serif text-[2rem] font-semibold leading-tight sm:text-[2.6rem]"
-              >
-                Vamos mostrar-lhe a sua carta
-              </h2>
-              <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed">
-                Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta
-                no telemóvel. O primeiro mês é grátis e sem compromisso.
-              </p>
-              <ContactButtons contact={contact} />
-            </div>
+      {/* 7. Contacto */}
+      <section id="contacto" aria-labelledby="contacto-titulo" className="scroll-mt-4 px-5 pb-24">
+        <div className="osm-grain relative mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] bg-[#F0B23E] px-6 py-16 text-[#151210] sm:px-14 sm:py-20">
+          <span
+            className="osm-display pointer-events-none absolute -bottom-16 -right-6 select-none text-[16rem] leading-none text-[#151210]/[0.07]"
+            aria-hidden="true"
+          >
+            ✺
+          </span>
+          <div className="relative max-w-3xl">
+            <h2
+              id="contacto-titulo"
+              className="osm-display text-[3rem] leading-[0.95] sm:text-[4.8rem]"
+            >
+              Vamos mostrar-lhe <em>a sua carta</em>
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed sm:text-xl">
+              Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta no
+              telemóvel. O primeiro mês é grátis e sem compromisso.
+            </p>
+            <ContactButtons contact={contact} />
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       {/* 8. Rodapé */}
-      <footer className="border-t border-[#E6DCCD]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-5 py-6 text-sm sm:flex-row">
-          <p>
-            <span className="font-serif font-semibold text-[#1F3A5F]">O Seu Menu</span> · {year}
+      <footer className="bg-[#151210] text-[#F4ECDF]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-sm sm:flex-row">
+          <p className="flex items-center gap-2">
+            <span className="osm-display text-xl">
+              O Seu <em className="text-[#F0B23E]">Menu</em>
+            </span>
+            <span className="text-[#F4ECDF]/70">· {year}</span>
           </p>
           <Link
             href="/admin"
             prefetch={false}
-            className={`inline-flex min-h-[44px] items-center rounded-full px-3 underline-offset-4 hover:underline ${FOCUS_RING}`}
+            className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 text-[#F4ECDF]/80 underline-offset-4 hover:text-[#F4ECDF] hover:underline ${FOCUS_RING}`}
           >
             Área do restaurante
           </Link>
