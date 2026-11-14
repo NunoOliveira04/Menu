@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -19,8 +19,28 @@ describe('Página de apresentação (/)', () => {
     expect(html).toContain('<h1');
     expect(html).toContain('O Seu Menu');
     expect(html).toContain(LANDING_TAGLINE);
-    expect(html).toMatch(/<a[^>]*href="\/demo"[^>]*>Ver exemplo<\/a>/);
+    expect(html).toMatch(/<a[^>]*href="\/demo"[^>]*>Ver exemplo/);
     expect(html).toMatch(/<a[^>]*href="#contacto"[^>]*>Falar connosco<\/a>/);
+  });
+
+  it('mostra como se gere a carta, com prints reais do painel', () => {
+    const html = render();
+    for (const title of [
+      'Gerir a carta é tão fácil como enviar uma mensagem',
+      'Acabou? Um toque e fica esgotado.',
+      'Mudar um preço demora segundos',
+      'O QR code das mesas, pronto a imprimir',
+    ]) {
+      expect(html).toContain(title);
+    }
+    for (const image of ['painel-pratos', 'painel-editar', 'painel-qr']) {
+      expect(html).toMatch(new RegExp(`<img[^>]*alt="Painel do restaurante[^"]*"[^>]*${image}`));
+      expect(
+        existsSync(resolve(__dirname, '..', 'public', 'apresentacao', `${image}.webp`)),
+        image,
+      ).toBe(true);
+    }
+    expect(html.match(/<img[^>]*loading="lazy"/g)?.length).toBeGreaterThanOrEqual(3);
   });
 
   it('mostra a carta /demo num iframe com loading="lazy"', () => {
@@ -33,19 +53,22 @@ describe('Página de apresentação (/)', () => {
     const html = render();
     const order = [
       'Ver exemplo',
-      'Como funciona',
+      'id="como-funciona"',
       'Nós passamos a sua carta',
       'Pomos os QR codes nas mesas',
       'Muda preços e pratos no seu telemóvel, quando quiser',
-      'Muda em segundos',
+      'id="painel"',
+      'id="vantagens"',
+      'Altera um preço ou um prato no telemóvel',
       'Esgotados à vista',
       'Inglês com um toque',
       'Alergénios claros',
       'Fotos que se ampliam',
       'Com a cara do restaurante',
       'Abre com a câmara',
+      'id="dominio"',
       'oseumenu.pt/o-seu-restaurante',
-      'Perguntas frequentes',
+      'id="perguntas"',
       'id="contacto"',
       'Área do restaurante',
     ];
