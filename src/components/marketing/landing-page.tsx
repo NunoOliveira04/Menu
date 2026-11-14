@@ -1,14 +1,16 @@
 import {
   ArrowRight,
-  ArrowUpRight,
   Camera,
   Check,
+  Image as ImageIcon,
   Info,
   Languages,
+  LayoutGrid,
+  List,
   Mail,
   MessageCircle,
-  Palette,
   Plus,
+  QrCode,
   RefreshCw,
   Tag,
   ZoomIn,
@@ -22,16 +24,27 @@ import {
   buildWhatsAppUrl,
   type MarketingContact,
 } from '@/lib/marketing/contact';
+import {
+  MENU_ACCENTS,
+  MENU_ACCENT_IDS,
+  MENU_BACKGROUNDS,
+  MENU_BACKGROUND_IDS,
+  MENU_LAYOUTS,
+  MENU_LAYOUT_IDS,
+  menuCssVars,
+  type MenuLayoutId,
+} from '@/lib/themes/backgrounds';
 
 /*
  * Página de apresentação de «O Seu Menu» (oseumenu.pt/).
  * Componente de servidor, sem JavaScript próprio no cliente: a página é gerada no build.
  *
- * Estilo «bistrô editorial»: tinta quente (#151210), creme (#F4ECDF), açafrão (#F0B23E)
- * e verde-azeite (#2E4733). Títulos em Instrument Serif (variável --font-landing-display,
- * carregada só nesta página) e texto em Inter. Combinações usadas, todas AA:
- * creme sobre tinta ≈ 16:1, tinta sobre açafrão ≈ 9,6:1, creme sobre azeite ≈ 9:1,
- * açafrão-escuro (#8A5A08) sobre creme ≈ 4,8:1.
+ * Letras: Young Serif (títulos) e Atkinson Hyperlegible Next (texto), carregadas só aqui.
+ * Paleta (contraste WCAG):
+ *   Papel #FBF6EC · Areia #F2E6D0 · Tinta #2B1D16 · Tinta suave #5F4B40
+ *   Terracota #B4412A · Pinhal #1F3D2E · Gema #F2B441
+ *   Tinta/Papel 15,1 · Tinta/Areia 13,2 · Tinta suave/Papel 7,6 · Tinta suave/Areia 6,6
+ *   Papel/Terracota 5,2 · Terracota/Papel 5,2 · Papel/Pinhal 11,0 · Gema/Pinhal 6,5 · Tinta/Gema 8,8
  */
 
 export const LANDING_TAGLINE =
@@ -39,19 +52,16 @@ export const LANDING_TAGLINE =
 
 const HERO_POINTS = ['Sem instalar nada', 'Português e inglês', 'Muda em segundos'];
 
-const STEPS: { label: string; title: string; text: string }[] = [
+const STEPS: { title: string; text: string }[] = [
   {
-    label: 'Entrada',
     title: 'Nós passamos a sua carta',
     text: 'Envie-nos a carta em papel, em PDF ou numa fotografia. Nós passamos os pratos, os preços, as fotos e os alergénios.',
   },
   {
-    label: 'Prato principal',
     title: 'Pomos os QR codes nas mesas',
     text: 'Os clientes apontam a câmara do telemóvel e a carta abre logo.',
   },
   {
-    label: 'Sobremesa',
     title: 'Muda preços e pratos no seu telemóvel, quando quiser',
     text: 'Um preço novo ou um prato esgotado aparece na carta logo a seguir.',
   },
@@ -114,6 +124,26 @@ const SHOWCASE: Showcase[] = [
   },
 ];
 
+/** A mesma carta de exemplo com estilos diferentes (aplicados só para a captura). */
+const STYLE_EXAMPLES: { src: string; caption: string }[] = [
+  {
+    src: '/apresentacao/estilo-claro-terracota-foto.webp',
+    caption: 'Claro · Terracota · Foto grande',
+  },
+  { src: '/apresentacao/estilo-linho-verde-lista.webp', caption: 'Linho · Verde · Lista' },
+  {
+    src: '/apresentacao/estilo-madeira-dourado-grelha.webp',
+    caption: 'Madeira escura · Dourado · Grelha',
+  },
+  { src: '/apresentacao/estilo-pedra-azul-grelha.webp', caption: 'Pedra · Azul · Grelha' },
+];
+
+const LAYOUT_ICONS: Record<MenuLayoutId, LucideIcon> = {
+  lista: List,
+  grelha: LayoutGrid,
+  foto: ImageIcon,
+};
+
 const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: RefreshCw,
@@ -139,11 +169,6 @@ const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
     icon: ZoomIn,
     title: 'Fotos que se ampliam',
     text: 'As fotos dos pratos abrem em grande com um toque.',
-  },
-  {
-    icon: Palette,
-    title: 'Com a cara do restaurante',
-    text: 'O seu logotipo, e o fundo e a cor à sua escolha.',
   },
   {
     icon: Camera,
@@ -181,43 +206,71 @@ const FAQS: { question: string; answer: string }[] = [
 ];
 
 const FOCUS_RING =
-  'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#F0B23E]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#151210]';
-const BUTTON_BASE = `inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full px-7 text-base font-semibold transition ${FOCUS_RING}`;
-const BUTTON_SAFFRON = `${BUTTON_BASE} bg-[#F0B23E] text-[#151210] hover:bg-[#F6C25E]`;
-const BUTTON_GHOST_LIGHT = `${BUTTON_BASE} border border-[#F4ECDF]/40 text-[#F4ECDF] hover:border-[#F4ECDF] hover:bg-[#F4ECDF]/10`;
+  'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#B4412A]/35 focus-visible:ring-offset-2';
+const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-7 text-[17px] font-semibold transition ${FOCUS_RING}`;
+const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#B4412A] text-[#FBF6EC] shadow-[0_12px_28px_-14px_rgba(180,65,42,0.8)] hover:bg-[#9A3722]`;
+const BUTTON_OUTLINE = `${BUTTON_BASE} border-2 border-[#1F3D2E] text-[#1F3D2E] hover:bg-[#1F3D2E] hover:text-[#FBF6EC]`;
+const SHADOW = 'shadow-[0_12px_32px_rgba(43,29,22,0.12)]';
 
-function Tag2({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+function Eyebrow({ children, onDark = false }: { children: React.ReactNode; onDark?: boolean }) {
   return (
     <p
-      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-[13px] font-semibold uppercase tracking-[0.16em] ${
-        dark
-          ? 'border-[#F4ECDF]/25 text-[#F0B23E]'
-          : 'border-[#151210]/15 bg-[#F4ECDF] text-[#8A5A08]'
+      className={`text-[13px] font-semibold uppercase tracking-[0.08em] sm:text-sm ${
+        onDark ? 'text-[#F2B441]' : 'text-[#B4412A]'
       }`}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
       {children}
     </p>
+  );
+}
+
+function SectionHeading({
+  id,
+  eyebrow,
+  title,
+  intro,
+  center = false,
+}: {
+  id: string;
+  eyebrow: string;
+  title: React.ReactNode;
+  intro?: string;
+  center?: boolean;
+}) {
+  return (
+    <div className={center ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl'}>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2
+        id={id}
+        className="osm-display mt-3 text-[30px] leading-[1.15] tracking-[-0.005em] sm:text-[44px]"
+      >
+        {title}
+      </h2>
+      {intro && <p className="mt-4 text-[17px] leading-[1.6] text-[#5F4B40] sm:text-lg">{intro}</p>}
+    </div>
   );
 }
 
 /** Moldura de telemóvel (só CSS). */
 function PhoneFrame({
   children,
+  width = 280,
   height,
   className = '',
 }: {
   children: React.ReactNode;
+  width?: number;
   height: number;
   className?: string;
 }) {
   return (
     <div
-      className={`relative mx-auto w-[280px] shrink-0 rounded-[46px] bg-[#0B0908] p-[10px] shadow-[0_50px_100px_-40px_rgba(0,0,0,0.75)] ring-1 ring-white/10 ${className}`}
+      className={`relative mx-auto shrink-0 rounded-[44px] bg-[#2B1D16] p-[9px] shadow-[0_30px_60px_-28px_rgba(43,29,22,0.55)] ${className}`}
+      style={{ width }}
     >
       <div
-        className="relative w-[260px] overflow-hidden rounded-[36px] bg-white"
-        style={{ height }}
+        className="relative overflow-hidden rounded-[35px] bg-white"
+        style={{ width: width - 18, height }}
       >
         {children}
       </div>
@@ -228,7 +281,7 @@ function PhoneFrame({
 /** A carta de exemplo (/demo), num iframe 390×844 reduzido para caber na moldura. */
 function MenuPreview() {
   return (
-    <PhoneFrame height={562} className="lg:rotate-[3deg]">
+    <PhoneFrame height={562} className="-rotate-3">
       <iframe
         src="/demo"
         title="Exemplo de carta no telemóvel"
@@ -246,11 +299,11 @@ export function ContactButtons({ contact }: { contact: MarketingContact }) {
     return null;
   }
   return (
-    <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+    <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center">
       {whatsappUrl && (
         <a
           href={whatsappUrl}
-          className={`${BUTTON_BASE} bg-[#151210] text-[#F4ECDF] hover:bg-[#2A221D]`}
+          className={`${BUTTON_BASE} bg-[#F2B441] text-[#2B1D16] hover:bg-[#F5C463]`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -261,38 +314,12 @@ export function ContactButtons({ contact }: { contact: MarketingContact }) {
       {emailUrl && (
         <a
           href={emailUrl}
-          className={`${BUTTON_BASE} border-2 border-[#151210] text-[#151210] hover:bg-[#151210] hover:text-[#F4ECDF]`}
+          className={`${BUTTON_BASE} border-2 border-[#FBF6EC] text-[#FBF6EC] hover:bg-[#FBF6EC] hover:text-[#1F3D2E]`}
         >
           <Mail className="h-5 w-5" aria-hidden="true" />
           Enviar e-mail
         </a>
       )}
-    </div>
-  );
-}
-
-function Marquee() {
-  const items = [...HERO_POINTS, ...HERO_POINTS, ...HERO_POINTS];
-  return (
-    <div
-      className="overflow-hidden border-y border-[#151210] bg-[#F0B23E] py-4 text-[#151210]"
-      aria-hidden="true"
-    >
-      <div className="osm-marquee">
-        {[0, 1].map((copy) => (
-          <div key={copy} className="flex shrink-0 items-center">
-            {items.map((point, index) => (
-              <span
-                key={`${copy}-${index}`}
-                className="osm-display flex items-center gap-8 px-4 text-[1.7rem] italic sm:text-3xl"
-              >
-                {point}
-                <span className="text-xl not-italic">✺</span>
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -308,316 +335,391 @@ export function LandingPage({
 }) {
   return (
     <div
-      className={`${fontClassName} min-h-screen overflow-x-hidden bg-[#F4ECDF] font-sans text-[#151210] antialiased`}
+      className={`${fontClassName} osm-page min-h-screen overflow-x-hidden bg-[#FBF6EC] text-[17px] leading-[1.6] text-[#2B1D16] antialiased sm:text-lg`}
     >
-      {/* 1. Topo (escuro) */}
-      <div className="osm-grain bg-[#151210] text-[#F4ECDF]">
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-5 pt-5">
-          <span className="osm-display text-2xl">
-            O Seu <em className="text-[#F0B23E]">Menu</em>
-          </span>
-          <a
-            href="#contacto"
-            className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-4 text-sm font-semibold text-[#F4ECDF] hover:bg-[#F4ECDF]/10 ${FOCUS_RING}`}
-          >
-            Contacto
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </header>
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 pt-5">
+        <span className="osm-display text-2xl">
+          O Seu <span className="text-[#B4412A]">Menu</span>
+        </span>
+        <a
+          href="#contacto"
+          className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-base font-semibold text-[#1F3D2E] hover:bg-[#1F3D2E]/5 ${FOCUS_RING}`}
+        >
+          Contacto
+        </a>
+      </header>
 
-        <main>
-          <section className="relative">
-            <div
-              className="pointer-events-none absolute right-[-10%] top-[10%] h-[520px] w-[520px] rounded-full bg-[#F0B23E]/20 blur-[120px]"
-              aria-hidden="true"
-            />
-            <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-16 px-5 pb-20 pt-12 sm:pt-16 lg:flex-row lg:items-center lg:gap-8 lg:pb-28 lg:pt-20">
-              <div className="max-w-2xl text-center lg:flex-[1.15] lg:text-left">
-                <Tag2 dark>Primeiro mês grátis e sem compromisso</Tag2>
-                <h1 className="osm-display mt-7 text-[4.6rem] leading-[0.88] sm:text-[6.5rem] lg:text-[7.5rem]">
-                  O Seu <em className="text-[#F0B23E]">Menu</em>
-                </h1>
-                <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-[#F4ECDF]/80 sm:text-xl lg:mx-0">
-                  {LANDING_TAGLINE}
-                </p>
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                  <Link href="/demo" prefetch={false} className={BUTTON_SAFFRON}>
-                    Ver exemplo
-                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
-                  </Link>
-                  <a href="#contacto" className={BUTTON_GHOST_LIGHT}>
-                    Falar connosco
-                  </a>
-                </div>
-              </div>
-
-              <div className="relative lg:flex-1">
-                <MenuPreview />
-                <div
-                  className="absolute -left-8 top-16 hidden h-28 w-28 -rotate-12 flex-col items-center justify-center rounded-full bg-[#F0B23E] text-center text-[#151210] shadow-xl sm:flex"
-                  aria-hidden="true"
-                >
-                  <span className="osm-display text-3xl leading-none">1.º mês</span>
-                  <span className="mt-1 text-xs font-bold uppercase tracking-widest">grátis</span>
-                </div>
-                <div
-                  className="absolute -right-6 bottom-24 hidden items-center gap-2 rounded-2xl bg-[#F4ECDF] px-4 py-3 text-sm font-semibold text-[#151210] shadow-xl sm:flex"
-                  aria-hidden="true"
-                >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2E4733] text-[#F4ECDF]">
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                  Preço atualizado
-                </div>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
-
-      <Marquee />
-
-      {/* 2. Como funciona */}
-      <section aria-labelledby="como-funciona" className="py-24 lg:py-32">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <Tag2>Em três passos</Tag2>
-              <h2
-                id="como-funciona"
-                className="osm-display mt-5 text-[3.2rem] leading-[0.95] sm:text-[4.5rem]"
-              >
-                Como <em>funciona</em>
-              </h2>
-            </div>
-          </div>
-          <ol className="mt-14 grid border-t border-[#151210] md:grid-cols-3">
-            {STEPS.map((step, index) => (
-              <li
-                key={step.title}
-                className="border-b border-[#151210]/20 py-8 md:border-b-0 md:border-r md:px-8 md:py-10 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
-              >
-                <div className="flex items-baseline justify-between gap-4">
-                  <span className="osm-display text-7xl leading-none text-[#151210]/90">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A5A08]">
-                    {step.label}
-                  </span>
-                </div>
-                <h3 className="mt-6 text-xl font-semibold leading-snug">
-                  <span className="sr-only">Passo {index + 1}: </span>
-                  {step.title}
-                </h3>
-                <p className="mt-3 leading-relaxed text-[#151210]/75">{step.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* 3. O painel: como é fácil gerir a carta */}
-      <section aria-labelledby="painel" className="bg-[#EADFCB] py-24 lg:py-32">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="max-w-3xl">
-            <Tag2>O painel do restaurante</Tag2>
-            <h2
-              id="painel"
-              className="osm-display mt-5 text-[2.9rem] leading-[0.98] sm:text-[4.2rem]"
-            >
-              Gerir a carta é tão fácil como <em className="text-[#2E4733]">enviar uma mensagem</em>
-            </h2>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#151210]/75">
-              Tudo se faz no telemóvel, no painel do seu restaurante. Sem chamar ninguém e sem
-              esperar.
+      <main>
+        {/* 1. Topo */}
+        <section className="mx-auto flex max-w-6xl flex-col items-center gap-14 px-5 pb-20 pt-10 sm:pt-14 lg:flex-row lg:gap-10 lg:pb-24 lg:pt-16">
+          <div className="max-w-xl text-center lg:flex-1 lg:text-left">
+            <p className="inline-flex items-center gap-2 rounded-full bg-[#F2B441] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
+              Primeiro mês grátis e sem compromisso
             </p>
-          </div>
-
-          <div className="mt-20 space-y-24 lg:space-y-32">
-            {SHOWCASE.map((item, index) => (
-              <article
-                key={item.title}
-                className={`flex flex-col items-center gap-12 lg:gap-24 ${
-                  index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'
-                }`}
-              >
-                <div className="relative lg:flex-1">
-                  <div
-                    className={`absolute inset-x-4 inset-y-10 rounded-[3rem] sm:inset-x-0 ${
-                      index % 2 === 1 ? 'bg-[#2E4733]' : 'bg-[#F0B23E]'
-                    } ${index % 2 === 1 ? '-rotate-3' : 'rotate-3'}`}
-                    aria-hidden="true"
-                  />
-                  <PhoneFrame
-                    height={Math.min(520, Math.round((260 * item.image.height) / item.image.width))}
-                  >
-                    <Image
-                      src={item.image.src}
-                      alt={item.image.alt}
-                      width={item.image.width}
-                      height={item.image.height}
-                      sizes="260px"
-                      loading="lazy"
-                      className="h-full w-full object-cover object-top"
-                    />
-                  </PhoneFrame>
-                </div>
-                <div className="max-w-lg lg:flex-1">
-                  <p className="osm-display text-2xl italic text-[#8A5A08]">
-                    {String(index + 1).padStart(2, '0')} — {item.kicker}
-                  </p>
-                  <h3 className="osm-display mt-3 text-[2.4rem] leading-[1.02] sm:text-[3rem]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-5 text-lg leading-relaxed text-[#151210]/75">{item.text}</p>
-                  <ul className="mt-7 space-y-3">
-                    {item.points.map((point) => (
-                      <li key={point} className="flex items-start gap-3">
-                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#151210] text-[#F0B23E]">
-                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                        </span>
-                        <span className="leading-relaxed">{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Vantagens, como uma carta de restaurante */}
-      <section aria-labelledby="vantagens" className="py-24 lg:py-32">
-        <div className="mx-auto max-w-5xl px-5">
-          <div className="osm-grain overflow-hidden rounded-[2.5rem] bg-[#151210] px-6 py-14 text-[#F4ECDF] sm:px-14 sm:py-16">
-            <div className="text-center">
-              <Tag2 dark>Para os seus clientes</Tag2>
-              <h2
-                id="vantagens"
-                className="osm-display mt-5 text-[2.8rem] leading-none sm:text-[4rem]"
-              >
-                Uma carta que <em className="text-[#F0B23E]">dá gosto</em> usar
-              </h2>
-              <div
-                className="mx-auto mt-6 flex items-center justify-center gap-3 text-[#F0B23E]"
-                aria-hidden="true"
-              >
-                <span className="h-px w-16 bg-current opacity-50" />✺
-                <span className="h-px w-16 bg-current opacity-50" />
-              </div>
+            <h1 className="osm-display mt-6 text-[52px] leading-[1.05] tracking-[-0.01em] sm:text-[68px]">
+              O Seu <span className="text-[#B4412A]">Menu</span>
+            </h1>
+            <p className="mt-5 max-w-[34ch] text-xl leading-[1.55] text-[#2B1D16] max-lg:mx-auto sm:text-[22px]">
+              {LANDING_TAGLINE}
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <Link href="/demo" prefetch={false} className={BUTTON_PRIMARY}>
+                Ver exemplo
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+              <a href="#contacto" className={BUTTON_OUTLINE}>
+                Falar connosco
+              </a>
             </div>
-            <ul className="mt-12 grid gap-x-14 gap-y-8 md:grid-cols-2">
-              {BENEFITS.map((benefit) => (
-                <li key={benefit.title}>
-                  <div className="flex items-end gap-3">
-                    <h3 className="osm-display text-[1.65rem] leading-tight">{benefit.title}</h3>
-                    <span className="osm-leader" aria-hidden="true" />
-                    <benefit.icon className="h-5 w-5 shrink-0 text-[#F0B23E]" aria-hidden="true" />
-                  </div>
-                  <p className="mt-1.5 leading-relaxed text-[#F4ECDF]/70">{benefit.text}</p>
+            <ul className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-base text-[#5F4B40] lg:justify-start">
+              {HERO_POINTS.map((point) => (
+                <li key={point} className="inline-flex items-center gap-1.5">
+                  <Check className="h-4 w-4 text-[#1F3D2E]" aria-hidden="true" />
+                  {point}
                 </li>
               ))}
             </ul>
           </div>
-        </div>
-      </section>
 
-      {/* 5. Domínio */}
-      <section aria-labelledby="dominio" className="osm-grain bg-[#2E4733] py-24 text-[#F4ECDF]">
-        <div className="mx-auto max-w-4xl px-5 text-center">
-          <Tag2 dark>O seu endereço</Tag2>
-          <h2 id="dominio" className="osm-display mt-5 text-[2.8rem] leading-none sm:text-[4rem]">
-            O endereço da sua carta
-          </h2>
-          <p
-            className="osm-display mx-auto mt-10 break-words text-[2rem] italic leading-tight text-[#F0B23E] sm:text-[3.2rem]"
-            aria-hidden="true"
-          >
-            oseumenu.pt/
-            <span className="underline decoration-2 underline-offset-8">o-seu-restaurante</span>
-          </p>
-          <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed">
-            Fica em oseumenu.pt/o-seu-restaurante, ou no domínio do seu restaurante, se já tiver um.
-          </p>
-        </div>
-      </section>
-
-      {/* 6. Perguntas frequentes */}
-      <section aria-labelledby="perguntas" className="py-24 lg:py-32">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[1fr_1.6fr]">
-          <div>
-            <Tag2>Dúvidas</Tag2>
-            <h2
-              id="perguntas"
-              className="osm-display mt-5 text-[3.2rem] leading-[0.95] sm:text-[4.5rem]"
+          <div className="relative lg:flex-1">
+            <div
+              className="absolute inset-x-[-12%] bottom-[-6%] top-[12%] rounded-[3rem] bg-[#F2E6D0]"
+              aria-hidden="true"
+            />
+            <MenuPreview />
+            <div
+              className={`absolute -right-3 bottom-16 hidden items-center gap-3 rounded-2xl bg-[#FBF6EC] px-4 py-3 sm:flex ${SHADOW}`}
+              aria-hidden="true"
             >
-              Perguntas <em>frequentes</em>
-            </h2>
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1F3D2E] text-[#FBF6EC]">
+                <QrCode className="h-5 w-5" />
+              </span>
+              <span className="text-[15px] font-semibold leading-tight">
+                Aponte a câmara
+                <span className="block font-normal text-[#5F4B40]">e a carta abre</span>
+              </span>
+            </div>
           </div>
-          <div className="border-t border-[#151210]">
-            {FAQS.map((faq) => (
-              <details key={faq.question} className="group border-b border-[#151210]/20">
-                <summary
-                  className={`flex min-h-[72px] cursor-pointer list-none items-center justify-between gap-6 py-5 [&::-webkit-details-marker]:hidden ${FOCUS_RING} focus-visible:ring-offset-[#F4ECDF]`}
+        </section>
+
+        {/* 2. Como funciona */}
+        <section aria-labelledby="como-funciona" className="bg-[#F2E6D0] py-20 lg:py-24">
+          <div className="mx-auto max-w-6xl px-5">
+            <SectionHeading
+              id="como-funciona"
+              eyebrow="Nós tratamos de tudo"
+              title="Como funciona"
+              center
+            />
+            <ol className="relative mx-auto mt-12 grid max-w-md gap-10 md:max-w-none md:grid-cols-3 md:gap-8">
+              <span
+                className="absolute bottom-6 left-[31px] top-6 w-0 border-l-2 border-dashed border-[#B4412A]/40 md:hidden"
+                aria-hidden="true"
+              />
+              <span
+                className="absolute left-[17%] right-[17%] top-8 hidden border-t-2 border-dashed border-[#B4412A]/40 md:block"
+                aria-hidden="true"
+              />
+              {STEPS.map((step, index) => (
+                <li
+                  key={step.title}
+                  className="relative grid grid-cols-[64px_1fr] gap-4 md:grid-cols-1 md:text-center"
                 >
-                  <span className="osm-display text-[1.6rem] leading-tight sm:text-[1.9rem]">
-                    {faq.question}
-                  </span>
                   <span
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#151210] transition group-open:rotate-45 group-open:bg-[#151210] group-open:text-[#F0B23E]"
+                    className="osm-display relative flex h-16 w-16 items-center justify-center rounded-full bg-[#FBF6EC] text-[40px] leading-none text-[#B4412A] ring-2 ring-[#B4412A]/20 md:mx-auto"
                     aria-hidden="true"
                   >
-                    <Plus className="h-5 w-5" />
+                    {index + 1}
                   </span>
-                </summary>
-                <p className="max-w-2xl pb-6 text-lg leading-relaxed text-[#151210]/75">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
+                  <div>
+                    <h3 className="text-xl font-semibold leading-[1.3] sm:text-[22px] md:mt-4">
+                      <span className="sr-only">Passo {index + 1}: </span>
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-[#5F4B40]">{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 7. Contacto */}
-      <section id="contacto" aria-labelledby="contacto-titulo" className="scroll-mt-4 px-5 pb-24">
-        <div className="osm-grain relative mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] bg-[#F0B23E] px-6 py-16 text-[#151210] sm:px-14 sm:py-20">
-          <span
-            className="osm-display pointer-events-none absolute -bottom-16 -right-6 select-none text-[16rem] leading-none text-[#151210]/[0.07]"
-            aria-hidden="true"
-          >
-            ✺
-          </span>
-          <div className="relative max-w-3xl">
+        {/* 3. Fácil de gerir */}
+        <section aria-labelledby="painel" className="py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-5">
+            <SectionHeading
+              id="painel"
+              eyebrow="Fácil de gerir"
+              title="Gerir a carta é tão fácil como enviar uma mensagem"
+              intro="Tudo se faz no telemóvel, no painel do seu restaurante. Sem chamar ninguém e sem esperar."
+              center
+            />
+
+            <div className="mt-16 space-y-20 lg:space-y-24">
+              {SHOWCASE.map((item, index) => (
+                <article
+                  key={item.title}
+                  className={`flex flex-col items-center gap-10 lg:gap-20 ${
+                    index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'
+                  }`}
+                >
+                  <div className="relative lg:flex-1">
+                    <div
+                      className="absolute inset-x-6 inset-y-12 rounded-[2rem] bg-[#F2E6D0] sm:inset-x-0"
+                      aria-hidden="true"
+                    />
+                    <PhoneFrame
+                      height={Math.min(
+                        520,
+                        Math.round((262 * item.image.height) / item.image.width),
+                      )}
+                    >
+                      <Image
+                        src={item.image.src}
+                        alt={item.image.alt}
+                        width={item.image.width}
+                        height={item.image.height}
+                        sizes="262px"
+                        loading="lazy"
+                        className="h-full w-full object-cover object-top"
+                      />
+                    </PhoneFrame>
+                  </div>
+                  <div className="max-w-lg lg:flex-1">
+                    <p className="inline-flex rounded-full bg-[#B4412A] px-3 py-1 text-sm font-semibold text-[#FBF6EC]">
+                      {item.kicker}
+                    </p>
+                    <h3 className="osm-display mt-4 text-[28px] leading-[1.15] sm:text-[36px]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-4 text-[#5F4B40]">{item.text}</p>
+                    <ul className="mt-6 space-y-3">
+                      {item.points.map((point) => (
+                        <li key={point} className="flex items-start gap-3">
+                          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1F3D2E] text-[#FBF6EC]">
+                            <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                          </span>
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Com a cara do seu restaurante: estilos personalizados + endereço */}
+        <section aria-labelledby="personalizar" className="bg-[#F2E6D0] py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-5">
+            <SectionHeading
+              id="personalizar"
+              eyebrow="Estilos personalizados"
+              title="Com a cara do seu restaurante"
+              intro="Cada restaurante escolhe o aspeto da sua carta: o logotipo, o fundo, a cor e a forma de mostrar os pratos. Muda tudo no painel, quando quiser, sem precisar de designer."
+              center
+            />
+
+            <ul className="-mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+              {STYLE_EXAMPLES.map((example) => (
+                <li key={example.src} className="w-[220px] shrink-0 snap-center lg:w-auto">
+                  <PhoneFrame width={220} height={360}>
+                    <Image
+                      src={example.src}
+                      alt={`A mesma carta com o estilo ${example.caption}`}
+                      width={520}
+                      height={933}
+                      sizes="202px"
+                      loading="lazy"
+                      className="h-full w-full object-cover object-top"
+                    />
+                  </PhoneFrame>
+                  <p className="mt-4 text-center text-[15px] font-semibold">{example.caption}</p>
+                </li>
+              ))}
+            </ul>
+
+            <div
+              className={`mt-12 grid gap-8 rounded-[1.75rem] bg-[#FBF6EC] p-6 sm:p-10 lg:grid-cols-3 ${SHADOW}`}
+            >
+              <div>
+                <h3 className="text-xl font-semibold">{MENU_BACKGROUND_IDS.length} fundos</h3>
+                <ul className="mt-4 flex flex-wrap gap-3">
+                  {MENU_BACKGROUND_IDS.map((id) => (
+                    <li
+                      key={id}
+                      className="flex w-[76px] flex-col items-center gap-1.5 text-center"
+                    >
+                      <span
+                        className="h-12 w-12 rounded-full ring-1 ring-[#2B1D16]/15"
+                        style={{ background: menuCssVars(id, 'terracota')['--page-bg'] }}
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm leading-tight text-[#5F4B40]">
+                        {MENU_BACKGROUNDS[id].label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold">{MENU_ACCENT_IDS.length} cores</h3>
+                <ul className="mt-4 flex flex-wrap gap-3">
+                  {MENU_ACCENT_IDS.map((id) => (
+                    <li
+                      key={id}
+                      className="flex w-[76px] flex-col items-center gap-1.5 text-center"
+                    >
+                      <span
+                        className="h-12 w-12 rounded-full"
+                        style={{ background: menuCssVars('claro', id)['--color-accent'] }}
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm leading-tight text-[#5F4B40]">
+                        {MENU_ACCENTS[id].label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold">
+                  {MENU_LAYOUT_IDS.length} disposições e o seu logotipo
+                </h3>
+                <ul className="mt-4 flex flex-wrap gap-3">
+                  {MENU_LAYOUT_IDS.map((id) => {
+                    const Icon = LAYOUT_ICONS[id];
+                    return (
+                      <li
+                        key={id}
+                        className="flex w-[88px] flex-col items-center gap-1.5 text-center"
+                      >
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1F3D2E] text-[#FBF6EC]">
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span className="text-sm leading-tight text-[#5F4B40]">
+                          {MENU_LAYOUTS[id].label}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+
+            {/* Endereço */}
+            <div className="mx-auto mt-16 max-w-3xl text-center">
+              <Eyebrow>E com o seu endereço</Eyebrow>
+              <h3
+                id="dominio"
+                className="osm-display mt-3 text-[28px] leading-[1.15] sm:text-[36px]"
+              >
+                O endereço da sua carta
+              </h3>
+              <p
+                className={`mx-auto mt-6 inline-flex max-w-full items-center gap-2 rounded-full bg-[#FBF6EC] px-5 py-3 text-lg font-semibold ${SHADOW}`}
+                aria-hidden="true"
+              >
+                <span className="truncate">
+                  oseumenu.pt/<span className="text-[#B4412A]">o-seu-restaurante</span>
+                </span>
+              </p>
+              <p className="mt-6 text-[#5F4B40]">
+                Fica em oseumenu.pt/o-seu-restaurante, ou no domínio do seu restaurante, se já tiver
+                um.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. O que os seus clientes veem */}
+        <section aria-labelledby="vantagens" className="py-20 lg:py-28">
+          <div className="mx-auto max-w-4xl px-5">
+            <SectionHeading
+              id="vantagens"
+              eyebrow="Para os seus clientes"
+              title="O que os seus clientes veem"
+              center
+            />
+            <ul className="mt-12 grid gap-x-12 gap-y-8 md:grid-cols-2">
+              {BENEFITS.map((benefit) => (
+                <li key={benefit.title}>
+                  <div className="flex items-end gap-3">
+                    <h3 className="osm-display text-[22px] leading-tight sm:text-2xl">
+                      {benefit.title}
+                    </h3>
+                    <span className="osm-leader text-[#2B1D16]" aria-hidden="true" />
+                    <benefit.icon className="h-5 w-5 shrink-0 text-[#B4412A]" aria-hidden="true" />
+                  </div>
+                  <p className="mt-1.5 text-[#5F4B40]">{benefit.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* 6. Perguntas frequentes */}
+        <section aria-labelledby="perguntas" className="bg-[#F2E6D0] py-20 lg:py-24">
+          <div className="mx-auto max-w-3xl px-5">
+            <SectionHeading id="perguntas" eyebrow="Dúvidas" title="Perguntas frequentes" center />
+            <div className="mt-10 space-y-3">
+              {FAQS.map((faq) => (
+                <details key={faq.question} className="group rounded-[20px] bg-[#FBF6EC]">
+                  <summary
+                    className={`flex min-h-[64px] cursor-pointer list-none items-center justify-between gap-4 rounded-[20px] px-6 py-4 text-lg font-semibold sm:text-xl [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+                  >
+                    {faq.question}
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#B4412A] text-[#FBF6EC] transition group-open:rotate-45"
+                      aria-hidden="true"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </span>
+                  </summary>
+                  <p className="px-6 pb-6 text-[#5F4B40]">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Contacto */}
+        <section
+          id="contacto"
+          aria-labelledby="contacto-titulo"
+          className="scroll-mt-4 bg-[#1F3D2E] py-20 text-[#FBF6EC] lg:py-24"
+        >
+          <div className="mx-auto max-w-2xl px-5 text-center">
+            <Eyebrow onDark>Vamos falar?</Eyebrow>
             <h2
               id="contacto-titulo"
-              className="osm-display text-[3rem] leading-[0.95] sm:text-[4.8rem]"
+              className="osm-display mt-3 text-[30px] leading-[1.15] sm:text-[44px]"
             >
-              Vamos mostrar-lhe <em>a sua carta</em>
+              Vamos mostrar-lhe a sua carta
             </h2>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed sm:text-xl">
+            <p className="mt-5 text-lg">
               Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta no
               telemóvel. O primeiro mês é grátis e sem compromisso.
             </p>
             <ContactButtons contact={contact} />
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
       {/* 8. Rodapé */}
-      <footer className="bg-[#151210] text-[#F4ECDF]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-sm sm:flex-row">
+      <footer className="bg-[#2B1D16] text-[#FBF6EC]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-base sm:flex-row">
           <p className="flex items-center gap-2">
             <span className="osm-display text-xl">
-              O Seu <em className="text-[#F0B23E]">Menu</em>
+              O Seu <span className="text-[#F2B441]">Menu</span>
             </span>
-            <span className="text-[#F4ECDF]/70">· {year}</span>
+            <span>· {year}</span>
           </p>
           <Link
             href="/admin"
             prefetch={false}
-            className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 text-[#F4ECDF]/80 underline-offset-4 hover:text-[#F4ECDF] hover:underline ${FOCUS_RING}`}
+            className={`inline-flex min-h-[44px] items-center rounded-full px-3 underline-offset-4 hover:underline ${FOCUS_RING}`}
           >
             Área do restaurante
           </Link>

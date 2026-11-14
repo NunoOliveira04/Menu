@@ -6,7 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 // next/font só funciona no build do Next; nos testes basta devolver a classe.
 vi.mock('next/font/google', () => ({
-  Instrument_Serif: () => ({ variable: 'font-landing-display', className: '', style: {} }),
+  Young_Serif: () => ({ variable: 'font-landing-display', className: '', style: {} }),
+  Atkinson_Hyperlegible_Next: () => ({ variable: 'font-landing-body', className: '', style: {} }),
 }));
 
 import * as homePage from '@/app/page';
@@ -50,6 +51,44 @@ describe('Página de apresentação (/)', () => {
     expect(html.match(/<img[^>]*loading="lazy"/g)?.length).toBeGreaterThanOrEqual(3);
   });
 
+  it('mostra que o aspeto da carta é personalizado, com os fundos, cores e disposições reais', () => {
+    const html = render();
+    const text = html.replace(/<[^>]+>/g, '');
+    expect(text).toContain('Estilos personalizados');
+    expect(text).toContain('Com a cara do seu restaurante');
+    for (const label of [
+      'Claro',
+      'Areia',
+      'Escuro',
+      'Madeira clara',
+      'Madeira escura',
+      'Linho',
+      'Pedra',
+      'Terracota',
+      'Dourado',
+      'Verde',
+      'Azul',
+      'Grafite',
+      'Lista',
+      'Grelha',
+      'Foto grande',
+    ]) {
+      expect(text, label).toContain(label);
+    }
+    for (const image of [
+      'estilo-claro-terracota-foto',
+      'estilo-linho-verde-lista',
+      'estilo-madeira-dourado-grelha',
+      'estilo-pedra-azul-grelha',
+    ]) {
+      expect(html).toContain(image);
+      expect(
+        existsSync(resolve(__dirname, '..', 'public', 'apresentacao', `${image}.webp`)),
+        image,
+      ).toBe(true);
+    }
+  });
+
   it('mostra a carta /demo num iframe com loading="lazy"', () => {
     const html = render();
     expect(html).toMatch(/<iframe[^>]*src="\/demo"/);
@@ -65,16 +104,17 @@ describe('Página de apresentação (/)', () => {
       'Pomos os QR codes nas mesas',
       'Muda preços e pratos no seu telemóvel, quando quiser',
       'id="painel"',
+      'id="personalizar"',
+      'Com a cara do seu restaurante',
+      'id="dominio"',
+      'oseumenu.pt/o-seu-restaurante',
       'id="vantagens"',
       'Altera um preço ou um prato no telemóvel',
       'Esgotados à vista',
       'Inglês com um toque',
       'Alergénios claros',
       'Fotos que se ampliam',
-      'Com a cara do restaurante',
       'Abre com a câmara',
-      'id="dominio"',
-      'oseumenu.pt/o-seu-restaurante',
       'id="perguntas"',
       'id="contacto"',
       'Área do restaurante',
