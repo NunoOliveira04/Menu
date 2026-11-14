@@ -39,6 +39,11 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     rootDomain: process.env.ROOT_DOMAIN,
   });
 
+  // Página de apresentação (/): estática e pública, não precisa de sessão nem do Supabase.
+  if (pathname === '/' && !rewritePath) {
+    return NextResponse.next();
+  }
+
   const effectivePathname = rewritePath ?? pathname;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-menu-html-lang', 'pt-PT');
