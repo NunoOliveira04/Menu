@@ -7,12 +7,14 @@ import {
   Languages,
   LayoutGrid,
   List,
+  LogIn,
   Mail,
   MessageCircle,
   Plus,
   QrCode,
   RefreshCw,
   Tag,
+  UtensilsCrossed,
   ZoomIn,
   type LucideIcon,
 } from 'lucide-react';
@@ -176,6 +178,8 @@ const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
     text: 'Os clientes não precisam de instalar nada.',
   },
 ];
+
+const CONTACT_POINTS = ['Demonstração de 10 minutos', 'No seu restaurante', 'Sem compromisso'];
 
 const FAQS: { question: string; answer: string }[] = [
   {
@@ -413,10 +417,6 @@ export function LandingPage({
             />
             <ol className="relative mx-auto mt-12 grid max-w-md gap-10 md:max-w-none md:grid-cols-3 md:gap-8">
               <span
-                className="absolute bottom-6 left-[31px] top-6 w-0 border-l-2 border-dashed border-[#B4412A]/40 md:hidden"
-                aria-hidden="true"
-              />
-              <span
                 className="absolute left-[17%] right-[17%] top-8 hidden border-t-2 border-dashed border-[#B4412A]/40 md:block"
                 aria-hidden="true"
               />
@@ -425,8 +425,15 @@ export function LandingPage({
                   key={step.title}
                   className="relative grid grid-cols-[64px_1fr] gap-4 md:grid-cols-1 md:text-center"
                 >
+                  {/* No telemóvel, a linha liga só este círculo ao seguinte (não passa do último). */}
+                  {index < STEPS.length - 1 && (
+                    <span
+                      className="absolute -bottom-10 left-[31px] top-16 w-0 border-l-2 border-dashed border-[#B4412A]/40 md:hidden"
+                      aria-hidden="true"
+                    />
+                  )}
                   <span
-                    className="osm-display relative flex h-16 w-16 items-center justify-center rounded-full bg-[#FBF6EC] text-[40px] leading-none text-[#B4412A] ring-2 ring-[#B4412A]/20 md:mx-auto"
+                    className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#FBF6EC] text-[30px] font-semibold leading-none tabular-nums text-[#B4412A] ring-2 ring-[#B4412A]/20 md:mx-auto"
                     aria-hidden="true"
                   >
                     {index + 1}
@@ -541,22 +548,22 @@ export function LandingPage({
             </ul>
 
             <div
-              className={`mt-12 grid gap-8 rounded-[1.75rem] bg-[#FBF6EC] p-6 sm:p-10 lg:grid-cols-3 ${SHADOW}`}
+              className={`mt-12 grid gap-8 rounded-[1.75rem] bg-[#FBF6EC] px-4 py-6 sm:p-10 lg:grid-cols-3 ${SHADOW}`}
             >
               <div>
                 <h3 className="text-xl font-semibold">{MENU_BACKGROUND_IDS.length} fundos</h3>
-                <ul className="mt-4 flex flex-wrap gap-3">
+                <ul className="mt-4 grid grid-cols-4 gap-x-1 gap-y-4 sm:flex sm:flex-wrap sm:gap-3">
                   {MENU_BACKGROUND_IDS.map((id) => (
                     <li
                       key={id}
-                      className="flex w-[76px] flex-col items-center gap-1.5 text-center"
+                      className="flex flex-col items-center gap-1.5 text-center sm:w-[76px]"
                     >
                       <span
                         className="h-12 w-12 rounded-full ring-1 ring-[#2B1D16]/15"
                         style={{ background: menuCssVars(id, 'terracota')['--page-bg'] }}
                         aria-hidden="true"
                       />
-                      <span className="text-sm leading-tight text-[#5F4B40]">
+                      <span className="text-[13px] leading-tight text-[#5F4B40] sm:text-sm">
                         {MENU_BACKGROUNDS[id].label}
                       </span>
                     </li>
@@ -565,18 +572,18 @@ export function LandingPage({
               </div>
               <div>
                 <h3 className="text-xl font-semibold">{MENU_ACCENT_IDS.length} cores</h3>
-                <ul className="mt-4 flex flex-wrap gap-3">
+                <ul className="mt-4 grid grid-cols-4 gap-x-1 gap-y-4 sm:flex sm:flex-wrap sm:gap-3">
                   {MENU_ACCENT_IDS.map((id) => (
                     <li
                       key={id}
-                      className="flex w-[76px] flex-col items-center gap-1.5 text-center"
+                      className="flex flex-col items-center gap-1.5 text-center sm:w-[76px]"
                     >
                       <span
                         className="h-12 w-12 rounded-full"
                         style={{ background: menuCssVars('claro', id)['--color-accent'] }}
                         aria-hidden="true"
                       />
-                      <span className="text-sm leading-tight text-[#5F4B40]">
+                      <span className="text-[13px] leading-tight text-[#5F4B40] sm:text-sm">
                         {MENU_ACCENTS[id].label}
                       </span>
                     </li>
@@ -587,18 +594,18 @@ export function LandingPage({
                 <h3 className="text-xl font-semibold">
                   {MENU_LAYOUT_IDS.length} disposições e o seu logotipo
                 </h3>
-                <ul className="mt-4 flex flex-wrap gap-3">
+                <ul className="mt-4 grid grid-cols-3 gap-x-1 gap-y-4 sm:flex sm:flex-wrap sm:gap-3">
                   {MENU_LAYOUT_IDS.map((id) => {
                     const Icon = LAYOUT_ICONS[id];
                     return (
                       <li
                         key={id}
-                        className="flex w-[88px] flex-col items-center gap-1.5 text-center"
+                        className="flex flex-col items-center gap-1.5 text-center sm:w-[88px]"
                       >
                         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1F3D2E] text-[#FBF6EC]">
                           <Icon className="h-5 w-5" aria-hidden="true" />
                         </span>
-                        <span className="text-sm leading-tight text-[#5F4B40]">
+                        <span className="text-[13px] leading-tight text-[#5F4B40] sm:text-sm">
                           {MENU_LAYOUTS[id].label}
                         </span>
                       </li>
@@ -688,39 +695,80 @@ export function LandingPage({
         <section
           id="contacto"
           aria-labelledby="contacto-titulo"
-          className="scroll-mt-4 bg-[#1F3D2E] py-20 text-[#FBF6EC] lg:py-24"
+          className="scroll-mt-4 px-5 py-20 lg:py-24"
         >
-          <div className="mx-auto max-w-2xl px-5 text-center">
-            <Eyebrow onDark>Vamos falar?</Eyebrow>
-            <h2
-              id="contacto-titulo"
-              className="osm-display mt-3 text-[30px] leading-[1.15] sm:text-[44px]"
-            >
-              Vamos mostrar-lhe a sua carta
-            </h2>
-            <p className="mt-5 text-lg">
-              Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta no
-              telemóvel. Pode experimentar gratuitamente e sem compromisso.
-            </p>
-            <ContactButtons contact={contact} />
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-[linear-gradient(140deg,#C24A2F_0%,#B4412A_45%,#8E3220_100%)] px-6 py-14 text-center text-[#FBF6EC] shadow-[0_40px_80px_-40px_rgba(142,50,32,0.8)] sm:px-14 sm:py-20">
+            {/* Decoração: luz amarela, sombra e talheres em marca de água. */}
+            <div
+              className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#F2B441]/35 blur-3xl"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-[#5E1F12]/40 blur-3xl"
+              aria-hidden="true"
+            />
+            <UtensilsCrossed
+              className="pointer-events-none absolute -bottom-8 -right-6 h-48 w-48 rotate-12 text-[#FBF6EC]/10 sm:h-64 sm:w-64"
+              aria-hidden="true"
+            />
+
+            <div className="relative">
+              <p className="inline-flex items-center gap-2 rounded-full bg-[#2B1D16]/25 px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.08em]">
+                <span className="h-2 w-2 rounded-full bg-[#F2B441]" aria-hidden="true" />
+                Vamos falar?
+              </p>
+              <h2
+                id="contacto-titulo"
+                className="osm-display mx-auto mt-5 max-w-2xl text-[34px] leading-[1.1] sm:text-[52px]"
+              >
+                Vamos mostrar-lhe a sua carta
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-lg">
+                Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta
+                no telemóvel. Pode experimentar gratuitamente e sem compromisso.
+              </p>
+              <ul className="mt-8 flex flex-wrap justify-center gap-2.5">
+                {CONTACT_POINTS.map((point) => (
+                  <li
+                    key={point}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#2B1D16]/25 px-4 py-2 text-[15px] font-semibold"
+                  >
+                    <Check className="h-4 w-4 text-[#F2B441]" aria-hidden="true" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+              <ContactButtons contact={contact} />
+              <Link
+                href="/demo"
+                prefetch={false}
+                className={`mt-8 inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 font-semibold underline decoration-[#F2B441] decoration-2 underline-offset-[6px] hover:decoration-[#FBF6EC] ${FOCUS_RING}`}
+              >
+                Ver a carta de exemplo
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>
 
       {/* 8. Rodapé */}
-      <footer className="bg-[#2B1D16] text-[#FBF6EC]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-base sm:flex-row">
-          <p className="flex items-center gap-2">
-            <span className="osm-display text-xl">
-              O Seu <span className="text-[#F2B441]">Menu</span>
-            </span>
-            <span>· {year}</span>
-          </p>
+      <footer className="border-t-2 border-dashed border-[#B4412A]/25 bg-[#F2E6D0]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-5 py-10 text-center sm:flex-row sm:text-left">
+          <div>
+            <p className="osm-display text-[28px] leading-none">
+              O Seu <span className="text-[#B4412A]">Menu</span>
+            </p>
+            <p className="mt-2 text-[15px] text-[#5F4B40]">
+              A carta digital do seu restaurante · {year}
+            </p>
+          </div>
           <Link
             href="/admin"
             prefetch={false}
-            className={`inline-flex min-h-[44px] items-center rounded-full px-3 underline-offset-4 hover:underline ${FOCUS_RING}`}
+            className={`inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-[#1F3D2E] px-5 font-semibold text-[#1F3D2E] transition hover:bg-[#1F3D2E] hover:text-[#FBF6EC] ${FOCUS_RING}`}
           >
+            <LogIn className="h-4 w-4" aria-hidden="true" />
             Área do restaurante
           </Link>
         </div>
