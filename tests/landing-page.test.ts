@@ -30,6 +30,27 @@ describe('Página de apresentação (/)', () => {
     expect(html).toMatch(/<a[^>]*href="#contacto"[^>]*>Falar connosco<\/a>/);
   });
 
+  it('«Ver exemplo» leva sempre à carta de demonstração, nunca ao painel', () => {
+    const html = render();
+    const links = [...html.matchAll(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)];
+    const verExemplo = links.filter(([, , label]) => label?.includes('Ver exemplo'));
+    expect(verExemplo).toHaveLength(1);
+    expect(verExemplo[0]?.[1]).toBe('/demo');
+    // O único link para /admin é o discreto «Área do restaurante» no rodapé.
+    const adminLinks = links.filter(([, href]) => href?.startsWith('/admin'));
+    expect(adminLinks.map(([, , label]) => label?.replace(/<[^>]+>/g, '').trim())).toEqual([
+      'Área do restaurante',
+    ]);
+  });
+
+  it('fala de período experimental gratuito, e não de «primeiro mês grátis»', () => {
+    const text = render().replace(/<[^>]+>/g, ' ');
+    expect(text).not.toMatch(/primeiro mês|1\.º mês|mês grátis/i);
+    expect(text).toContain('Período experimental gratuito e sem compromisso');
+    expect(text).toContain('Oferecemos um período experimental gratuito e sem compromisso.');
+    expect(text).toContain('Pode experimentar gratuitamente e sem compromisso.');
+  });
+
   it('mostra como se gere a carta, com prints reais do painel', () => {
     const html = render();
     const text = html.replace(/<[^>]+>/g, '');

@@ -196,7 +196,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: 'Quanto custa?',
     answer:
-      'O primeiro mês é grátis e sem compromisso. O resto combina-se connosco, à medida do seu restaurante.',
+      'Oferecemos um período experimental gratuito e sem compromisso. Depois, o preço combina-se connosco, à medida do seu restaurante.',
   },
   {
     question: 'Dá para fazer encomendas ou pagamentos?',
@@ -354,7 +354,7 @@ export function LandingPage({
         <section className="mx-auto flex max-w-6xl flex-col items-center gap-14 px-5 pb-20 pt-10 sm:pt-14 lg:flex-row lg:gap-10 lg:pb-24 lg:pt-16">
           <div className="max-w-xl text-center lg:flex-1 lg:text-left">
             <p className="inline-flex items-center gap-2 rounded-full bg-[#F2B441] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
-              Primeiro mês grátis e sem compromisso
+              Período experimental gratuito e sem compromisso
             </p>
             <h1 className="osm-display mt-6 text-[52px] leading-[1.05] tracking-[-0.01em] sm:text-[68px]">
               O Seu <span className="text-[#B4412A]">Menu</span>
@@ -700,7 +700,7 @@ export function LandingPage({
             </h2>
             <p className="mt-5 text-lg">
               Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta no
-              telemóvel. O primeiro mês é grátis e sem compromisso.
+              telemóvel. Pode experimentar gratuitamente e sem compromisso.
             </p>
             <ContactButtons contact={contact} />
           </div>
