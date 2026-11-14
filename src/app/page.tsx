@@ -1,13 +1,8 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { LandingPage } from '@/components/marketing/landing-page';
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+// Página estática: gerada no build, sem consultas ao Supabase.
+export const dynamic = 'force-static';
 
 export default function HomePage() {
-  notFound();
+  return <LandingPage />;
 }
