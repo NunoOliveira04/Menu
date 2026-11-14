@@ -50,7 +50,7 @@ import {
 export const LANDING_TAGLINE =
   'A carta do seu restaurante no telemóvel dos clientes, em português e inglês, que muda em segundos sem reimprimir nada.';
 
-const HERO_POINTS = ['Sem instalar nada', 'Português e inglês', 'Muda em segundos'];
+const HERO_POINTS = ['Sem instalar nada', 'Português e inglês', 'Atualize em segundos'];
 
 const STEPS: { title: string; text: string }[] = [
   {
@@ -62,7 +62,7 @@ const STEPS: { title: string; text: string }[] = [
     text: 'Os clientes apontam a câmara do telemóvel e a carta abre logo.',
   },
   {
-    title: 'Muda preços e pratos no seu telemóvel, quando quiser',
+    title: 'Mude preços e pratos no seu telemóvel, quando quiser',
     text: 'Um preço novo ou um prato esgotado aparece na carta logo a seguir.',
   },
 ];
@@ -81,8 +81,8 @@ const SHOWCASE: Showcase[] = [
     title: 'Acabou? Um toque e fica esgotado.',
     text: 'Cada prato tem um interruptor Disponível / Esgotado. Na carta, o prato continua à vista com o preço riscado, e os clientes deixam de o pedir.',
     points: [
-      'Volta a ficar disponível com outro toque',
-      'Pratos e categorias reordenam-se com as setas',
+      'Com outro toque, o prato volta a ficar disponível',
+      'Reordene pratos e categorias com as setas',
     ],
     image: {
       src: '/apresentacao/painel-pratos.webp',
@@ -96,9 +96,9 @@ const SHOWCASE: Showcase[] = [
     title: 'Mudar um preço demora segundos',
     text: 'Abra o prato, escreva o novo preço e guarde. A carta atualiza logo, sem reimprimir nada.',
     points: [
-      'Fotografia tirada no próprio telemóvel, reduzida automaticamente',
-      'Tradução para inglês ao lado do português',
-      'Alergénios marcados com um toque',
+      'Tire a fotografia no seu telemóvel: é reduzida automaticamente',
+      'Escreva a tradução para inglês ao lado do português',
+      'Marque os alergénios com um toque',
     ],
     image: {
       src: '/apresentacao/painel-editar.webp',
@@ -112,7 +112,7 @@ const SHOWCASE: Showcase[] = [
     title: 'O QR code das mesas, pronto a imprimir',
     text: 'O QR code da sua carta está no painel. Descarregue-o em PNG ou em SVG, imprima-o e ponha-o nas mesas.',
     points: [
-      'É sempre o mesmo, mesmo quando muda a carta',
+      'É sempre o mesmo, mesmo quando mudar a carta',
       'Copie o link para partilhar nas redes sociais',
     ],
     image: {
@@ -147,8 +147,8 @@ const LAYOUT_ICONS: Record<MenuLayoutId, LucideIcon> = {
 const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: RefreshCw,
-    title: 'Muda em segundos',
-    text: 'Altera um preço ou um prato no telemóvel, sem reimprimir nada.',
+    title: 'Atualize em segundos',
+    text: 'Altere um preço ou um prato no seu telemóvel, sem reimprimir nada.',
   },
   {
     icon: Tag,
@@ -451,7 +451,7 @@ export function LandingPage({
               id="painel"
               eyebrow="Fácil de gerir"
               title="Gerir a carta é tão fácil como enviar uma mensagem"
-              intro="Tudo se faz no telemóvel, no painel do seu restaurante. Sem chamar ninguém e sem esperar."
+              intro="Faça tudo no seu telemóvel, no painel do restaurante. Sem chamar ninguém e sem esperar."
               center
             />
 
@@ -517,7 +517,7 @@ export function LandingPage({
               id="personalizar"
               eyebrow="Estilos personalizados"
               title="Com a cara do seu restaurante"
-              intro="Cada restaurante escolhe o aspeto da sua carta: o logotipo, o fundo, a cor e a forma de mostrar os pratos. Muda tudo no painel, quando quiser, sem precisar de designer."
+              intro="Escolha o aspeto da sua carta: o logotipo, o fundo, a cor e a forma de mostrar os pratos. Mude tudo no painel, quando quiser, sem precisar de designer."
               center
             />
 

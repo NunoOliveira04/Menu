@@ -102,14 +102,14 @@ describe('Página de apresentação (/)', () => {
       'id="como-funciona"',
       'Nós passamos a sua carta',
       'Pomos os QR codes nas mesas',
-      'Muda preços e pratos no seu telemóvel, quando quiser',
+      'Mude preços e pratos no seu telemóvel, quando quiser',
       'id="painel"',
       'id="personalizar"',
       'Com a cara do seu restaurante',
       'id="dominio"',
       'oseumenu.pt/o-seu-restaurante',
       'id="vantagens"',
-      'Altera um preço ou um prato no telemóvel',
+      'Altere um preço ou um prato no seu telemóvel',
       'Esgotados à vista',
       'Inglês com um toque',
       'Alergénios claros',
@@ -137,6 +137,26 @@ describe('Página de apresentação (/)', () => {
       'Dá para fazer encomendas ou pagamentos?',
     ]) {
       expect(html).toContain(question);
+    }
+  });
+
+  it('trata o leitor sempre por «você» (sem formas de «tu»)', () => {
+    const html = render({ whatsapp: '+351 912 345 678', email: 'ola@exemplo.pt' });
+    const text = html.replace(/<[^>]+>/g, ' ');
+    // Imperativos e formas de «tu» que já apareceram ou são fáceis de escapar.
+    const tuForms =
+      /\b(Muda|Altera|Escolhe|Abre o|Escreve|Guarda|Envia-nos|Marca|Tira|Copia|Descarrega|Imprime|Reordena|Experimenta|Fala)\b|\b(tu|teu|tua|teus|tuas|te|contigo|podes|tens|queres|precisas|usas|consegues)\b/;
+    expect(text).not.toMatch(tuForms);
+    // E usa as formas de «você» nos sítios onde se dirige ao dono.
+    for (const youForm of [
+      'Envie-nos',
+      'Mude',
+      'Altere',
+      'Abra o prato',
+      'Descarregue-o',
+      'Copie',
+    ]) {
+      expect(text, youForm).toContain(youForm);
     }
   });
 
