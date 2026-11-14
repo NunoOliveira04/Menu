@@ -2,7 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// next/font só funciona no build do Next; nos testes basta devolver a classe.
+vi.mock('next/font/google', () => ({
+  Instrument_Serif: () => ({ variable: 'font-landing-display', className: '', style: {} }),
+}));
+
 import * as homePage from '@/app/page';
 import { LANDING_TAGLINE, LandingPage } from '@/components/marketing/landing-page';
 import { MARKETING_CONTACT, buildEmailUrl, buildWhatsAppUrl } from '@/lib/marketing/contact';
@@ -25,13 +31,14 @@ describe('Página de apresentação (/)', () => {
 
   it('mostra como se gere a carta, com prints reais do painel', () => {
     const html = render();
+    const text = html.replace(/<[^>]+>/g, '');
     for (const title of [
       'Gerir a carta é tão fácil como enviar uma mensagem',
       'Acabou? Um toque e fica esgotado.',
       'Mudar um preço demora segundos',
       'O QR code das mesas, pronto a imprimir',
     ]) {
-      expect(html).toContain(title);
+      expect(text).toContain(title);
     }
     for (const image of ['painel-pratos', 'painel-editar', 'painel-qr']) {
       expect(html).toMatch(new RegExp(`<img[^>]*alt="Painel do restaurante[^"]*"[^>]*${image}`));
