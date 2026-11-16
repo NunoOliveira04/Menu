@@ -52,7 +52,9 @@ import {
 export const LANDING_TAGLINE =
   'A carta do seu restaurante no telemóvel dos clientes, em português e inglês, que muda em segundos sem reimprimir nada.';
 
-const HERO_POINTS = ['Sem instalar nada', 'Português e inglês', 'Atualize em segundos'];
+export const HERO_TITLE = 'A carta do seu restaurante, no telemóvel dos seus clientes';
+export const HERO_SUBTITLE =
+  'Em português e inglês. Mude um preço em segundos, sem reimprimir nada.';
 
 const STEPS: { title: string; text: string }[] = [
   {
@@ -112,7 +114,7 @@ const SHOWCASE: Showcase[] = [
   {
     kicker: 'QR code',
     title: 'O QR code das mesas, pronto a imprimir',
-    text: 'O QR code da sua carta está no painel. Descarregue-o em PNG ou em SVG, imprima-o e ponha-o nas mesas.',
+    text: 'O QR code da sua carta está no painel. Descarregue-o e imprima-o, ou envie-o para a gráfica, e ponha-o nas mesas.',
     points: [
       'É sempre o mesmo, mesmo quando mudar a carta',
       'Copie o link para partilhar nas redes sociais',
@@ -149,8 +151,8 @@ const LAYOUT_ICONS: Record<MenuLayoutId, LucideIcon> = {
 const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: RefreshCw,
-    title: 'Atualize em segundos',
-    text: 'Altere um preço ou um prato no seu telemóvel, sem reimprimir nada.',
+    title: 'Preços sempre certos',
+    text: 'O que está na carta é o que se paga. Sem preços riscados à mão.',
   },
   {
     icon: Tag,
@@ -200,7 +202,11 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: 'Quanto custa?',
     answer:
-      'Oferecemos um período experimental gratuito e sem compromisso. Depois, o preço combina-se connosco, à medida do seu restaurante.',
+      'Ainda estamos a começar. Os primeiros restaurantes experimentam gratuitamente e, antes de qualquer pagamento, dizemos-lhe o preço. Se não quiser continuar, não paga nada.',
+  },
+  {
+    question: 'E se eu me enganar ou precisar de ajuda?',
+    answer: 'Fale connosco e nós tratamos. Também podemos fazer as alterações por si.',
   },
   {
     question: 'Dá para fazer encomendas ou pagamentos?',
@@ -360,29 +366,22 @@ export function LandingPage({
             <p className="inline-flex items-center gap-2 rounded-full bg-[#F2B441] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
               Período experimental gratuito e sem compromisso
             </p>
-            <h1 className="osm-display mt-6 text-[52px] leading-[1.05] tracking-[-0.01em] sm:text-[68px]">
-              O Seu <span className="text-[#B4412A]">Menu</span>
+            <h1 className="osm-display mt-6 text-[38px] leading-[1.1] tracking-[-0.01em] sm:text-[56px]">
+              A carta do seu restaurante,{' '}
+              <span className="text-[#B4412A]">no telemóvel dos seus clientes</span>
             </h1>
-            <p className="mt-5 max-w-[34ch] text-xl leading-[1.55] text-[#2B1D16] max-lg:mx-auto sm:text-[22px]">
-              {LANDING_TAGLINE}
+            <p className="mt-5 max-w-[36ch] text-xl leading-[1.55] text-[#2B1D16] max-lg:mx-auto sm:text-[22px]">
+              {HERO_SUBTITLE}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <Link href="/demo" prefetch={false} className={BUTTON_PRIMARY}>
+              <a href="#contacto" className={BUTTON_PRIMARY}>
+                Peça uma demonstração de 10 minutos
+              </a>
+              <Link href="/demo" prefetch={false} className={BUTTON_OUTLINE}>
                 Ver exemplo
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
-              <a href="#contacto" className={BUTTON_OUTLINE}>
-                Falar connosco
-              </a>
             </div>
-            <ul className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-base text-[#5F4B40] lg:justify-start">
-              {HERO_POINTS.map((point) => (
-                <li key={point} className="inline-flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-[#1F3D2E]" aria-hidden="true" />
-                  {point}
-                </li>
-              ))}
-            </ul>
           </div>
 
           <div className="relative lg:flex-1">
@@ -633,7 +632,7 @@ export function LandingPage({
                 </span>
               </p>
               <p className="mt-6 text-[#5F4B40]">
-                Fica em oseumenu.pt/o-seu-restaurante, ou no domínio do seu restaurante, se já tiver
+                Fica em oseumenu.pt/o-seu-restaurante, ou no site do seu restaurante, se já tiver
                 um.
               </p>
             </div>
