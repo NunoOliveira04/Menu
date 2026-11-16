@@ -75,6 +75,8 @@
  */
 .menu-header {
   position: relative;
+  /* Contém a margem do seletor de idioma (sem faixa branca por cima da carta). */
+  display: flow-root;
   background: transparent;
   color: var(--header-fg);
 }
@@ -143,12 +145,13 @@
   line-height: 1.45;
 }
 
+/* Seletor de idioma por cima do logotipo (no fluxo), para nunca o tapar. */
 .menu-lang {
-  position: absolute;
-  top: 14px;
-  right: 16px;
+  position: relative;
   z-index: 2;
   display: flex;
+  width: fit-content;
+  margin: 12px 16px 0 auto;
   gap: 2px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.92);

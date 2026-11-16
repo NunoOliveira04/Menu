@@ -160,7 +160,7 @@ export const MENU_UI_STRINGS: Record<MenuLocale, MenuUiDictionary> = {
     hoursTitle: 'Horário de Funcionamento',
     openNowBadge: 'Aberto agora',
     closedNowBadge: 'Fechado agora',
-    closedDayLabel: 'Encerrado',
+    closedDayLabel: 'Fechado',
     timezoneNote: 'Hora de Portugal Continental',
     vatIncluded: 'IVA incluído à taxa legal em vigor.',
   },
