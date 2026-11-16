@@ -7,9 +7,9 @@ import {
   ArrowUp,
   Globe,
   ImagePlus,
+  MoreHorizontal,
   Pencil,
   Plus,
-  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
@@ -28,7 +28,7 @@ import {
 } from '@/app/actions/dishes';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 import { useCompressedPhotoSubmit } from '@/components/dashboard/use-compressed-photo-submit';
-import { EU_ALLERGENS, getAllergenDefinition } from '@/lib/modules/allergens';
+import { EU_ALLERGENS } from '@/lib/modules/allergens';
 import { DISH_HIGHLIGHTS, getHighlightLabel } from '@/lib/modules/highlights';
 import { parseTranslationsJson } from '@/lib/modules/i18n';
 import { formatCentsToEuroInput, formatPriceCents } from '@/lib/utils/price';
@@ -48,6 +48,8 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [addingDishCategoryId, setAddingDishCategoryId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
+  // Prato com o menu «⋯» aberto (subir, descer, apagar).
+  const [moreDishId, setMoreDishId] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isMutating, startTransition] = useTransition();
 
@@ -282,27 +284,37 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                       const highlightText = modules.highlights
                         ? getHighlightLabel(dish.highlight, 'pt')
                         : null;
+                      const allergenCount = modules.allergens ? (dish.allergens?.length ?? 0) : 0;
+                      // Resumo numa linha: o detalhe (descrição, alergénios, inglês) está em «Editar».
+                      const summary = [
+                        highlightText,
+                        modules.languages && dishTranslations.en?.name ? 'EN ✓' : null,
+                        allergenCount > 0
+                          ? `${allergenCount} ${allergenCount === 1 ? 'alergénio' : 'alergénios'}`
+                          : null,
+                      ].filter(Boolean);
+                      const isMoreOpen = moreDishId === dish.id;
 
                       return (
                         <div
                           key={dish.id}
-                          className={`p-4 sm:px-5 ${!dish.available ? 'bg-stone-50/70' : ''}`}
+                          className={`px-4 py-3 sm:px-5 ${!dish.available ? 'bg-stone-50/70' : ''}`}
                         >
-                          <div className="flex items-start gap-3.5">
+                          <div className="flex items-center gap-3">
                             {dish.photo_url ? (
-                              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
                                 <Image
                                   src={dish.photo_url}
                                   alt={dish.name}
                                   fill
-                                  sizes="64px"
+                                  sizes="56px"
                                   className={`object-cover ${!dish.available ? 'opacity-60' : ''}`}
                                 />
                               </div>
                             ) : (
                               <div
                                 aria-hidden="true"
-                                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-200 bg-stone-50 text-stone-400"
+                                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-200 bg-stone-50 text-stone-400"
                               >
                                 <ImagePlus className="h-5 w-5" />
                               </div>
@@ -313,68 +325,25 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                 <h4 className="min-w-0 font-medium leading-snug text-stone-900">
                                   {dish.name}
                                 </h4>
-                                <span className="shrink-0 text-sm font-semibold tabular-nums text-stone-900">
+                                <span
+                                  className={`shrink-0 text-sm font-semibold tabular-nums ${
+                                    dish.available
+                                      ? 'text-stone-900'
+                                      : 'text-stone-500 line-through'
+                                  }`}
+                                >
                                   {formatPriceCents(dish.price_cents)}
                                 </span>
                               </div>
-
-                              {(highlightText || !dish.available) && (
-                                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                  {!dish.available && (
-                                    <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
-                                      Esgotado
-                                    </span>
-                                  )}
-                                  {highlightText && (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
-                                      <Sparkles className="h-3 w-3" aria-hidden="true" />
-                                      {highlightText}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-
-                              {dish.description && (
-                                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-stone-600">
-                                  {dish.description}
+                              {summary.length > 0 && (
+                                <p className="mt-0.5 truncate text-xs text-stone-500">
+                                  {summary.join(' · ')}
                                 </p>
-                              )}
-
-                              {((modules.languages && dishTranslations.en?.name) ||
-                                (modules.allergens && (dish.allergens?.length ?? 0) > 0)) && (
-                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                  {modules.languages && dishTranslations.en?.name && (
-                                    <span className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] text-stone-600">
-                                      <Globe
-                                        className="h-3 w-3 shrink-0 text-[#8C3B2B]"
-                                        aria-hidden="true"
-                                      />
-                                      EN: {dishTranslations.en.name}
-                                    </span>
-                                  )}
-
-                                  {modules.allergens &&
-                                    dish.allergens?.map((code) => {
-                                      const def = getAllergenDefinition(code);
-                                      if (!def) return null;
-                                      return (
-                                        <span
-                                          key={def.code}
-                                          className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-[#FAF6F0] px-1.5 py-0.5 text-[10px] font-medium text-stone-700"
-                                        >
-                                          <strong className="font-mono text-[#8C3B2B]">
-                                            {def.number}
-                                          </strong>
-                                          {def.label.pt}
-                                        </span>
-                                      );
-                                    })}
-                                </div>
                               )}
                             </div>
                           </div>
 
-                          <div className="mt-3 flex flex-wrap items-center gap-2 sm:pl-[4.875rem]">
+                          <div className="mt-2.5 flex items-center gap-2">
                             <button
                               type="button"
                               role="switch"
@@ -388,17 +357,17 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                 fd.set('available', String(!dish.available));
                                 runQuickFormAction(toggleDishAvailabilityAction, fd);
                               }}
-                              className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+                              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
                             >
                               <span
                                 aria-hidden="true"
-                                className={`relative h-4 w-7 rounded-full transition ${
+                                className={`relative h-5 w-9 rounded-full transition ${
                                   dish.available ? 'bg-emerald-600' : 'bg-stone-300'
                                 }`}
                               >
                                 <span
-                                  className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all ${
-                                    dish.available ? 'left-3.5' : 'left-0.5'
+                                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                                    dish.available ? 'left-[18px]' : 'left-0.5'
                                   }`}
                                 />
                               </span>
@@ -407,14 +376,33 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
 
                             <button
                               type="button"
-                              onClick={() => setEditingDishId(dish.id)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+                              onClick={() => {
+                                setMoreDishId(null);
+                                setEditingDishId(dish.id);
+                              }}
+                              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
                             >
-                              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                              <Pencil className="h-4 w-4" aria-hidden="true" />
                               Editar
                             </button>
 
-                            <span className="ml-auto flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setMoreDishId(isMoreOpen ? null : dish.id)}
+                              aria-expanded={isMoreOpen}
+                              aria-controls={`dish-more-${dish.id}`}
+                              aria-label={`Mais opções para ${dish.name}`}
+                              className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900"
+                            >
+                              <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                          </div>
+
+                          {isMoreOpen && (
+                            <div
+                              id={`dish-more-${dish.id}`}
+                              className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-stone-100/70 p-2"
+                            >
                               <button
                                 type="button"
                                 disabled={dishIdx === 0 || isMutating}
@@ -426,11 +414,11 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                   fd.set('direction', 'up');
                                   runQuickFormAction(reorderDishAction, fd);
                                 }}
-                                title="Subir"
                                 aria-label={`Mover prato ${dish.name} para cima`}
-                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30"
+                                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 <ArrowUp className="h-4 w-4" aria-hidden="true" />
+                                Subir
                               </button>
                               <button
                                 type="button"
@@ -443,11 +431,11 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                   fd.set('direction', 'down');
                                   runQuickFormAction(reorderDishAction, fd);
                                 }}
-                                title="Descer"
                                 aria-label={`Mover prato ${dish.name} para baixo`}
-                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30"
+                                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-medium text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                                Descer
                               </button>
                               <button
                                 type="button"
@@ -465,14 +453,14 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                   fd.set('dishId', dish.id);
                                   runQuickFormAction(deleteDishAction, fd);
                                 }}
-                                title="Eliminar"
-                                aria-label={`Eliminar prato ${dish.name}`}
-                                className="rounded-lg p-1.5 text-stone-500 transition hover:bg-red-50 hover:text-red-600"
+                                aria-label={`Apagar prato ${dish.name}`}
+                                className="ml-auto inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-red-700 transition hover:bg-red-50"
                               >
                                 <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                Apagar prato
                               </button>
-                            </span>
-                          </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })
