@@ -121,9 +121,9 @@ const SHOWCASE: Showcase[] = [
     ],
     image: {
       src: '/apresentacao/painel-qr.webp',
-      alt: 'Painel do restaurante no telemóvel: QR code da carta com os botões Copiar link, PNG e SVG',
+      alt: 'Painel do restaurante no telemóvel: QR code para as mesas com os botões Copiar link, Ver a carta e Descarregar para imprimir',
       width: 560,
-      height: 670,
+      height: 823,
     },
   },
 ];
