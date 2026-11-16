@@ -25,7 +25,7 @@ export async function loginAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os dados introduzidos.',
+      message: 'Verifique os dados introduzidos.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }
@@ -39,7 +39,7 @@ export async function loginAction(
   if (error) {
     return {
       status: 'error',
-      message: 'Email ou palavra-passe incorretos. Tenta novamente.',
+      message: 'E-mail ou palavra-passe incorretos. Tente novamente.',
     };
   }
 

@@ -70,7 +70,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
         <div>
           <h2 className="text-xl font-semibold text-stone-900">Categorias e Pratos</h2>
           <p className="text-sm text-stone-600">
-            Organiza as secções do menu, adiciona fotografias e controla os pratos disponíveis.
+            Organize as secções da carta, adicione fotografias e marque os pratos esgotados.
           </p>
         </div>
 
@@ -211,7 +211,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                         onClick={() => {
                           if (
                             !window.confirm(
-                              `Eliminar a categoria "${category.name}" e todos os seus pratos?`,
+                              `Apagar a categoria «${category.name}» e todos os seus pratos? Não é possível desfazer.`,
                             )
                           ) {
                             return;
@@ -255,8 +255,8 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                 <div className="divide-y divide-stone-100">
                   {categoryDishes.length === 0 ? (
                     <p className="p-5 text-sm text-stone-500">
-                      Nenhum prato nesta categoria. Clica em <strong>Adicionar prato</strong> para
-                      começar.
+                      Nenhum prato nesta categoria. Carregue em <strong>Adicionar prato</strong>{' '}
+                      para começar.
                     </p>
                   ) : (
                     categoryDishes.map((dish, dishIdx) => {
@@ -453,7 +453,11 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                                 type="button"
                                 disabled={isMutating}
                                 onClick={() => {
-                                  if (!window.confirm(`Eliminar o prato "${dish.name}"?`)) {
+                                  if (
+                                    !window.confirm(
+                                      `Apagar «${dish.name}»? Não é possível desfazer.`,
+                                    )
+                                  ) {
                                     return;
                                   }
                                   const fd = new FormData();
@@ -718,6 +722,7 @@ function DishForm({
   const photoFieldError = photoError ?? state.fieldErrors?.photo?.[0];
   const existingTranslations = parseTranslationsJson(dish?.translations);
   const selectedAllergens = new Set(dish?.allergens ?? []);
+  const [chosenPhotoName, setChosenPhotoName] = useState('');
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -802,21 +807,40 @@ function DishForm({
         </div>
 
         <div>
-          <label
-            htmlFor={`dish-photo-${dish?.id ?? 'new'}`}
-            className="block text-xs font-medium text-stone-700"
-          >
-            Fotografia (tirada no telemóvel ou da galeria)
-          </label>
-          <input
-            id={`dish-photo-${dish?.id ?? 'new'}`}
-            name="photo"
-            type="file"
-            accept="image/*"
-            disabled={isBusy}
-            aria-describedby={`dish-photo-help-${dish?.id ?? 'new'}`}
-            className="mt-1 block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
-          />
+          <p className="block text-xs font-medium text-stone-700">Fotografia</p>
+          <div className="mt-1 flex items-center gap-3">
+            {dish?.photo_url && !chosenPhotoName && (
+              <Image
+                src={dish.photo_url}
+                alt=""
+                width={56}
+                height={56}
+                sizes="56px"
+                className="h-14 w-14 shrink-0 rounded-xl object-cover"
+              />
+            )}
+            {/* O seletor do browser fica escondido; o botão é o rótulo do campo. */}
+            <input
+              id={`dish-photo-${dish?.id ?? 'new'}`}
+              name="photo"
+              type="file"
+              accept="image/*"
+              disabled={isBusy}
+              aria-describedby={`dish-photo-help-${dish?.id ?? 'new'}`}
+              onChange={(event) => setChosenPhotoName(event.target.files?.[0]?.name ?? '')}
+              className="peer sr-only"
+            />
+            <label
+              htmlFor={`dish-photo-${dish?.id ?? 'new'}`}
+              className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#8C3B2B]/30 bg-[#FAF6F0] px-4 text-sm font-semibold text-[#8C3B2B] transition hover:bg-[#F3ECE1] peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40"
+            >
+              <ImagePlus className="h-4 w-4" aria-hidden="true" />
+              {dish?.photo_url ? 'Trocar fotografia' : 'Tirar ou escolher fotografia'}
+            </label>
+          </div>
+          {chosenPhotoName && (
+            <p className="mt-1 truncate text-xs text-stone-700">Escolhida: {chosenPhotoName}</p>
+          )}
           <p
             id={`dish-photo-help-${dish?.id ?? 'new'}`}
             aria-live="polite"
@@ -871,12 +895,12 @@ function DishForm({
               <label className="block text-xs font-medium text-stone-700">
                 Descrição / Ingredientes (EN)
               </label>
-              <input
+              <textarea
                 name="descriptionEn"
-                type="text"
+                rows={3}
                 defaultValue={existingTranslations.en?.description ?? ''}
                 placeholder="Ex.: Thick cod loin baked with cornbread, turnip greens and punched potatoes."
-                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+                className="mt-1 block w-full resize-y rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
               />
             </div>
           </div>
@@ -886,7 +910,7 @@ function DishForm({
       {modules.highlights && (
         <div>
           <label className="block text-xs font-medium text-stone-700">
-            Selo de Destaque (opcional)
+            Selo no prato (opcional)
           </label>
           <select
             name="highlight"
@@ -931,7 +955,8 @@ function DishForm({
         </fieldset>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Barra de guardar fixa no fundo do ecrã: o formulário é comprido no telemóvel. */}
+      <div className="sticky bottom-0 z-10 -mx-5 flex flex-wrap items-center justify-between gap-4 border-t border-stone-200 bg-white/95 px-5 py-3 backdrop-blur">
         <div className="flex flex-wrap items-center gap-5">
           <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-stone-800">
             <input

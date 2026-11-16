@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/server';
 import { buildPublicMenuUrl } from '@/lib/utils/url';
 
 export const metadata: Metadata = {
-  title: 'Gerir Ementa',
+  title: 'Gerir a carta',
 };
 
 export default async function AdminMenuPage() {

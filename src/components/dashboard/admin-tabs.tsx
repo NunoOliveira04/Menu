@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Settings, UtensilsCrossed } from 'lucide-react';
 
 const TABS = [
-  { href: '/admin', label: 'Ementa', icon: UtensilsCrossed },
+  { href: '/admin', label: 'Carta', icon: UtensilsCrossed },
   { href: '/admin/restaurante', label: 'Definições', icon: Settings },
 ] as const;
 

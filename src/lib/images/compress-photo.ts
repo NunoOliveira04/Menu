@@ -28,13 +28,13 @@ export const PHOTO_TARGET_MAX_BYTES = 400 * 1024;
 export const PHOTO_UPLOAD_HARD_LIMIT_BYTES = 900 * 1024;
 
 export const PHOTO_ERROR_NOT_IMAGE =
-  'O ficheiro escolhido não é uma imagem. Escolhe uma fotografia JPEG, PNG, WebP ou HEIC.';
+  'O ficheiro escolhido não é uma imagem. Escolha uma fotografia JPEG, PNG, WebP ou HEIC.';
 export const PHOTO_ERROR_DECODE =
-  'Não foi possível abrir esta fotografia neste browser. Tenta outra imagem ou tira a foto novamente.';
+  'Não foi possível abrir esta fotografia neste browser. Tente outra imagem ou tire a fotografia novamente.';
 export const PHOTO_ERROR_TOO_LARGE =
-  'Mesmo depois de reduzida, a fotografia continua demasiado pesada. Tenta uma imagem mais simples.';
+  'Mesmo depois de reduzida, a fotografia continua demasiado pesada. Tente uma imagem mais simples.';
 export const PHOTO_ERROR_ENCODE =
-  'Não foi possível preparar a fotografia para envio. Tenta novamente.';
+  'Não foi possível preparar a fotografia para envio. Tente novamente.';
 
 export class PhotoPreparationError extends Error {
   constructor(message: string) {

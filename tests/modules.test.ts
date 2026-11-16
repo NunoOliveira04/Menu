@@ -96,8 +96,8 @@ describe('Módulo de Alergénios (14 da UE) e Destaques', () => {
     });
     expect(invalidAllergen.success).toBe(false);
 
-    expect(getHighlightLabel('featured', 'pt')).toBe('Destaque da Casa');
-    expect(getHighlightLabel('featured', 'en')).toBe('House Special');
+    expect(getHighlightLabel('featured', 'pt')).toBe('Da casa');
+    expect(getHighlightLabel('featured', 'en')).toBe('House special');
     expect(getHighlightLabel(null, 'pt')).toBeNull();
   });
 });

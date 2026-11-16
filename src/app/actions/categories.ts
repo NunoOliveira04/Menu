@@ -54,7 +54,7 @@ export async function createCategoryAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os dados da categoria.',
+      message: 'Verifique os dados da categoria.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }
@@ -106,7 +106,7 @@ export async function createCategoryAction(
   }
 
   await revalidateRestaurantMenu(parsed.data.restaurantId);
-  return { status: 'success', message: 'Categoria adicionada ao menu.' };
+  return { status: 'success', message: 'Categoria adicionada à carta.' };
 }
 
 export async function updateCategoryAction(
@@ -130,7 +130,7 @@ export async function updateCategoryAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os dados da categoria.',
+      message: 'Verifique os dados da categoria.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }

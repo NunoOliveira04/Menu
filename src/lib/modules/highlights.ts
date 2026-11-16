@@ -8,15 +8,15 @@ export interface HighlightDefinition {
 export const DISH_HIGHLIGHTS: readonly HighlightDefinition[] = [
   {
     code: 'featured',
-    label: { pt: 'Destaque da Casa', en: 'House Special' },
+    label: { pt: 'Da casa', en: 'House special' },
   },
   {
     code: 'recommended',
-    label: { pt: 'Recomendado pelo Chef', en: "Chef's Pick" },
+    label: { pt: 'Recomendado', en: 'Recommended' },
   },
   {
     code: 'new',
-    label: { pt: 'Novo na Carta', en: 'New' },
+    label: { pt: 'Novo', en: 'New' },
   },
 ] as const;
 

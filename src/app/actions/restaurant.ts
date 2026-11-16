@@ -92,7 +92,7 @@ export async function updateRestaurantAction(
   if (!role) {
     return {
       status: 'error',
-      message: 'Não tens permissão para editar este restaurante.',
+      message: 'Não tem permissão para editar este restaurante.',
     };
   }
 
@@ -151,7 +151,7 @@ export async function updateRestaurantAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os campos assinalados.',
+      message: 'Verifique os campos assinalados.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }
@@ -168,7 +168,7 @@ export async function updateRestaurantAction(
     return {
       status: 'error',
       message:
-        'Apenas o proprietário (owner) pode publicar/despublicar o menu ou alterar o identificador (slug).',
+        'Apenas o proprietário (owner) pode publicar/despublicar a carta ou alterar o identificador (slug).',
     };
   }
 
@@ -186,7 +186,7 @@ export async function updateRestaurantAction(
       const firstIssue = hoursValidation.error.issues[0]?.message;
       return {
         status: 'error',
-        message: firstIssue ?? 'Verifica os horários semanais introduzidos.',
+        message: firstIssue ?? 'Verifique os horários semanais introduzidos.',
       };
     }
 
@@ -232,7 +232,7 @@ export async function updateRestaurantAction(
       await removeUploadedImages();
       return {
         status: 'error',
-        message: `Não foi possível atualizar ${slot.label}. Tenta novamente.`,
+        message: `Não foi possível atualizar ${slot.label}. Tente novamente.`,
       };
     }
 
@@ -327,7 +327,7 @@ export async function updateRestaurantAction(
         status: 'error',
         message: 'Esse identificador (slug) já está ocupado por outro restaurante.',
         fieldErrors: {
-          slug: ['Escolhe outro identificador único.'],
+          slug: ['Escolha outro identificador único.'],
         },
       };
     }
