@@ -58,3 +58,25 @@ describe('Carta pública — alinhamento (ponto 4)', () => {
     expect(thumbIdx).toBeLessThan(copyIdx);
   });
 });
+
+describe('Carta pública — legibilidade para clientes (revisão do Fable)', () => {
+  it('descrições a 15 px, também na grelha, e só a grelha corta a 2 linhas', () => {
+    expect(ruleBody('.menu-desc')).toMatch(/font-size:\s*15px/);
+    const grelha = ruleBody(".menu-theme[data-layout='grelha'] .menu-desc");
+    expect(grelha).toMatch(/font-size:\s*15px/);
+    expect(grelha).toMatch(/-webkit-line-clamp:\s*2/);
+  });
+
+  it('botão de alergénios e seletor de idioma com 44 px de altura', () => {
+    expect(ruleBody('.menu-allergen-btn')).toMatch(/min-height:\s*44px/);
+    expect(ruleBody(".menu-theme[data-layout='grelha'] .menu-allergen-btn")).toMatch(
+      /min-height:\s*44px/,
+    );
+    expect(ruleBody('.menu-lang a')).toMatch(/min-height:\s*44px/);
+  });
+
+  it('prato esgotado: selo próprio e só a foto fica esbatida', () => {
+    expect(ruleBody('.menu-badge-soldout')).toMatch(/color:\s*#ffffff/);
+    expect(ruleBody('.menu-dish-unavailable .menu-media img')).toMatch(/opacity/);
+  });
+});

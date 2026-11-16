@@ -158,14 +158,14 @@
 
 .menu-lang a {
   display: inline-flex;
-  min-width: 40px;
-  min-height: 34px;
+  min-width: 44px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
-  padding: 0 10px;
+  padding: 0 14px;
   color: #3f3f46;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
@@ -372,7 +372,8 @@
 
 .menu-desc {
   margin: 4px 0 0;
-  color: var(--color-muted);
+  /* Um pouco mais escuro do que o texto secundário: lê-se melhor em salas com pouca luz. */
+  color: color-mix(in srgb, var(--color-muted) 55%, var(--color-text));
   font-size: 15px;
   line-height: 1.45;
   overflow-wrap: break-word;
@@ -390,15 +391,15 @@
   position: relative;
   display: inline-flex;
   white-space: nowrap;
-  min-height: 32px;
+  min-height: 44px;
   align-items: center;
   gap: 6px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background: transparent;
-  padding: 0 12px;
+  padding: 0 16px;
   color: var(--color-text);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
 }
@@ -420,16 +421,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-.menu-unavailable {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--color-text) 7%, transparent);
-  padding: 0 12px;
-  color: var(--color-text);
-  font-size: 13px;
-  font-weight: 600;
+/* Selo «Esgotado hoje»: no topo do cartão, como os outros selos; a foto fica esbatida. */
+.menu-badge-soldout {
+  background: #3a3532;
+  color: #ffffff;
+}
+
+.menu-dish-unavailable .menu-media img {
+  opacity: 0.55;
+  filter: grayscale(0.4);
 }
 
 /* Indisponível: cores normais (contraste AA); só o preço fica esbatido e riscado. */
@@ -747,15 +747,21 @@
   font-size: 0.95rem;
 }
 
+/* Grelha: colunas estreitas, por isso a descrição fica em 2 linhas (o resto está ao abrir a foto). */
 .menu-theme[data-layout='grelha'] .menu-desc {
-  font-size: 12.5px;
-  line-height: 1.35;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .menu-theme[data-layout='grelha'] .menu-allergen-btn {
-  min-height: 26px;
-  padding: 0 8px;
-  font-size: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
 }
 
 /* ---- Disposição «Foto grande»: um prato por linha, foto em destaque e nome por baixo. ---- */
