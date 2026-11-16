@@ -65,7 +65,7 @@ export async function createDishAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os dados do prato.',
+      message: 'Verifique os dados do prato.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }
@@ -173,7 +173,7 @@ export async function updateDishAction(
   if (!parsed.success) {
     return {
       status: 'error',
-      message: 'Verifica os dados do prato.',
+      message: 'Verifique os dados do prato.',
       fieldErrors: formatZodErrors(parsed.error),
     };
   }

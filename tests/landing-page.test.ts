@@ -11,7 +11,12 @@ vi.mock('next/font/google', () => ({
 }));
 
 import * as homePage from '@/app/page';
-import { LANDING_TAGLINE, LandingPage } from '@/components/marketing/landing-page';
+import {
+  HERO_SUBTITLE,
+  HERO_TITLE,
+  LANDING_TAGLINE,
+  LandingPage,
+} from '@/components/marketing/landing-page';
 import { MARKETING_CONTACT, buildEmailUrl, buildWhatsAppUrl } from '@/lib/marketing/contact';
 
 const EMPTY_CONTACT = { whatsapp: '', email: '' };
@@ -21,13 +26,19 @@ function render(contact = EMPTY_CONTACT): string {
 }
 
 describe('Página de apresentação (/)', () => {
-  it('mostra o topo com o nome, a frase e os dois botões', () => {
+  it('mostra o topo com a promessa no título, o subtítulo e os dois botões', () => {
     const html = render();
-    expect(html).toContain('<h1');
+    const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1]?.replace(/<[^>]+>/g, '');
+    expect(h1).toBe(HERO_TITLE);
     expect(html).toContain('O Seu Menu');
-    expect(html).toContain(LANDING_TAGLINE);
-    expect(html).toMatch(/<a[^>]*href="\/demo"[^>]*>Ver exemplo/);
-    expect(html).toMatch(/<a[^>]*href="#contacto"[^>]*>Falar connosco<\/a>/);
+    expect(html).toContain(HERO_SUBTITLE);
+    // A demonstração é o botão principal; «Ver exemplo» vem a seguir.
+    const demo = html.search(
+      /<a[^>]*href="#contacto"[^>]*>Peça uma demonstração de 10 minutos<\/a>/,
+    );
+    const exemplo = html.search(/<a[^>]*href="\/demo"[^>]*>Ver exemplo/);
+    expect(demo).toBeGreaterThan(-1);
+    expect(exemplo).toBeGreaterThan(demo);
   });
 
   it('«Ver exemplo» leva sempre à carta de demonstração, nunca ao painel', () => {
@@ -47,7 +58,9 @@ describe('Página de apresentação (/)', () => {
     const text = render().replace(/<[^>]+>/g, ' ');
     expect(text).not.toMatch(/primeiro mês|1\.º mês|mês grátis/i);
     expect(text).toContain('Período experimental gratuito e sem compromisso');
-    expect(text).toContain('Oferecemos um período experimental gratuito e sem compromisso.');
+    expect(text).toContain(
+      'Os primeiros restaurantes experimentam gratuitamente e, antes de qualquer pagamento, dizemos-lhe o preço.',
+    );
     expect(text).toContain('Pode experimentar gratuitamente e sem compromisso.');
   });
 
@@ -130,7 +143,7 @@ describe('Página de apresentação (/)', () => {
       'id="dominio"',
       'oseumenu.pt/o-seu-restaurante',
       'id="vantagens"',
-      'Altere um preço ou um prato no seu telemóvel',
+      'Preços sempre certos',
       'Esgotados à vista',
       'Inglês com um toque',
       'Alergénios claros',
@@ -149,12 +162,13 @@ describe('Página de apresentação (/)', () => {
 
   it('tem as 5 perguntas frequentes em <details>', () => {
     const html = render();
-    expect(html.match(/<details/g)).toHaveLength(5);
+    expect(html.match(/<details/g)).toHaveLength(6);
     for (const question of [
       'E se os clientes preferirem papel?',
       'Preciso de perceber de informática?',
       'E se a internet do restaurante falhar?',
       'Quanto custa?',
+      'E se eu me enganar ou precisar de ajuda?',
       'Dá para fazer encomendas ou pagamentos?',
     ]) {
       expect(html).toContain(question);
@@ -172,7 +186,7 @@ describe('Página de apresentação (/)', () => {
     for (const youForm of [
       'Envie-nos',
       'Mude',
-      'Altere',
+      'Peça uma demonstração',
       'Abra o prato',
       'Descarregue-o',
       'Copie',

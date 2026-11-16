@@ -256,14 +256,14 @@ export function RestaurantSettingsForm({
 
       <Section
         title="Aspeto"
-        description="Escolhe o fundo, a cor dos destaques e a disposição dos pratos."
+        description="Escolha o fundo, a cor dos destaques e a disposição dos pratos."
       >
         <AppearancePicker initial={parseMenuAppearance(restaurant.settings, restaurant.style)} />
       </Section>
 
       <Section
         title="O que aparece na carta"
-        description="Liga só o que precisas. O que está desligado não aparece na carta nem no painel."
+        description="Ligue só o que precisa. O que está desligado não aparece na carta nem no painel."
       >
         <div className="-my-3.5 divide-y divide-stone-100">
           <ModuleSwitch
@@ -272,7 +272,7 @@ export function RestaurantSettingsForm({
             onChange={setLanguagesEnabled}
             icon={<Globe className="h-4 w-4" aria-hidden="true" />}
             title="Versão em inglês"
-            description="Mostra o botão PT / EN e deixa-te escrever os pratos em inglês."
+            description="Mostra o botão Português / English e permite escrever os pratos em inglês."
           />
           <ModuleSwitch
             name="module_allergens"
@@ -280,7 +280,7 @@ export function RestaurantSettingsForm({
             onChange={setAllergensEnabled}
             icon={<ShieldAlert className="h-4 w-4" aria-hidden="true" />}
             title="Alergénios"
-            description="Marca em cada prato os 14 alergénios obrigatórios."
+            description="Marque em cada prato os 14 alergénios obrigatórios."
           />
           <ModuleSwitch
             name="module_highlights"
@@ -304,7 +304,7 @@ export function RestaurantSettingsForm({
       {hoursEnabled && (
         <Section
           title="Horário"
-          description="Liga os dias em que abres. Podes ter até dois turnos por dia (ex.: almoço e jantar)."
+          description="Ligue os dias em que abre. Pode ter até dois turnos por dia (ex.: almoço e jantar)."
         >
           <HoursEditor initialSchedule={initialSchedule} />
         </Section>

@@ -9,6 +9,8 @@ import { DishPhoto } from '@/components/menu/dish-photo';
 import { getAllergenDefinition } from '@/lib/modules/allergens';
 import {
   formatDaySlots,
+  formatNextOpening,
+  findNextOpening,
   WEEKDAY_LABELS,
   evaluateLisbonOpenStatus,
   type DaySchedule,
@@ -97,6 +99,8 @@ export function PublicMenuView({
   );
 
   const openStatus = modules.hours ? evaluateLisbonOpenStatus(weeklySchedule, now) : null;
+  const nextOpening =
+    openStatus && !openStatus.isOpen ? findNextOpening(weeklySchedule, now) : null;
 
   return (
     <div
@@ -128,7 +132,7 @@ export function PublicMenuView({
               lang="pt-PT"
               aria-current={effectiveLocale === 'pt' ? 'page' : undefined}
             >
-              PT
+              Português
             </Link>
             <Link
               href={`/${restaurant.slug}?lang=en`}
@@ -136,7 +140,7 @@ export function PublicMenuView({
               lang="en"
               aria-current={effectiveLocale === 'en' ? 'page' : undefined}
             >
-              EN
+              English
             </Link>
           </nav>
         )}
@@ -219,11 +223,17 @@ export function PublicMenuView({
                           : badge === 'new'
                             ? ui.newBadge
                             : null;
-                    const badgeNode = badge && badgeLabel && (
-                      <span className={`menu-badge menu-badge-${badge}`}>
-                        <DishBadgeIcon code={badge} />
-                        {badgeLabel}
-                      </span>
+                    // Esgotado tem prioridade sobre os outros selos: é o que o cliente precisa de saber.
+                    const badgeNode = !dish.available ? (
+                      <span className="menu-badge menu-badge-soldout">{ui.unavailableBadge}</span>
+                    ) : (
+                      badge &&
+                      badgeLabel && (
+                        <span className={`menu-badge menu-badge-${badge}`}>
+                          <DishBadgeIcon code={badge} />
+                          {badgeLabel}
+                        </span>
+                      )
                     );
                     const dishAllergens = modules.allergens
                       ? (dish.allergens ?? [])
@@ -280,21 +290,16 @@ export function PublicMenuView({
                               </p>
                             </div>
                             {dishDescription && <p className="menu-desc">{dishDescription}</p>}
-                            {(dishAllergens.length > 0 || !dish.available) && (
+                            {dishAllergens.length > 0 && (
                               <div className="menu-dish-actions">
-                                {dishAllergens.length > 0 && (
-                                  <AllergenSheetButton
-                                    dishName={dishName}
-                                    allergens={dishAllergens}
-                                    buttonLabel={ui.allergensButton}
-                                    sheetTitle={ui.allergensLegendTitle}
-                                    note={ui.allergensLegendNote}
-                                    closeLabel={ui.allergensClose}
-                                  />
-                                )}
-                                {!dish.available && (
-                                  <span className="menu-unavailable">{ui.unavailableBadge}</span>
-                                )}
+                                <AllergenSheetButton
+                                  dishName={dishName}
+                                  allergens={dishAllergens}
+                                  buttonLabel={ui.allergensButton}
+                                  sheetTitle={ui.allergensLegendTitle}
+                                  note={ui.allergensLegendNote}
+                                  closeLabel={ui.allergensClose}
+                                />
                               </div>
                             )}
                           </div>
@@ -319,7 +324,11 @@ export function PublicMenuView({
                 {ui.hoursTitle}
               </h2>
               <span className={openStatus.isOpen ? 'menu-status-open' : 'menu-status-closed'}>
-                {openStatus.isOpen ? ui.openNowBadge : ui.closedNowBadge}
+                {openStatus.isOpen
+                  ? ui.openNowBadge
+                  : nextOpening
+                    ? `${ui.closedNowBadge} · ${formatNextOpening(nextOpening, effectiveLocale)}`
+                    : ui.closedNowBadge}
               </span>
             </div>
             <dl className="menu-hours">

@@ -44,14 +44,15 @@ export function QrCodeCard({
 
   return (
     <aside
-      aria-label="Código QR e link público"
+      aria-label="QR code e link da carta"
       className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="font-serif text-lg font-semibold text-stone-900">Código QR da Mesa</h2>
+          <h2 className="font-serif text-lg font-semibold text-stone-900">QR code para as mesas</h2>
           <p className="mt-0.5 text-xs text-stone-500">
-            Aponta a câmara para abrir o menu de {restaurantName}.
+            Imprima este código e ponha-o nas mesas. Os clientes apontam a câmara e a carta de{' '}
+            {restaurantName} abre.
           </p>
         </div>
         <span
@@ -67,8 +68,8 @@ export function QrCodeCard({
 
       {!published && (
         <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-900">
-          O menu ainda está privado. Publica-o em <strong>Restaurante</strong> para que clientes sem
-          sessão o consigam abrir.
+          A carta ainda está privada. Publique-a nas <strong>Definições</strong> para os clientes a
+          conseguirem abrir.
         </p>
       )}
 
@@ -110,25 +111,25 @@ export function QrCodeCard({
           className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          Ver menu
+          Ver a carta
         </a>
 
         <a
           href={qrPngDataUrl}
           download={`qr-${slug}.png`}
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8C3B2B] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#763123]"
+          className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-[#8C3B2B] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#763123]"
         >
-          <Download className="h-3.5 w-3.5" aria-hidden="true" />
-          PNG
+          <Download className="h-4 w-4" aria-hidden="true" />
+          Descarregar para imprimir
         </a>
 
         <button
           type="button"
           onClick={handleDownloadSvg}
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#8C3B2B]/30 bg-[#FAF6F0] px-3 py-2 text-xs font-medium text-[#8C3B2B] transition hover:bg-[#F3ECE1]"
+          className="col-span-2 inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl border border-[#8C3B2B]/30 bg-[#FAF6F0] px-3 py-2 text-xs font-medium text-[#8C3B2B] transition hover:bg-[#F3ECE1]"
         >
           <Download className="h-3.5 w-3.5" aria-hidden="true" />
-          SVG vetorial
+          Ficheiro para a gráfica (SVG)
         </button>
       </div>
     </aside>

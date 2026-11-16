@@ -40,7 +40,7 @@ export default async function AdminRestaurantSettingsPage() {
       <div className="mb-5">
         <h1 className="text-2xl font-semibold text-stone-900">Definições</h1>
         <p className="mt-1 text-sm text-stone-600">
-          Nome, logotipo e o que aparece na carta. Carrega em «Guardar» no fim.
+          Nome, logotipo e o que aparece na carta. Carregue em «Guardar» no fim.
         </p>
       </div>
 

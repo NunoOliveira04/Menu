@@ -30,14 +30,19 @@ export default async function LoginPage({
         </div>
 
         <div className="mt-8 rounded-2xl border border-[#E6DDD0] bg-white p-6 shadow-sm sm:p-8">
-          <h1 className="font-serif text-2xl font-semibold text-stone-900">Bem-vindo de volta</h1>
+          <h1 className="font-serif text-2xl font-semibold text-stone-900">Área do restaurante</h1>
           <p className="mt-1 text-sm text-stone-600">
-            Entra na tua conta para gerir a carta do restaurante.
+            Entre na sua conta para gerir a carta do seu restaurante.
           </p>
 
           <div className="mt-6">
             <LoginForm next={next} />
           </div>
+
+          <p className="mt-5 border-t border-stone-100 pt-4 text-sm text-stone-600">
+            <strong className="font-semibold text-stone-800">Esqueceu-se da palavra-passe?</strong>{' '}
+            Fale connosco e nós ajudamos a recuperar o acesso.
+          </p>
         </div>
       </div>
     </div>

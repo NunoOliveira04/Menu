@@ -203,3 +203,49 @@ export function formatDaySlots(day: DaySchedule, closedLabel: string): string {
   }
   return day.slots.map((slot) => `${slot.open}–${slot.close}`).join(' · ');
 }
+
+export interface NextOpening {
+  /** 0 = hoje, 1 = amanhã, 2..6 = daqui a n dias. */
+  daysFromToday: number;
+  dayOfWeek: number;
+  time: string; // HH:MM
+}
+
+/**
+ * Próxima abertura a partir de agora (fuso Europe/Lisbon), para mostrar
+ * «Fechado agora · abre às 19:00». Devolve null se não houver nenhum turno na semana.
+ */
+export function findNextOpening(
+  weeklySchedule: readonly DaySchedule[],
+  now: Date = new Date(),
+): NextOpening | null {
+  const lisbon = getLisbonLocalTime(now);
+  for (let offset = 0; offset < 7; offset += 1) {
+    const dayOfWeek = (lisbon.dayOfWeek + offset) % 7;
+    const day = weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek);
+    if (!day || day.closed || day.slots.length === 0) {
+      continue;
+    }
+    const starts = day.slots
+      .map((slot) => slot.open)
+      .filter((open) => offset > 0 || timeToMinutes(open) > lisbon.minutesSinceMidnight)
+      .sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
+    const first = starts[0];
+    if (first) {
+      return { daysFromToday: offset, dayOfWeek, time: first };
+    }
+  }
+  return null;
+}
+
+/** Texto curto da próxima abertura: «abre às 19:00», «abre amanhã às 12:00», «abre segunda-feira às 12:00». */
+export function formatNextOpening(next: NextOpening, locale: MenuLocale): string {
+  if (locale === 'en') {
+    if (next.daysFromToday === 0) return `opens at ${next.time}`;
+    if (next.daysFromToday === 1) return `opens tomorrow at ${next.time}`;
+    return `opens ${WEEKDAY_LABELS.en[next.dayOfWeek]} at ${next.time}`;
+  }
+  if (next.daysFromToday === 0) return `abre às ${next.time}`;
+  if (next.daysFromToday === 1) return `abre amanhã às ${next.time}`;
+  return `abre ${(WEEKDAY_LABELS.pt[next.dayOfWeek] ?? '').toLowerCase()} às ${next.time}`;
+}

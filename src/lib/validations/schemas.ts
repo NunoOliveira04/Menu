@@ -16,7 +16,7 @@ export const ALLOWED_IMAGE_MIME_TYPES: readonly AllowedImageMimeType[] = [
 export const MAX_DISH_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export const restaurantStyleSchema = z.enum(['classico', 'moderno', 'escuro'], {
-  error: 'Escolhe um tema válido (Clássico, Moderno ou Escuro).',
+  error: 'Escolha um tema válido (Clássico, Moderno ou Escuro).',
 });
 
 export const euAllergenSchema = z.enum(
@@ -65,12 +65,11 @@ export const slugFieldSchema = z
     message: 'Este identificador está reservado pelo sistema.',
   })
   .refine((val) => isValidSlug(val), {
-    message:
-      'Usa apenas letras minúsculas (a-z), números e hífens simples (ex.: menu-restaurante).',
+    message: 'Use apenas letras minúsculas (a-z), números e hífens simples (ex.: tasca-do-largo).',
   });
 
 export const authCredentialsSchema = z.object({
-  email: z.email('Introduz um endereço de email válido.').trim().toLowerCase(),
+  email: z.email('Introduza um endereço de e-mail válido.').trim().toLowerCase(),
   password: z
     .string()
     .min(8, 'A palavra-passe deve ter pelo menos 8 caracteres.')
@@ -139,7 +138,7 @@ export const dayScheduleInputSchema = z
     if (!day.closed && day.slots.length === 0) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Indica pelo menos um período horário ou marca o dia como encerrado.',
+        message: 'Indique pelo menos um período horário ou marque o dia como fechado.',
         path: ['slots'],
       });
     }
@@ -222,13 +221,13 @@ export const reorderCategorySchema = z.object({
 export const euroPriceStringSchema = z
   .string()
   .trim()
-  .min(1, 'Indica o preço do prato (ex.: 12,50).')
+  .min(1, 'Indique o preço do prato (ex.: 12,50).')
   .transform((val, ctx) => {
     const cents = parseEuroToCents(val);
     if (cents === null) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Preço inválido. Usa um valor não negativo como 12,50 ou 8.',
+        message: 'Preço inválido. Use um valor não negativo como 12,50 ou 8.',
       });
       return z.NEVER;
     }
@@ -237,7 +236,7 @@ export const euroPriceStringSchema = z
 
 export const createDishSchema = z.object({
   restaurantId: z.uuid('Identificador de restaurante inválido.'),
-  categoryId: z.uuid('Seleciona uma categoria válida.'),
+  categoryId: z.uuid('Selecione uma categoria válida.'),
   name: z
     .string()
     .trim()
@@ -353,7 +352,7 @@ export function validateDishPhotoFile(
   if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type as AllowedImageMimeType)) {
     return {
       valid: false,
-      error: 'Formato inválido. Usa uma imagem JPEG, PNG, WebP ou AVIF.',
+      error: 'Formato inválido. Use uma imagem JPEG, PNG, WebP ou AVIF.',
     };
   }
 
