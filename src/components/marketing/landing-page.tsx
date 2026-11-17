@@ -217,7 +217,7 @@ const FAQS: { question: string; answer: string }[] = [
 
 const FOCUS_RING =
   'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#B4412A]/35 focus-visible:ring-offset-2';
-const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-7 text-[17px] font-semibold transition ${FOCUS_RING}`;
+const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 text-[17px] font-semibold transition ${FOCUS_RING}`;
 const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#B4412A] text-[#FBF6EC] shadow-[0_12px_28px_-14px_rgba(180,65,42,0.8)] hover:bg-[#9A3722]`;
 const BUTTON_OUTLINE = `${BUTTON_BASE} border-2 border-[#1F3D2E] text-[#1F3D2E] hover:bg-[#1F3D2E] hover:text-[#FBF6EC]`;
 const SHADOW = 'shadow-[0_12px_32px_rgba(43,29,22,0.12)]';
@@ -364,7 +364,7 @@ export function LandingPage({
         <section className="mx-auto flex max-w-6xl flex-col items-center gap-14 px-5 pb-20 pt-10 sm:pt-14 lg:flex-row lg:gap-10 lg:pb-24 lg:pt-16">
           <div className="max-w-xl text-center lg:flex-1 lg:text-left">
             <p className="inline-flex items-center gap-2 rounded-full bg-[#F2B441] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
-              Período experimental gratuito e sem compromisso
+              Experimente grátis, sem compromisso
             </p>
             <h1 className="osm-display mt-6 text-[38px] leading-[1.1] tracking-[-0.01em] sm:text-[56px]">
               A carta do seu restaurante,{' '}
@@ -373,9 +373,9 @@ export function LandingPage({
             <p className="mt-5 max-w-[36ch] text-xl leading-[1.55] text-[#2B1D16] max-lg:mx-auto sm:text-[22px]">
               {HERO_SUBTITLE}
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
               <a href="#contacto" className={BUTTON_PRIMARY}>
-                Peça uma demonstração de 10 minutos
+                Peça uma demonstração
               </a>
               {/* Link normal (não <Link>): a carta abre sempre no topo, sem herdar o scroll desta página. */}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -384,6 +384,9 @@ export function LandingPage({
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </a>
             </div>
+            <p className="mt-4 text-[15px] text-[#5F4B40]">
+              Demonstração de 10 minutos, no seu restaurante, com a sua própria carta.
+            </p>
           </div>
 
           <div className="relative lg:flex-1">
