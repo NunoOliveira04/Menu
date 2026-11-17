@@ -10,6 +10,9 @@ export const brandDisplayFont = Young_Serif({
   weight: '400',
   variable: '--font-landing-display',
   display: 'swap',
+  // Declarada no layout raiz para todas as páginas, mas sem pré-carregamento: o browser só a
+  // descarrega onde é usada (página de apresentação, painel, login e ecrãs de erro).
+  preload: false,
 });
 
 export const brandBodyFont = Atkinson_Hyperlegible_Next({
@@ -17,6 +20,7 @@ export const brandBodyFont = Atkinson_Hyperlegible_Next({
   weight: ['400', '600'],
   variable: '--font-landing-body',
   display: 'swap',
+  preload: false,
   // O Next ainda não tem as medidas desta letra para a letra de recurso; evita o aviso no build.
   adjustFontFallback: false,
 });
