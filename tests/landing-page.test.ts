@@ -123,10 +123,20 @@ describe('Página de apresentação (/)', () => {
     }
   });
 
-  it('mostra a carta /demo num iframe com loading="lazy"', () => {
+  it('mostra a carta /demo num iframe com loading="lazy", em modo embutido (sem barra de scroll)', () => {
     const html = render();
-    expect(html).toMatch(/<iframe[^>]*src="\/demo"/);
+    expect(html).toMatch(/<iframe[^>]*src="\/demo\?embed=1"/);
     expect(html).toMatch(/<iframe[^>]*loading="lazy"/);
+  });
+
+  it('os links para a carta de exemplo são links normais (a carta abre sempre no topo)', () => {
+    const source = readFileSync(
+      resolve(__dirname, '..', 'src/components/marketing/landing-page.tsx'),
+      'utf8',
+    );
+    expect(source).not.toMatch(/<Link[^>]*href="\/demo"/);
+    const html = render();
+    expect(html.match(/<a[^>]*href="\/demo"/g)).toHaveLength(2);
   });
 
   it('tem as secções pela ordem pedida', () => {

@@ -38,6 +38,8 @@ interface PublicMenuViewProps {
   locale: MenuLocale;
   weeklySchedule: DaySchedule[];
   isDraftPreview?: boolean;
+  /** Carta mostrada dentro de outra página (ex.: telemóvel da página de apresentação). */
+  embedded?: boolean;
   now?: Date;
 }
 
@@ -56,6 +58,7 @@ export function PublicMenuView({
   locale,
   weeklySchedule,
   isDraftPreview = false,
+  embedded = false,
   now,
 }: PublicMenuViewProps) {
   const effectiveLocale: MenuLocale = modules.languages ? locale : 'pt';
@@ -113,6 +116,11 @@ export function PublicMenuView({
       data-page={background.pageDark ? 'dark' : 'light'}
       data-cards={background.cardDark ? 'dark' : 'light'}
     >
+      {/* Dentro do telemóvel da página de apresentação: sem barra de scroll. */}
+      {embedded && (
+        <style>{'html{scrollbar-width:none}html::-webkit-scrollbar{display:none}'}</style>
+      )}
+
       <a href="#ementa-conteudo" className="menu-skip">
         {ui.skipToMenu}
       </a>
@@ -132,7 +140,7 @@ export function PublicMenuView({
               lang="pt-PT"
               aria-current={effectiveLocale === 'pt' ? 'page' : undefined}
             >
-              Português
+              PT
             </Link>
             <Link
               href={`/${restaurant.slug}?lang=en`}
@@ -140,7 +148,7 @@ export function PublicMenuView({
               lang="en"
               aria-current={effectiveLocale === 'en' ? 'page' : undefined}
             >
-              English
+              EN
             </Link>
           </nav>
         )}

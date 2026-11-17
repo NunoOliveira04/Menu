@@ -293,7 +293,7 @@ function MenuPreview() {
   return (
     <PhoneFrame height={562} className="-rotate-3">
       <iframe
-        src="/demo"
+        src="/demo?embed=1"
         title="Exemplo de carta no telemóvel"
         loading="lazy"
         className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[0.6667] border-0"
@@ -377,10 +377,12 @@ export function LandingPage({
               <a href="#contacto" className={BUTTON_PRIMARY}>
                 Peça uma demonstração de 10 minutos
               </a>
-              <Link href="/demo" prefetch={false} className={BUTTON_OUTLINE}>
+              {/* Link normal (não <Link>): a carta abre sempre no topo, sem herdar o scroll desta página. */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/demo" className={BUTTON_OUTLINE}>
                 Ver exemplo
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -738,14 +740,14 @@ export function LandingPage({
                 ))}
               </ul>
               <ContactButtons contact={contact} />
-              <Link
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
                 href="/demo"
-                prefetch={false}
                 className={`mt-8 inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 font-semibold underline decoration-[#F2B441] decoration-2 underline-offset-[6px] hover:decoration-[#FBF6EC] ${FOCUS_RING}`}
               >
                 Ver a carta de exemplo
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              </a>
             </div>
           </div>
         </section>

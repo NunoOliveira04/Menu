@@ -22,7 +22,7 @@ const getRestaurantBySlug = cache(async (slug: string) => {
 
 interface PublicMenuPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ lang?: string | string[] }>;
+  searchParams: Promise<{ lang?: string | string[]; embed?: string | string[] }>;
 }
 
 export async function generateMetadata({
@@ -128,6 +128,7 @@ export default async function PublicMenuPage({ params, searchParams }: PublicMen
       locale={locale}
       weeklySchedule={weeklySchedule}
       isDraftPreview={!restaurant.published}
+      embedded={resolvedSearchParams.embed === '1'}
     />
   );
 }
