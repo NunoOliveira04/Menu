@@ -231,17 +231,11 @@ export function PublicMenuView({
                           : badge === 'new'
                             ? ui.newBadge
                             : null;
-                    // Esgotado tem prioridade sobre os outros selos: é o que o cliente precisa de saber.
-                    const badgeNode = !dish.available ? (
-                      <span className="menu-badge menu-badge-soldout">{ui.unavailableBadge}</span>
-                    ) : (
-                      badge &&
-                      badgeLabel && (
-                        <span className={`menu-badge menu-badge-${badge}`}>
-                          <DishBadgeIcon code={badge} />
-                          {badgeLabel}
-                        </span>
-                      )
+                    const badgeNode = badge && badgeLabel && (
+                      <span className={`menu-badge menu-badge-${badge}`}>
+                        <DishBadgeIcon code={badge} />
+                        {badgeLabel}
+                      </span>
                     );
                     const dishAllergens = modules.allergens
                       ? (dish.allergens ?? [])
@@ -297,6 +291,10 @@ export function PublicMenuView({
                                 {formatPriceCents(dish.price_cents)}
                               </p>
                             </div>
+                            {/* Esgotado: texto simples (sem selo), junto com o preço riscado e a foto esbatida. */}
+                            {!dish.available && (
+                              <p className="menu-soldout-note">{ui.unavailableBadge}</p>
+                            )}
                             {dishDescription && <p className="menu-desc">{dishDescription}</p>}
                             {dishAllergens.length > 0 && (
                               <div className="menu-dish-actions">

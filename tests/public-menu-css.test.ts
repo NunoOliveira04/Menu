@@ -75,9 +75,10 @@ describe('Carta pública — legibilidade para clientes (revisão do Fable)', ()
     expect(ruleBody('.menu-lang a')).toMatch(/min-height:\s*44px/);
   });
 
-  it('prato esgotado: selo próprio e só a foto fica esbatida', () => {
-    // Neutro e à parte dos selos de destaque (que usam a cor do restaurante).
-    expect(ruleBody('.menu-badge-soldout')).toMatch(/background:\s*#ffffff/);
+  it('prato esgotado: sem selo, com texto simples, e só a foto fica esbatida', () => {
+    // Sem selo: texto simples «Esgotado hoje» (os selos de destaque usam a cor do restaurante).
+    expect(css).not.toMatch(/\.menu-badge-soldout/);
+    expect(ruleBody('.menu-soldout-note')).toMatch(/font-style:\s*italic/);
     expect(ruleBody('.menu-badge-new')).toMatch(/var\(--badge-bg\)/);
     expect(ruleBody('.menu-dish-unavailable .menu-media img')).toMatch(/opacity/);
   });
