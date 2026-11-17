@@ -56,7 +56,7 @@ export function copyDayToOpenDays(rows: readonly EditableDayRow[], sourceDay: nu
 }
 
 const TIME_INPUT =
-  'w-full min-w-0 rounded-lg border border-stone-300 bg-white px-2 py-2 text-sm tabular-nums text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20';
+  'w-full min-w-0 rounded-lg border border-stone-300 bg-white px-2 py-2 text-sm tabular-nums text-stone-900 focus:border-[#B4412A] focus:outline-none focus:ring-2 focus:ring-[#B4412A]/20';
 
 /**
  * Editor do horário semanal. Os nomes dos campos mantêm-se (`day_<n>_closed`,
@@ -102,7 +102,7 @@ export function HoursEditor({ initialSchedule }: { initialSchedule: readonly Day
                   />
                   <span
                     aria-hidden="true"
-                    className="relative h-6 w-11 rounded-full bg-stone-300 transition peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
+                    className="relative h-6 w-11 rounded-full bg-stone-300 transition peer-checked:bg-[#2F6B4F] peer-focus-visible:ring-2 peer-focus-visible:ring-[#B4412A]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
                   />
                 </label>
               </div>
@@ -171,7 +171,7 @@ export function HoursEditor({ initialSchedule }: { initialSchedule: readonly Day
                       <button
                         type="button"
                         onClick={() => update(dayIdx, { hasSlot2: true })}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#8C3B2B] hover:underline"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#B4412A] hover:underline"
                       >
                         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                         Adicionar 2.º turno

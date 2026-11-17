@@ -53,12 +53,12 @@ function LayoutIcon({ layout }: { layout: MenuLayoutId }) {
 }
 
 const OPTION_BASE = 'relative cursor-pointer rounded-xl border p-2 transition';
-const OPTION_ON = 'border-[#8C3B2B] ring-2 ring-[#8C3B2B]/30';
+const OPTION_ON = 'border-[#B4412A] ring-2 ring-[#B4412A]/30';
 const OPTION_OFF = 'border-stone-200 hover:border-stone-300';
 
 function SelectedMark() {
   return (
-    <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#8C3B2B] text-white">
+    <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#B4412A] text-white">
       <Check className="h-3 w-3" aria-hidden="true" />
     </span>
   );
@@ -155,7 +155,7 @@ export function AppearancePicker({ initial }: { initial: MenuAppearance }) {
           className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-black/5 px-4 py-3"
           style={{ background: bg.preview }}
         >
-          <span className="font-serif text-lg font-semibold" style={{ color: accentShade.text }}>
+          <span className="font-serif text-lg" style={{ color: accentShade.text }}>
             Entradas
           </span>
           <span
