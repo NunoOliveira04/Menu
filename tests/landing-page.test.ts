@@ -130,6 +130,17 @@ describe('Página de apresentação (/)', () => {
     expect(html).toMatch(/<iframe[^>]*loading="lazy"/);
   });
 
+  it('o telemóvel do topo mostra logo uma imagem da carta enquanto a carta real carrega', () => {
+    const html = render();
+    const poster = html.search(/<img[^>]*demo-poster/);
+    const iframe = html.search(/<iframe[^>]*src="\/demo\?embed=1"/);
+    expect(poster).toBeGreaterThan(-1);
+    expect(iframe).toBeGreaterThan(poster);
+    expect(existsSync(resolve(__dirname, '..', 'public', 'apresentacao', 'demo-poster.webp'))).toBe(
+      true,
+    );
+  });
+
   it('os links para a carta de exemplo são links normais (a carta abre sempre no topo)', () => {
     const source = readFileSync(
       resolve(__dirname, '..', 'src/components/marketing/landing-page.tsx'),

@@ -292,6 +292,15 @@ function PhoneFrame({
 function MenuPreview() {
   return (
     <PhoneFrame height={562} className="-rotate-3">
+      {/* Imagem da carta que aparece logo; a carta real (iframe) carrega por cima. */}
+      <Image
+        src="/apresentacao/demo-poster.webp"
+        alt=""
+        fill
+        sizes="262px"
+        priority
+        className="object-cover object-top"
+      />
       <iframe
         src="/demo?embed=1"
         title="Exemplo de carta no telemóvel"
