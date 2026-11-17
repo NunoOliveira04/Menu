@@ -181,7 +181,7 @@ const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   },
 ];
 
-const CONTACT_POINTS = ['Demonstração de 10 minutos', 'No seu restaurante', 'Sem compromisso'];
+const CONTACT_POINTS = ['Demonstração de 10 minutos', 'Com a sua própria carta', 'Sem compromisso'];
 
 const FAQS: { question: string; answer: string }[] = [
   {
@@ -386,7 +386,7 @@ export function LandingPage({
               </a>
             </div>
             <p className="mt-4 text-[15px] text-[#5F4B40]">
-              Demonstração de 10 minutos, no seu restaurante, com a sua própria carta.
+              Uma demonstração de 10 minutos, com a sua própria carta.
             </p>
           </div>
 
@@ -748,8 +748,8 @@ export function LandingPage({
                 Vamos mostrar-lhe a sua carta
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-lg">
-                Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta
-                no telemóvel. Pode experimentar gratuitamente e sem compromisso.
+                Mostramos-lhe tudo numa demonstração de 10 minutos, com a sua própria carta no
+                telemóvel. Pode experimentar gratuitamente e sem compromisso.
               </p>
               <ul className="mt-8 flex flex-wrap justify-center gap-2.5">
                 {CONTACT_POINTS.map((point) => (
