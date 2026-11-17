@@ -121,7 +121,12 @@ export function HoursEditor({ initialSchedule }: { initialSchedule: readonly Day
                       onChange={(e) => update(dayIdx, { slot1Open: e.target.value })}
                       className={TIME_INPUT}
                     />
-                    <span className="text-xs text-stone-400">até</span>
+                    <span
+                      className="px-0.5 text-center text-base text-stone-400"
+                      aria-hidden="true"
+                    >
+                      –
+                    </span>
                     <input
                       type="time"
                       aria-label={`${dayName}: fecha (1.º turno)`}
@@ -145,7 +150,12 @@ export function HoursEditor({ initialSchedule }: { initialSchedule: readonly Day
                         onChange={(e) => update(dayIdx, { slot2Open: e.target.value })}
                         className={TIME_INPUT}
                       />
-                      <span className="text-xs text-stone-400">até</span>
+                      <span
+                        className="px-0.5 text-center text-base text-stone-400"
+                        aria-hidden="true"
+                      >
+                        –
+                      </span>
                       <input
                         type="time"
                         aria-label={`${dayName}: fecha (2.º turno)`}

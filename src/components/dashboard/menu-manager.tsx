@@ -857,7 +857,7 @@ function DishForm({
           rows={2}
           defaultValue={dish?.description ?? ''}
           placeholder="Ex.: Lombo de bacalhau com crosta de broa de milho, grelos e batata a murro."
-          className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
+          className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none [field-sizing:content] min-h-[4.5rem] resize-y"
         />
         {state.fieldErrors?.description?.[0] && (
           <p className="mt-1 text-xs text-red-600">{state.fieldErrors.description[0]}</p>
@@ -890,7 +890,7 @@ function DishForm({
                 rows={3}
                 defaultValue={existingTranslations.en?.description ?? ''}
                 placeholder="Ex.: Thick cod loin baked with cornbread, turnip greens and punched potatoes."
-                className="mt-1 block w-full resize-y rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none [field-sizing:content] min-h-[4.5rem] resize-y"
               />
             </div>
           </div>

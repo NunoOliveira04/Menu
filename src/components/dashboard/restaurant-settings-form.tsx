@@ -32,6 +32,9 @@ const IMAGE_FIELD_OPTIONS = { logoPhoto: LOGO_COMPRESS_OPTIONS } as const;
 const INPUT =
   'mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none focus:ring-2 focus:ring-[#B4412A]/20';
 
+/** Caixa de texto que cresce com o conteúdo (field-sizing: content), com altura mínima. */
+const TEXTAREA = `${INPUT} [field-sizing:content] min-h-[4.5rem] resize-y`;
+
 function Section({
   title,
   description,
@@ -238,7 +241,7 @@ export function RestaurantSettingsForm({
               rows={2}
               defaultValue={restaurant.description ?? ''}
               placeholder="Ex.: Cozinha portuguesa de temporada."
-              className={INPUT}
+              className={TEXTAREA}
             />
           </div>
 
@@ -253,7 +256,7 @@ export function RestaurantSettingsForm({
                 rows={2}
                 defaultValue={existingTranslations.en?.description ?? ''}
                 placeholder="Ex.: Seasonal Portuguese cooking."
-                className={INPUT}
+                className={TEXTAREA}
               />
               <p className="mt-1 text-xs text-stone-500">
                 Se ficar vazio, a carta em inglês mostra o texto em português.

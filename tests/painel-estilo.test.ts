@@ -62,3 +62,22 @@ describe('Painel: cores e letras da marca', () => {
     }
   });
 });
+
+describe('Painel: horário e caixas de texto', () => {
+  it('o horário usa um traço entre as horas (sem «até»)', () => {
+    const source = readFileSync(join(ROOT, 'src/components/dashboard/hours-editor.tsx'), 'utf8');
+    expect(source).not.toMatch(/>\s*até\s*</);
+    expect(source.match(/>\s*–\s*</g)).toHaveLength(2);
+  });
+
+  it('as caixas de texto das descrições crescem com o conteúdo', () => {
+    const settings = readFileSync(
+      join(ROOT, 'src/components/dashboard/restaurant-settings-form.tsx'),
+      'utf8',
+    );
+    expect(settings).toContain('[field-sizing:content]');
+    expect(settings.match(/className=\{TEXTAREA\}/g)).toHaveLength(2);
+    const dishes = readFileSync(join(ROOT, 'src/components/dashboard/menu-manager.tsx'), 'utf8');
+    expect(dishes.match(/\[field-sizing:content\]/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+});
