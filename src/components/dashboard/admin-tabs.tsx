@@ -16,7 +16,7 @@ export function AdminTabs() {
   return (
     <nav
       aria-label="Secções do painel"
-      className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1"
+      className="grid grid-cols-2 gap-1 rounded-full bg-stone-100 p-1"
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href;
@@ -25,10 +25,10 @@ export function AdminTabs() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+            className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-3 text-[15px] font-semibold transition ${
               active
-                ? 'bg-white text-stone-900 shadow-sm'
-                : 'text-stone-600 hover:bg-white/60 hover:text-stone-900'
+                ? 'bg-stone-900 text-stone-50 shadow-[0_6px_16px_-8px_rgba(43,29,22,0.7)]'
+                : 'text-stone-600 hover:bg-white/70 hover:text-stone-900'
             }`}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />

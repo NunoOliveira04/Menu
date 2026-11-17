@@ -55,3 +55,30 @@ describe('Logotipo', () => {
     expect(buildCompressedFileName('logo.svg', 'image/png')).toBe('logo.png');
   });
 });
+
+describe('Carta embutida (telemóvel da página de apresentação)', () => {
+  it('a página da carta aceita ?embed=1 e passa-o à vista, que esconde a barra de scroll', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const page = readFileSync(resolve(process.cwd(), 'src/app/[slug]/page.tsx'), 'utf8');
+    expect(page).toContain("embedded={resolvedSearchParams.embed === '1'}");
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    expect(view).toMatch(/embedded && \(/);
+    expect(view).toContain('scrollbar-width:none');
+  });
+
+  it('o seletor de idioma usa as abreviaturas PT / EN', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const view = readFileSync(
+      resolve(process.cwd(), 'src/components/menu/public-menu-view.tsx'),
+      'utf8',
+    );
+    expect(view).toMatch(/>\s*PT\s*<\/Link>/);
+    expect(view).toMatch(/>\s*EN\s*<\/Link>/);
+    expect(view).not.toMatch(/>\s*(Português|English)\s*<\/Link>/);
+  });
+});

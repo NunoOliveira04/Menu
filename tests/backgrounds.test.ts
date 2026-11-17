@@ -69,6 +69,16 @@ describe('Aspeto da carta: Fundo, Cor e Disposição', () => {
           contrast(vars['--pill-active-fg'], vars['--pill-active-bg']),
           label,
         ).toBeGreaterThanOrEqual(4.5);
+        // Selos dos pratos na cor do restaurante.
+        expect(
+          contrast(vars['--badge-fg'], vars['--badge-bg']),
+          `${label} (selo)`,
+        ).toBeGreaterThanOrEqual(4.5);
+        // Seletor de idioma: texto normal sobre o cartão (a língua ativa usa a pílula acima).
+        expect(
+          contrast(vars['--color-muted'], vars['--color-card']),
+          `${label} (PT/EN)`,
+        ).toBeGreaterThanOrEqual(4.5);
         // Títulos das secções são texto grande (≥ 24 px): mínimo AA de 3:1 sobre o fundo base.
         expect(contrast(vars['--section-fg'], vars['--color-bg']), label).toBeGreaterThanOrEqual(3);
       }

@@ -22,7 +22,7 @@ export function LoginForm({ next = '' }: { next?: string }) {
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-stone-800">
-          Email
+          E-mail
         </label>
         <input
           id="email"
@@ -31,7 +31,7 @@ export function LoginForm({ next = '' }: { next?: string }) {
           autoComplete="email"
           required
           placeholder="dono@restaurante.pt"
-          className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-sm focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
+          className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] focus:border-[#B4412A] focus:outline-none focus:ring-2 focus:ring-[#B4412A]/20"
         />
         {state.fieldErrors?.email?.[0] && (
           <p className="mt-1 text-xs text-red-600">{state.fieldErrors.email[0]}</p>
@@ -50,7 +50,7 @@ export function LoginForm({ next = '' }: { next?: string }) {
           required
           minLength={8}
           placeholder="••••••••"
-          className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-sm focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20"
+          className="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] focus:border-[#B4412A] focus:outline-none focus:ring-2 focus:ring-[#B4412A]/20"
         />
         {state.fieldErrors?.password?.[0] && (
           <p className="mt-1 text-xs text-red-600">{state.fieldErrors.password[0]}</p>
@@ -60,7 +60,7 @@ export function LoginForm({ next = '' }: { next?: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-xl bg-[#8C3B2B] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-xl bg-[#B4412A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] transition hover:bg-[#9A3722] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? 'A entrar...' : 'Iniciar sessão'}
       </button>

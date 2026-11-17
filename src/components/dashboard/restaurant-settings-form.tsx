@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import { ChevronDown, Clock, Globe, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronDown, Clock, Globe, ImagePlus, ShieldAlert, Sparkles } from 'lucide-react';
 import { updateRestaurantAction } from '@/app/actions/restaurant';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 import { AppearancePicker } from '@/components/dashboard/appearance-picker';
@@ -30,7 +30,7 @@ const IMAGE_FIELDS = ['logoPhoto'] as const;
 const IMAGE_FIELD_OPTIONS = { logoPhoto: LOGO_COMPRESS_OPTIONS } as const;
 
 const INPUT =
-  'mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none focus:ring-2 focus:ring-[#8C3B2B]/20';
+  'mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none focus:ring-2 focus:ring-[#B4412A]/20';
 
 function Section({
   title,
@@ -42,7 +42,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] sm:p-6">
       <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
       {description && <p className="mt-1 text-sm text-stone-600">{description}</p>}
       <div className="mt-5">{children}</div>
@@ -67,7 +67,7 @@ function ModuleSwitch({
 }) {
   return (
     <label className="flex cursor-pointer items-start gap-3 py-3.5">
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FAF6F0] text-[#8C3B2B]">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FBF6EC] text-[#B4412A]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
@@ -84,7 +84,7 @@ function ModuleSwitch({
       />
       <span
         aria-hidden="true"
-        className="relative mt-1 h-6 w-11 shrink-0 rounded-full bg-stone-300 transition peer-checked:bg-[#8C3B2B] peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
+        className="relative mt-1 h-6 w-11 shrink-0 rounded-full bg-stone-300 transition peer-checked:bg-[#B4412A] peer-focus-visible:ring-2 peer-focus-visible:ring-[#B4412A]/40 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
       />
     </label>
   );
@@ -109,10 +109,12 @@ export function RestaurantSettingsForm({
     photoError,
     photoErrorField,
   } = useCompressedPhotoSubmit(formAction, IMAGE_FIELDS, IMAGE_FIELD_OPTIONS);
+  const [logoFileName, setLogoFileName] = useState('');
 
   useEffect(() => {
     if (state.status === 'success') {
       clearPhotoFields();
+      setLogoFileName('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- corre a cada novo resultado da action
   }, [state]);
@@ -150,7 +152,7 @@ export function RestaurantSettingsForm({
       <Section title="Restaurante" description="O que aparece no topo da carta.">
         <div className="space-y-5">
           <div className="flex items-center gap-4">
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-white text-xl font-semibold text-[#1F3A5F]">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-white text-xl font-semibold text-[#B4412A]">
               {logoUrl ? (
                 <Image
                   src={logoUrl}
@@ -164,9 +166,8 @@ export function RestaurantSettingsForm({
               )}
             </div>
             <div className="min-w-0 flex-1 space-y-1.5">
-              <label htmlFor="logoPhoto" className="block text-sm font-medium text-stone-800">
-                Logotipo
-              </label>
+              <p className="block text-sm font-medium text-stone-800">Logotipo</p>
+              {/* O seletor do browser fica escondido; o botão é o rótulo do campo. */}
               <input
                 id="logoPhoto"
                 name="logoPhoto"
@@ -174,8 +175,19 @@ export function RestaurantSettingsForm({
                 accept="image/*"
                 disabled={isBusy}
                 aria-describedby="logoPhoto-help"
-                className="block w-full text-xs text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#F3ECE1] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#8C3B2B] hover:file:bg-[#E7DDD0]"
+                onChange={(event) => setLogoFileName(event.target.files?.[0]?.name ?? '')}
+                className="peer sr-only"
               />
+              <label
+                htmlFor="logoPhoto"
+                className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-[#B4412A]/30 bg-[#FBF6EC] px-4 text-sm font-semibold text-[#B4412A] transition hover:bg-[#F2E6D0] peer-focus-visible:ring-2 peer-focus-visible:ring-[#B4412A]/40"
+              >
+                <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                {logoUrl ? 'Trocar logotipo' : 'Escolher logotipo'}
+              </label>
+              {logoFileName && (
+                <p className="truncate text-xs text-stone-700">Escolhido: {logoFileName}</p>
+              )}
               <p id="logoPhoto-help" aria-live="polite" className="text-xs text-stone-500">
                 {isPreparingPhoto
                   ? 'A otimizar a imagem…'
@@ -310,7 +322,7 @@ export function RestaurantSettingsForm({
         </Section>
       )}
 
-      <details className="group rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <details className="group rounded-2xl border border-stone-200 bg-white shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)]">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 sm:p-6">
           <span>
             <span className="block text-lg font-semibold text-stone-900">Avançado</span>
@@ -328,7 +340,7 @@ export function RestaurantSettingsForm({
           <div
             className={`mt-1.5 flex items-center rounded-xl border border-stone-300 ${
               isOwner
-                ? 'bg-white focus-within:border-[#8C3B2B] focus-within:ring-2 focus-within:ring-[#8C3B2B]/20'
+                ? 'bg-white focus-within:border-[#B4412A] focus-within:ring-2 focus-within:ring-[#B4412A]/20'
                 : 'bg-stone-100 opacity-75'
             }`}
           >
@@ -374,7 +386,7 @@ export function RestaurantSettingsForm({
           <button
             type="submit"
             disabled={isBusy}
-            className="shrink-0 rounded-xl bg-[#8C3B2B] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123] disabled:cursor-not-allowed disabled:opacity-60"
+            className="shrink-0 rounded-xl bg-[#B4412A] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] transition hover:bg-[#9A3722] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isBusy ? 'A guardar…' : 'Guardar'}
           </button>

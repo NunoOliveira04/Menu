@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Fraunces, Inter } from 'next/font/google';
 import { headers } from 'next/headers';
+import { BRAND_FONT_CLASSES } from '@/lib/fonts/brand';
 import './globals.css';
 
 const fontSans = Inter({
@@ -42,7 +43,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={htmlLang} className={`${fontSans.variable} ${fontSerif.variable}`}>
+    <html
+      lang={htmlLang}
+      className={`${fontSans.variable} ${fontSerif.variable} ${BRAND_FONT_CLASSES}`}
+    >
       <body>{children}</body>
     </html>
   );

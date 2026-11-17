@@ -70,7 +70,9 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-stone-900">Categorias e Pratos</h2>
+          <h2 className="font-serif text-[26px] leading-tight text-stone-900">
+            Categorias e pratos
+          </h2>
           <p className="text-sm text-stone-600">
             Organize as secções da carta, adicione fotografias e marque os pratos esgotados.
           </p>
@@ -79,7 +81,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
         <button
           type="button"
           onClick={() => setShowNewCategory((prev) => !prev)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#8C3B2B] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#763123]"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#B4412A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)] transition hover:bg-[#9A3722]"
         >
           {showNewCategory ? (
             <>
@@ -132,7 +134,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
               <section
                 key={category.id}
                 aria-label={`Categoria ${category.name}`}
-                className="rounded-2xl border border-stone-200 bg-white shadow-sm"
+                className="rounded-2xl border border-stone-200 bg-white shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)]"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 p-5">
                   {isEditingCategory ? (
@@ -151,7 +153,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                         </span>
                         {modules.languages && catTranslations.en?.name && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-600">
-                            <Globe className="h-3 w-3 text-[#8C3B2B]" aria-hidden="true" />
+                            <Globe className="h-3 w-3 text-[#B4412A]" aria-hidden="true" />
                             EN: {catTranslations.en.name}
                           </span>
                         )}
@@ -232,7 +234,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                       <button
                         type="button"
                         onClick={() => setAddingDishCategoryId(isAddingDish ? null : category.id)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-[#FAF6F0] px-3 py-1.5 text-xs font-semibold text-[#8C3B2B] ring-1 ring-inset ring-[#8C3B2B]/30 transition hover:bg-[#F3ECE1]"
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#FBF6EC] px-3 py-1.5 text-xs font-semibold text-[#B4412A] ring-1 ring-inset ring-[#B4412A]/30 transition hover:bg-[#F2E6D0]"
                       >
                         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                         Adicionar prato
@@ -362,7 +364,7 @@ export function MenuManager({ restaurantId, categories, dishes, modules }: MenuM
                               <span
                                 aria-hidden="true"
                                 className={`relative h-5 w-9 rounded-full transition ${
-                                  dish.available ? 'bg-emerald-600' : 'bg-stone-300'
+                                  dish.available ? 'bg-[#2F6B4F]' : 'bg-stone-300'
                                 }`}
                               >
                                 <span
@@ -495,7 +497,7 @@ function CreateCategoryPanel({
   return (
     <form
       action={formAction}
-      className="rounded-2xl border border-[#DFD3C3] bg-[#FAF6F0] p-5 shadow-sm"
+      className="rounded-2xl border border-[#D5C6B3] bg-[#FBF6EC] p-5 shadow-[0_10px_30px_-18px_rgba(43,29,22,0.35)]"
     >
       <input type="hidden" name="restaurantId" value={restaurantId} />
       <h3 className="text-base font-semibold text-stone-900">Nova Categoria</h3>
@@ -517,7 +519,7 @@ function CreateCategoryPanel({
             type="text"
             required
             placeholder="Ex.: Entradas, Peixe, Sobremesas"
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
           />
           {state.fieldErrors?.name?.[0] && (
             <p className="mt-1 text-xs text-red-600">{state.fieldErrors.name[0]}</p>
@@ -533,7 +535,7 @@ function CreateCategoryPanel({
             name="description"
             type="text"
             placeholder="Ex.: Servidas com pão regional"
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
           />
         </div>
 
@@ -548,7 +550,7 @@ function CreateCategoryPanel({
                 name="nameEn"
                 type="text"
                 placeholder="Ex.: Starters & Tapas"
-                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
               />
             </div>
 
@@ -561,7 +563,7 @@ function CreateCategoryPanel({
                 name="descriptionEn"
                 type="text"
                 placeholder="Ex.: Served with homemade cornbread"
-                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
               />
             </div>
           </>
@@ -572,7 +574,7 @@ function CreateCategoryPanel({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-[#8C3B2B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#763123] disabled:opacity-60"
+          className="rounded-xl bg-[#B4412A] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#9A3722] disabled:opacity-60"
         >
           {isPending ? 'A guardar...' : 'Guardar categoria'}
         </button>
@@ -673,7 +675,7 @@ function EditCategoryInlineForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-[#8C3B2B] px-3.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+          className="rounded-lg bg-[#B4412A] px-3.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
         >
           {isPending ? 'A guardar...' : 'Guardar'}
         </button>
@@ -754,7 +756,7 @@ function DishForm({
             required
             defaultValue={dish?.name ?? ''}
             placeholder="Ex.: Bacalhau Assado com Broa"
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
           />
           {state.fieldErrors?.name?.[0] && (
             <p className="mt-1 text-xs text-red-600">{state.fieldErrors.name[0]}</p>
@@ -770,7 +772,7 @@ function DishForm({
             required
             defaultValue={dish ? formatCentsToEuroInput(dish.price_cents) : ''}
             placeholder="14,50"
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
           />
           {state.fieldErrors?.priceCents?.[0] && (
             <p className="mt-1 text-xs text-red-600">{state.fieldErrors.priceCents[0]}</p>
@@ -784,7 +786,7 @@ function DishForm({
           <select
             name="categoryId"
             defaultValue={defaultCategoryId}
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
           >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -820,7 +822,7 @@ function DishForm({
             />
             <label
               htmlFor={`dish-photo-${dish?.id ?? 'new'}`}
-              className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#8C3B2B]/30 bg-[#FAF6F0] px-4 text-sm font-semibold text-[#8C3B2B] transition hover:bg-[#F3ECE1] peer-focus-visible:ring-2 peer-focus-visible:ring-[#8C3B2B]/40"
+              className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#B4412A]/30 bg-[#FBF6EC] px-4 text-sm font-semibold text-[#B4412A] transition hover:bg-[#F2E6D0] peer-focus-visible:ring-2 peer-focus-visible:ring-[#B4412A]/40"
             >
               <ImagePlus className="h-4 w-4" aria-hidden="true" />
               {dish?.photo_url ? 'Trocar fotografia' : 'Tirar ou escolher fotografia'}
@@ -855,7 +857,7 @@ function DishForm({
           rows={2}
           defaultValue={dish?.description ?? ''}
           placeholder="Ex.: Lombo de bacalhau com crosta de broa de milho, grelos e batata a murro."
-          className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+          className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
         />
         {state.fieldErrors?.description?.[0] && (
           <p className="mt-1 text-xs text-red-600">{state.fieldErrors.description[0]}</p>
@@ -863,8 +865,8 @@ function DishForm({
       </div>
 
       {modules.languages && (
-        <div className="rounded-xl border border-[#DFD3C3] bg-[#FAF6F0]/80 p-4 space-y-3">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-[#8C3B2B]">
+        <div className="rounded-xl border border-[#D5C6B3] bg-[#FBF6EC]/80 p-4 space-y-3">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-[#B4412A]">
             <Globe className="h-3.5 w-3.5" aria-hidden="true" />
             Tradução em Inglês (EN)
           </p>
@@ -876,7 +878,7 @@ function DishForm({
                 type="text"
                 defaultValue={existingTranslations.en?.name ?? ''}
                 placeholder="Ex.: Roasted Cod with Cornbread Crust"
-                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+                className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
               />
             </div>
             <div>
@@ -888,7 +890,7 @@ function DishForm({
                 rows={3}
                 defaultValue={existingTranslations.en?.description ?? ''}
                 placeholder="Ex.: Thick cod loin baked with cornbread, turnip greens and punched potatoes."
-                className="mt-1 block w-full resize-y rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none"
+                className="mt-1 block w-full resize-y rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none"
               />
             </div>
           </div>
@@ -903,7 +905,7 @@ function DishForm({
           <select
             name="highlight"
             defaultValue={dish?.highlight ?? ''}
-            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#8C3B2B] focus:outline-none sm:max-w-xs"
+            className="mt-1 block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#B4412A] focus:outline-none sm:max-w-xs"
           >
             <option value="">Sem selo especial</option>
             {DISH_HIGHLIGHTS.map((h) => (
@@ -924,17 +926,17 @@ function DishForm({
             {EU_ALLERGENS.map((allergen) => (
               <label
                 key={allergen.code}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs text-stone-700 hover:bg-stone-50 has-[:checked]:border-[#8C3B2B]/50 has-[:checked]:bg-[#FAF6F0]"
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs text-stone-700 hover:bg-stone-50 has-[:checked]:border-[#B4412A]/50 has-[:checked]:bg-[#FBF6EC]"
               >
                 <input
                   type="checkbox"
                   name="allergens"
                   value={allergen.code}
                   defaultChecked={selectedAllergens.has(allergen.code)}
-                  className="h-3.5 w-3.5 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
+                  className="h-3.5 w-3.5 rounded border-stone-300 text-[#B4412A] focus:ring-[#B4412A]"
                 />
                 <span>
-                  <strong className="font-mono text-[#8C3B2B]">{allergen.number}.</strong>{' '}
+                  <strong className="font-mono text-[#B4412A]">{allergen.number}.</strong>{' '}
                   {allergen.label.pt}
                 </span>
               </label>
@@ -951,7 +953,7 @@ function DishForm({
               type="checkbox"
               name="available"
               defaultChecked={dish ? dish.available : true}
-              className="h-4 w-4 rounded border-stone-300 text-[#8C3B2B] focus:ring-[#8C3B2B]"
+              className="h-4 w-4 rounded border-stone-300 text-[#B4412A] focus:ring-[#B4412A]"
             />
             Disponível para servir
           </label>
@@ -971,7 +973,7 @@ function DishForm({
         <button
           type="submit"
           disabled={isBusy}
-          className="rounded-xl bg-[#8C3B2B] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#763123] disabled:opacity-60"
+          className="rounded-xl bg-[#B4412A] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#9A3722] disabled:opacity-60"
         >
           {isPreparingPhoto
             ? 'A otimizar fotografia…'

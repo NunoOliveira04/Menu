@@ -56,16 +56,16 @@ export default async function AdminMenuPage() {
       margin: 1,
       width: 180,
       color: {
-        dark: '#1C1613',
-        light: '#FAF6F0',
+        dark: '#2B1D16',
+        light: '#FBF6EC',
       },
     }),
     QRCode.toDataURL(publicUrl, {
       margin: 2,
       width: 600,
       color: {
-        dark: '#1C1613',
-        light: '#FAF6F0',
+        dark: '#2B1D16',
+        light: '#FBF6EC',
       },
     }),
   ]);

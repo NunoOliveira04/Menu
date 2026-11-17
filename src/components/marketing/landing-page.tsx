@@ -217,7 +217,7 @@ const FAQS: { question: string; answer: string }[] = [
 
 const FOCUS_RING =
   'focus:outline-none focus-visible:ring-4 focus-visible:ring-[#B4412A]/35 focus-visible:ring-offset-2';
-const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-7 text-[17px] font-semibold transition ${FOCUS_RING}`;
+const BUTTON_BASE = `inline-flex min-h-[52px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 text-[17px] font-semibold transition ${FOCUS_RING}`;
 const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#B4412A] text-[#FBF6EC] shadow-[0_12px_28px_-14px_rgba(180,65,42,0.8)] hover:bg-[#9A3722]`;
 const BUTTON_OUTLINE = `${BUTTON_BASE} border-2 border-[#1F3D2E] text-[#1F3D2E] hover:bg-[#1F3D2E] hover:text-[#FBF6EC]`;
 const SHADOW = 'shadow-[0_12px_32px_rgba(43,29,22,0.12)]';
@@ -293,7 +293,7 @@ function MenuPreview() {
   return (
     <PhoneFrame height={562} className="-rotate-3">
       <iframe
-        src="/demo"
+        src="/demo?embed=1"
         title="Exemplo de carta no telemóvel"
         loading="lazy"
         className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[0.6667] border-0"
@@ -363,8 +363,9 @@ export function LandingPage({
         {/* 1. Topo */}
         <section className="mx-auto flex max-w-6xl flex-col items-center gap-14 px-5 pb-20 pt-10 sm:pt-14 lg:flex-row lg:gap-10 lg:pb-24 lg:pt-16">
           <div className="max-w-xl text-center lg:flex-1 lg:text-left">
-            <p className="inline-flex items-center gap-2 rounded-full bg-[#F2B441] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
-              Período experimental gratuito e sem compromisso
+            <p className="inline-flex items-center gap-2 rounded-full border border-[#B4412A]/20 bg-[#F2E6D0] px-4 py-1.5 text-[15px] font-semibold text-[#2B1D16]">
+              <span className="h-2 w-2 rounded-full bg-[#B4412A]" aria-hidden="true" />
+              Experimente grátis, sem compromisso
             </p>
             <h1 className="osm-display mt-6 text-[38px] leading-[1.1] tracking-[-0.01em] sm:text-[56px]">
               A carta do seu restaurante,{' '}
@@ -373,20 +374,25 @@ export function LandingPage({
             <p className="mt-5 max-w-[36ch] text-xl leading-[1.55] text-[#2B1D16] max-lg:mx-auto sm:text-[22px]">
               {HERO_SUBTITLE}
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
               <a href="#contacto" className={BUTTON_PRIMARY}>
-                Peça uma demonstração de 10 minutos
+                Peça uma demonstração
               </a>
-              <Link href="/demo" prefetch={false} className={BUTTON_OUTLINE}>
+              {/* Link normal (não <Link>): a carta abre sempre no topo, sem herdar o scroll desta página. */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/demo" className={BUTTON_OUTLINE}>
                 Ver exemplo
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
-              </Link>
+              </a>
             </div>
+            <p className="mt-4 text-[15px] text-[#5F4B40]">
+              Demonstração de 10 minutos, no seu restaurante, com a sua própria carta.
+            </p>
           </div>
 
           <div className="relative lg:flex-1">
             <div
-              className="absolute inset-x-[-12%] bottom-[-6%] top-[12%] rounded-[3rem] bg-[#F2E6D0]"
+              className="absolute inset-x-[-12%] bottom-[-6%] top-[12%] rounded-[3rem] bg-[linear-gradient(155deg,#E8A487_0%,#C9573A_100%)]"
               aria-hidden="true"
             />
             <MenuPreview />
@@ -640,14 +646,33 @@ export function LandingPage({
         </section>
 
         {/* 5. O que os seus clientes veem */}
-        <section aria-labelledby="vantagens" className="py-20 lg:py-28">
-          <div className="mx-auto max-w-4xl px-5">
-            <SectionHeading
-              id="vantagens"
-              eyebrow="Para os seus clientes"
-              title="O que os seus clientes veem"
-              center
-            />
+        {/* Única secção escura a meio da página: dá ritmo e lê-se como uma página de carta. */}
+        <section
+          aria-labelledby="vantagens"
+          className="relative overflow-hidden bg-[#1F3D2E] py-20 text-[#FBF6EC] lg:py-28"
+        >
+          <div
+            className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#F2B441]/10 blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto max-w-4xl px-5">
+            <div className="mx-auto max-w-2xl text-center">
+              <Eyebrow onDark>Para os seus clientes</Eyebrow>
+              <h2
+                id="vantagens"
+                className="osm-display mt-3 text-[30px] leading-[1.15] tracking-[-0.005em] sm:text-[44px]"
+              >
+                O que os seus clientes veem
+              </h2>
+              <div
+                className="mx-auto mt-5 flex items-center justify-center gap-3 text-[#F2B441]"
+                aria-hidden="true"
+              >
+                <span className="h-px w-14 bg-current opacity-60" />
+                ✺
+                <span className="h-px w-14 bg-current opacity-60" />
+              </div>
+            </div>
             <ul className="mt-12 grid gap-x-12 gap-y-8 md:grid-cols-2">
               {BENEFITS.map((benefit) => (
                 <li key={benefit.title}>
@@ -655,10 +680,10 @@ export function LandingPage({
                     <h3 className="osm-display text-[22px] leading-tight sm:text-2xl">
                       {benefit.title}
                     </h3>
-                    <span className="osm-leader text-[#2B1D16]" aria-hidden="true" />
-                    <benefit.icon className="h-5 w-5 shrink-0 text-[#B4412A]" aria-hidden="true" />
+                    <span className="osm-leader text-[#FBF6EC]" aria-hidden="true" />
+                    <benefit.icon className="h-5 w-5 shrink-0 text-[#F2B441]" aria-hidden="true" />
                   </div>
-                  <p className="mt-1.5 text-[#5F4B40]">{benefit.text}</p>
+                  <p className="mt-1.5 text-[#FBF6EC]/85">{benefit.text}</p>
                 </li>
               ))}
             </ul>
@@ -738,14 +763,14 @@ export function LandingPage({
                 ))}
               </ul>
               <ContactButtons contact={contact} />
-              <Link
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
                 href="/demo"
-                prefetch={false}
                 className={`mt-8 inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 font-semibold underline decoration-[#F2B441] decoration-2 underline-offset-[6px] hover:decoration-[#FBF6EC] ${FOCUS_RING}`}
               >
                 Ver a carta de exemplo
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              </a>
             </div>
           </div>
         </section>
