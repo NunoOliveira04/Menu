@@ -36,7 +36,10 @@ describe('Página de apresentação (/)', () => {
     expect(html.replace(/<[^>]+>/g, ' ')).toContain(
       'Uma demonstração de 10 minutos, com a sua própria carta.',
     );
-    const demo = html.search(/<a[^>]*href="#contacto"[^>]*>Peça uma demonstração<\/a>/);
+    // O botão principal abre o formulário de demonstração (modal); «Ver exemplo» vem a seguir.
+    const demo = html.search(
+      /<button[^>]*aria-haspopup="dialog"[^>]*>Peça uma demonstração<\/button>/,
+    );
     const exemplo = html.search(/<a[^>]*href="\/demo"[^>]*>Ver exemplo/);
     expect(demo).toBeGreaterThan(-1);
     expect(exemplo).toBeGreaterThan(demo);

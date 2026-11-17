@@ -233,6 +233,36 @@ export interface Database {
           },
         ];
       };
+      demo_requests: {
+        Row: {
+          id: string;
+          created_at: string;
+          name: string;
+          restaurant: string;
+          phone: string;
+          email: string | null;
+          consent: boolean;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          name: string;
+          restaurant: string;
+          phone: string;
+          email?: string | null;
+          consent: boolean;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          name?: string;
+          restaurant?: string;
+          phone?: string;
+          email?: string | null;
+          consent?: boolean;
+        };
+        Relationships: [];
+      };
       restaurant_hours: {
         Row: {
           restaurant_id: string;

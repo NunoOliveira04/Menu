@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { DemoRequestButton } from '@/components/marketing/demo-request-dialog';
 import {
   MARKETING_CONTACT,
   buildEmailUrl,
@@ -384,9 +385,7 @@ export function LandingPage({
               {HERO_SUBTITLE}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
-              <a href="#contacto" className={BUTTON_PRIMARY}>
-                Peça uma demonstração
-              </a>
+              <DemoRequestButton className={BUTTON_PRIMARY} />
               {/* Link normal (não <Link>): a carta abre sempre no topo, sem herdar o scroll desta página. */}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/demo" className={BUTTON_OUTLINE}>
@@ -771,6 +770,11 @@ export function LandingPage({
                   </li>
                 ))}
               </ul>
+              <div className="mt-9">
+                <DemoRequestButton
+                  className={`${BUTTON_BASE} bg-[#F2B441] text-[#2B1D16] shadow-[0_12px_28px_-14px_rgba(43,29,22,0.6)] hover:bg-[#F5C463]`}
+                />
+              </div>
               <ContactButtons contact={contact} />
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
