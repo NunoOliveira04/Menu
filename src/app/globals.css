@@ -1062,3 +1062,109 @@
   opacity: 0.3;
   transform: translateY(-0.35em);
 }
+
+/* ---------- Modal «Peça uma demonstração» ---------- */
+
+/* Página bloqueada enquanto o modal está aberto (o scroll não passa para trás). */
+html.osm-scroll-lock,
+html.osm-scroll-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@keyframes osm-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes osm-sheet-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes osm-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes osm-pop-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes osm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes osm-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Telemóvel: folha que sobe de baixo. */
+.osm-dialog[open] {
+  animation: osm-sheet-in 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.osm-dialog[data-closing] {
+  animation: osm-sheet-out 0.22s ease-in forwards;
+}
+
+.osm-dialog[open]::backdrop {
+  animation: osm-fade-in 0.34s ease;
+}
+
+.osm-dialog[data-closing]::backdrop {
+  animation: osm-fade-out 0.22s ease-in forwards;
+}
+
+/* Computador: cartão ao centro com um ligeiro zoom. */
+@media (min-width: 640px) {
+  .osm-dialog[open] {
+    animation-name: osm-pop-in;
+    animation-duration: 0.26s;
+  }
+
+  .osm-dialog[data-closing] {
+    animation-name: osm-pop-out;
+    animation-duration: 0.18s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .osm-dialog[open],
+  .osm-dialog[data-closing],
+  .osm-dialog[open]::backdrop,
+  .osm-dialog[data-closing]::backdrop {
+    animation: none;
+  }
+}
