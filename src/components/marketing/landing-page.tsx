@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { DemoRequestButton } from '@/components/marketing/demo-request-dialog';
 import {
   MARKETING_CONTACT,
   buildEmailUrl,
@@ -181,7 +182,7 @@ const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   },
 ];
 
-const CONTACT_POINTS = ['Demonstração de 10 minutos', 'No seu restaurante', 'Sem compromisso'];
+const CONTACT_POINTS = ['Demonstração de 10 minutos', 'Com a sua própria carta', 'Sem compromisso'];
 
 const FAQS: { question: string; answer: string }[] = [
   {
@@ -292,6 +293,15 @@ function PhoneFrame({
 function MenuPreview() {
   return (
     <PhoneFrame height={562} className="-rotate-3">
+      {/* Imagem da carta que aparece logo; a carta real (iframe) carrega por cima. */}
+      <Image
+        src="/apresentacao/demo-poster.webp"
+        alt=""
+        fill
+        sizes="262px"
+        priority
+        className="object-cover object-top"
+      />
       <iframe
         src="/demo?embed=1"
         title="Exemplo de carta no telemóvel"
@@ -375,9 +385,7 @@ export function LandingPage({
               {HERO_SUBTITLE}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
-              <a href="#contacto" className={BUTTON_PRIMARY}>
-                Peça uma demonstração
-              </a>
+              <DemoRequestButton className={BUTTON_PRIMARY} />
               {/* Link normal (não <Link>): a carta abre sempre no topo, sem herdar o scroll desta página. */}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/demo" className={BUTTON_OUTLINE}>
@@ -386,7 +394,7 @@ export function LandingPage({
               </a>
             </div>
             <p className="mt-4 text-[15px] text-[#5F4B40]">
-              Demonstração de 10 minutos, no seu restaurante, com a sua própria carta.
+              Uma demonstração de 10 minutos, com a sua própria carta.
             </p>
           </div>
 
@@ -748,8 +756,8 @@ export function LandingPage({
                 Vamos mostrar-lhe a sua carta
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-lg">
-                Marcamos uma demonstração de 10 minutos no seu restaurante, com a sua própria carta
-                no telemóvel. Pode experimentar gratuitamente e sem compromisso.
+                Mostramos-lhe tudo numa demonstração de 10 minutos, com a sua própria carta no
+                telemóvel. Pode experimentar gratuitamente e sem compromisso.
               </p>
               <ul className="mt-8 flex flex-wrap justify-center gap-2.5">
                 {CONTACT_POINTS.map((point) => (
@@ -762,6 +770,11 @@ export function LandingPage({
                   </li>
                 ))}
               </ul>
+              <div className="mt-9">
+                <DemoRequestButton
+                  className={`${BUTTON_BASE} bg-[#F2B441] text-[#2B1D16] shadow-[0_12px_28px_-14px_rgba(43,29,22,0.6)] hover:bg-[#F5C463]`}
+                />
+              </div>
               <ContactButtons contact={contact} />
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a

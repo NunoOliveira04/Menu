@@ -34,9 +34,12 @@ describe('Página de apresentação (/)', () => {
     expect(html).toContain(HERO_SUBTITLE);
     // A demonstração é o botão principal; «Ver exemplo» vem a seguir.
     expect(html.replace(/<[^>]+>/g, ' ')).toContain(
-      'Demonstração de 10 minutos, no seu restaurante, com a sua própria carta.',
+      'Uma demonstração de 10 minutos, com a sua própria carta.',
     );
-    const demo = html.search(/<a[^>]*href="#contacto"[^>]*>Peça uma demonstração<\/a>/);
+    // O botão principal abre o formulário de demonstração (modal); «Ver exemplo» vem a seguir.
+    const demo = html.search(
+      /<button[^>]*aria-haspopup="dialog"[^>]*>Peça uma demonstração<\/button>/,
+    );
     const exemplo = html.search(/<a[^>]*href="\/demo"[^>]*>Ver exemplo/);
     expect(demo).toBeGreaterThan(-1);
     expect(exemplo).toBeGreaterThan(demo);
@@ -130,6 +133,17 @@ describe('Página de apresentação (/)', () => {
     expect(html).toMatch(/<iframe[^>]*loading="lazy"/);
   });
 
+  it('o telemóvel do topo mostra logo uma imagem da carta enquanto a carta real carrega', () => {
+    const html = render();
+    const poster = html.search(/<img[^>]*demo-poster/);
+    const iframe = html.search(/<iframe[^>]*src="\/demo\?embed=1"/);
+    expect(poster).toBeGreaterThan(-1);
+    expect(iframe).toBeGreaterThan(poster);
+    expect(existsSync(resolve(__dirname, '..', 'public', 'apresentacao', 'demo-poster.webp'))).toBe(
+      true,
+    );
+  });
+
   it('os links para a carta de exemplo são links normais (a carta abre sempre no topo)', () => {
     const source = readFileSync(
       resolve(__dirname, '..', 'src/components/marketing/landing-page.tsx'),
@@ -204,6 +218,12 @@ describe('Página de apresentação (/)', () => {
     ]) {
       expect(text, youForm).toContain(youForm);
     }
+  });
+
+  it('não diz onde é a demonstração (nem no restaurante, nem online, nem presencial)', () => {
+    const text = render().replace(/<[^>]+>/g, ' ');
+    expect(text).not.toMatch(/no seu restaurante|presencial|online|por videochamada/i);
+    expect(text).toContain('Uma demonstração de 10 minutos, com a sua própria carta.');
   });
 
   it('não mostra preços', () => {
