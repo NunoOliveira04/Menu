@@ -30,15 +30,32 @@ export function DemoRequestButton({
   const [formKey, setFormKey] = useState(0);
 
   function open() {
+    const dialog = dialogRef.current;
+    if (!dialog || dialog.open) return;
     if (state.status === 'success') {
       setFormKey((key) => key + 1);
     }
     setStartedAt(Date.now());
-    dialogRef.current?.showModal();
+    delete dialog.dataset.closing;
+    // Bloqueia o scroll da página por trás enquanto o modal está aberto.
+    document.documentElement.classList.add('osm-scroll-lock');
+    dialog.showModal();
   }
 
   function close() {
-    dialogRef.current?.close();
+    const dialog = dialogRef.current;
+    if (!dialog?.open || dialog.dataset.closing !== undefined) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      dialog.close();
+      return;
+    }
+    // Animação de saída (ver .osm-dialog[data-closing] em globals.css) e só depois fecha.
+    dialog.dataset.closing = '';
+    window.setTimeout(() => {
+      delete dialog.dataset.closing;
+      dialog.close();
+    }, 220);
   }
 
   useEffect(() => {
@@ -46,10 +63,24 @@ export function DemoRequestButton({
     if (!dialog) return;
     // Fechar ao tocar fora do cartão.
     const onClick = (event: MouseEvent) => {
-      if (event.target === dialog) dialog.close();
+      if (event.target === dialog) close();
     };
+    // Tecla Esc: fecha com a mesma animação.
+    const onCancel = (event: Event) => {
+      event.preventDefault();
+      close();
+    };
+    // Sempre que fecha (por qualquer via), a página volta a poder fazer scroll.
+    const onClose = () => document.documentElement.classList.remove('osm-scroll-lock');
     dialog.addEventListener('click', onClick);
-    return () => dialog.removeEventListener('click', onClick);
+    dialog.addEventListener('cancel', onCancel);
+    dialog.addEventListener('close', onClose);
+    return () => {
+      dialog.removeEventListener('click', onClick);
+      dialog.removeEventListener('cancel', onCancel);
+      dialog.removeEventListener('close', onClose);
+      document.documentElement.classList.remove('osm-scroll-lock');
+    };
   }, []);
 
   const errors = state.status === 'error' ? state.fieldErrors : undefined;
@@ -64,9 +95,19 @@ export function DemoRequestButton({
       <dialog
         ref={dialogRef}
         aria-labelledby={`${formId}-title`}
-        className="m-0 mt-auto w-full max-w-none rounded-t-[28px] bg-[#FBF6EC] p-0 text-left text-[#2B1D16] shadow-[0_-20px_60px_-20px_rgba(43,29,22,0.5)] backdrop:bg-[#2B1D16]/55 backdrop:backdrop-blur-sm sm:m-auto sm:max-w-lg sm:rounded-[28px]"
+        className="osm-dialog m-0 mt-auto w-full max-w-none rounded-t-[28px] bg-[#FBF6EC] p-0 text-left text-[#2B1D16] shadow-[0_-20px_60px_-20px_rgba(43,29,22,0.5),0_100vh_0_0_#FBF6EC] backdrop:bg-[#2B1D16]/55 backdrop:backdrop-blur-sm sm:m-auto sm:max-w-lg sm:rounded-[28px] sm:shadow-[0_30px_80px_-30px_rgba(43,29,22,0.55)]"
       >
-        <div className="max-h-[90dvh] overflow-y-auto px-6 pb-8 pt-6 sm:px-8">
+        {/*
+         * No telemóvel a cor da folha continua para baixo (sombra 0 100vh), por isso nunca se vê
+         * a página por baixo quando a barra do browser aparece ou desaparece.
+         * overscroll-contain: o scroll do formulário não passa para a página.
+         */}
+        <div
+          // Foco inicial no conteúdo (não no «×» nem num campo, para não abrir o teclado).
+          autoFocus
+          tabIndex={-1}
+          className="max-h-[90dvh] overflow-y-auto overscroll-contain outline-none px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:px-8"
+        >
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#B4412A]">
