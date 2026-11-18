@@ -1,12 +1,14 @@
 'use client';
 
 import { CheckCircle2, X } from 'lucide-react';
-import { useActionState, useEffect, useId, useRef, useState } from 'react';
+import { startTransition, useActionState, useEffect, useId, useRef, useState } from 'react';
 import { requestDemoAction } from '@/app/actions/demo-request';
 import { INITIAL_ACTION_STATE } from '@/app/actions/types';
 
 const FIELD =
   'mt-1.5 block w-full rounded-xl border border-[#D5C6B3] bg-white px-4 py-3 text-base text-[#2B1D16] placeholder:text-[#A08D80] focus:border-[#B4412A] focus:outline-none focus:ring-4 focus:ring-[#B4412A]/15';
+const EMPTY_VALUES = { name: '', restaurant: '', phone: '', email: '' };
+
 const LABEL = 'block text-[15px] font-semibold text-[#2B1D16]';
 const ERROR = 'mt-1 text-sm text-[#9A3722]';
 
@@ -28,12 +30,24 @@ export function DemoRequestButton({
   const [startedAt, setStartedAt] = useState(0);
   // Cada abertura começa um formulário novo (depois de um envio com sucesso).
   const [formKey, setFormKey] = useState(0);
+  // Valores dos campos guardados aqui: se o envio der erro, nada se apaga
+  // (o React limpa sozinho os formulários com action depois de cada envio).
+  const [values, setValues] = useState(EMPTY_VALUES);
+  const [consent, setConsent] = useState(false);
+  const field = (name: keyof typeof EMPTY_VALUES) => ({
+    name,
+    value: values[name],
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+      setValues((current) => ({ ...current, [name]: event.target.value })),
+  });
 
   function open() {
     const dialog = dialogRef.current;
     if (!dialog || dialog.open) return;
     if (state.status === 'success') {
       setFormKey((key) => key + 1);
+      setValues(EMPTY_VALUES);
+      setConsent(false);
     }
     setStartedAt(Date.now());
     delete dialog.dataset.closing;
@@ -143,7 +157,18 @@ export function DemoRequestButton({
               </button>
             </div>
           ) : (
-            <form key={formKey} action={formAction} className="mt-6 space-y-4" noValidate>
+            <form
+              key={formKey}
+              // Envio feito aqui (e não com action=): o React não limpa o formulário depois
+              // do envio, por isso, se houver um erro, tudo continua preenchido.
+              onSubmit={(event) => {
+                event.preventDefault();
+                const formData = new FormData(event.currentTarget);
+                startTransition(() => formAction(formData));
+              }}
+              className="mt-6 space-y-4"
+              noValidate
+            >
               <p className="text-[#5F4B40]">
                 Deixe o seu contacto e mostramos-lhe a sua própria carta no telemóvel.
               </p>
@@ -163,7 +188,7 @@ export function DemoRequestButton({
                 </label>
                 <input
                   id={`${formId}-name`}
-                  name="name"
+                  {...field('name')}
                   type="text"
                   autoComplete="name"
                   required
@@ -180,7 +205,7 @@ export function DemoRequestButton({
                 </label>
                 <input
                   id={`${formId}-restaurant`}
-                  name="restaurant"
+                  {...field('restaurant')}
                   type="text"
                   autoComplete="organization"
                   required
@@ -197,7 +222,7 @@ export function DemoRequestButton({
                 </label>
                 <input
                   id={`${formId}-phone`}
-                  name="phone"
+                  {...field('phone')}
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
@@ -215,7 +240,7 @@ export function DemoRequestButton({
                 </label>
                 <input
                   id={`${formId}-email`}
-                  name="email"
+                  {...field('email')}
                   type="email"
                   autoComplete="email"
                   maxLength={160}
@@ -230,6 +255,8 @@ export function DemoRequestButton({
                   <input
                     type="checkbox"
                     name="consent"
+                    checked={consent}
+                    onChange={(event) => setConsent(event.target.checked)}
                     required
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-[#D5C6B3] text-[#B4412A] focus:ring-[#B4412A]"
                   />

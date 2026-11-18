@@ -31,3 +31,15 @@ describe('Modal «Peça uma demonstração»', () => {
     expect(dialog).toContain('env(safe-area-inset-bottom)');
   });
 });
+
+describe('Modal: os campos não se apagam quando há um erro', () => {
+  it('não usa action= (o React limparia o formulário) e guarda os valores dos campos', () => {
+    expect(dialog).not.toMatch(/<form[^>]*\baction=\{formAction\}/);
+    expect(dialog).toContain('onSubmit={(event) => {');
+    expect(dialog).toContain('startTransition(() => formAction(formData))');
+    for (const name of ['name', 'restaurant', 'phone', 'email']) {
+      expect(dialog).toContain(`{...field('${name}')}`);
+    }
+    expect(dialog).toContain('checked={consent}');
+  });
+});
