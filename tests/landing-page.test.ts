@@ -287,13 +287,21 @@ describe('Metadados e geração da página (/)', () => {
 
   it('tem título, descrição, Open Graph e pode ser indexada', () => {
     const { metadata } = homePage;
-    expect(metadata.title).toEqual({ absolute: 'O Seu Menu — Carta digital para restaurantes' });
-    expect(metadata.description).toBe(LANDING_TAGLINE);
-    expect(metadata.robots).toEqual({ index: true, follow: true });
-    expect(metadata.openGraph).toMatchObject({
-      title: 'O Seu Menu — Carta digital para restaurantes',
-      locale: 'pt_PT',
-      siteName: 'O Seu Menu',
-    });
+    const title = 'O Seu Menu — Carta digital com QR code para restaurantes';
+    expect(metadata.title).toEqual({ absolute: title });
+    // Descrição pensada para a pesquisa: carta digital, QR code, restaurantes, Portugal.
+    expect(String(metadata.description)).toMatch(/carta digital com QR code para restaurantes/i);
+    expect(String(metadata.description)).toMatch(/Portugal/);
+    expect(metadata.robots).toMatchObject({ index: true, follow: true });
+    expect(metadata.openGraph).toMatchObject({ title, locale: 'pt_PT', siteName: 'O Seu Menu' });
+    expect(metadata.twitter).toMatchObject({ card: 'summary_large_image' });
+  });
+
+  it('tem dados estruturados (organização, serviço e perguntas frequentes)', () => {
+    const html = renderToStaticMarkup(createElement(homePage.default));
+    const json = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
+    expect(json).toBeTruthy();
+    const types = (JSON.parse(json!)['@graph'] as { '@type': string }[]).map((n) => n['@type']);
+    expect(types).toEqual(['Organization', 'WebSite', 'Service', 'FAQPage']);
   });
 });

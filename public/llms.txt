@@ -1,0 +1,45 @@
+# O Seu Menu
+
+> Carta digital com QR code para restaurantes em Portugal. Os clientes apontam a câmara do telemóvel ao QR code da mesa e a carta abre logo, sem instalar nada, em português e inglês. O dono muda preços, pratos e pratos esgotados no seu telemóvel, em segundos, sem reimprimir nada.
+
+O Seu Menu (https://oseumenu.pt) é um serviço português para restaurantes, tascas, cafés e bistrôs, pensado para quem não percebe de informática. Nós passamos a carta do restaurante (papel, PDF ou fotografia), pomos os QR codes nas mesas e o dono passa a gerir tudo num painel simples no telemóvel.
+
+## O que os clientes do restaurante veem
+
+- Carta no telemóvel, rápida, sem instalar nenhuma aplicação (abre com a câmara).
+- Português e inglês com um toque (útil para turistas).
+- Alergénios prato a prato, com os 14 alergénios previstos na lei europeia.
+- Fotos dos pratos que se ampliam com um toque.
+- Pratos esgotados à vista, com o preço riscado.
+- Selos «Da casa», «Recomendado» e «Novo».
+- Horário de funcionamento, com «aberto agora» / «fechado agora · abre às…».
+
+## O que o dono do restaurante faz no painel
+
+- Marca um prato como esgotado com um toque.
+- Muda um preço ou um prato em segundos, a partir do telemóvel.
+- Tira a fotografia do prato no telemóvel (é reduzida automaticamente).
+- Escreve a tradução para inglês e marca os alergénios.
+- Escolhe o aspeto da carta: logotipo, 7 fundos, 5 cores e 3 disposições (Lista, Grelha, Foto grande).
+- Descarrega o QR code das mesas, pronto a imprimir; é sempre o mesmo, mesmo quando a carta muda.
+
+## Endereço da carta
+
+Cada carta fica em https://oseumenu.pt/nome-do-restaurante (ou no site do restaurante, se já tiver um).
+
+## Preço
+
+Há um período experimental gratuito e sem compromisso. O preço é dito antes de qualquer pagamento; se o restaurante não quiser continuar, não paga nada. Não é feito para encomendas nem pagamentos: é só a carta.
+
+## Páginas
+
+- [Página de apresentação](https://oseumenu.pt/): o que é, como funciona, painel, estilos, perguntas frequentes e pedido de demonstração.
+- [Carta de exemplo](https://oseumenu.pt/demo): uma carta de demonstração (restaurante fictício).
+
+## Contacto
+
+Pedido de demonstração (10 minutos, com a carta do próprio restaurante) pelo botão «Peça uma demonstração» em https://oseumenu.pt/.
+
+## English summary
+
+O Seu Menu is a Portuguese QR-code digital menu service for restaurants in Portugal. Diners scan the table QR code and the menu opens instantly in Portuguese or English, with allergens (the 14 EU allergens), dish photos and sold-out items. Owners update prices and dishes from their phone in seconds, without reprinting. Free trial, no commitment. Website: https://oseumenu.pt/
