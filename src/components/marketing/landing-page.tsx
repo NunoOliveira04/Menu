@@ -184,7 +184,7 @@ const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
 
 const CONTACT_POINTS = ['Demonstração de 10 minutos', 'Com a sua própria carta', 'Sem compromisso'];
 
-const FAQS: { question: string; answer: string }[] = [
+export const LANDING_FAQS: { question: string; answer: string }[] = [
   {
     question: 'E se os clientes preferirem papel?',
     answer:
@@ -703,7 +703,7 @@ export function LandingPage({
           <div className="mx-auto max-w-3xl px-5">
             <SectionHeading id="perguntas" eyebrow="Dúvidas" title="Perguntas frequentes" center />
             <div className="mt-10 space-y-3">
-              {FAQS.map((faq) => (
+              {LANDING_FAQS.map((faq) => (
                 <details key={faq.question} className="group rounded-[20px] bg-[#FBF6EC]">
                   <summary
                     className={`flex min-h-[64px] cursor-pointer list-none items-center justify-between gap-4 rounded-[20px] px-6 py-4 text-lg font-semibold sm:text-xl [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
